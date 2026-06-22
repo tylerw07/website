@@ -231,27 +231,6 @@
   }
   .toggle-desc { font-size: 13px; color: var(--ink-soft); }
 
-  /* ── Budget range ── */
-  .budget-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .budget-option { position: relative; cursor: pointer; }
-  .budget-option input { position: absolute; opacity: 0; pointer-events: none; }
-  .budget-face {
-    border: 2px solid var(--line);
-    border-radius: 10px;
-    padding: 12px 14px;
-    font-size: 13.5px;
-    font-weight: 600;
-    color: var(--ink-soft);
-    text-align: center;
-    transition: all 0.15s;
-  }
-  .budget-option input:checked + .budget-face {
-    border-color: var(--accent);
-    background: var(--accent-soft);
-    color: var(--accent);
-  }
-  .budget-option:hover .budget-face { border-color: var(--ink-faint); }
-
   /* ── Timeline radio ── */
   .timeline-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
   .timeline-option { position: relative; cursor: pointer; }
@@ -381,7 +360,6 @@
     .page-head { padding: 32px 0 24px; margin-bottom: 28px; }
     .page-head h1 { font-size: 24px; }
     .field-row { grid-template-columns: 1fr; gap: 0; }
-    .budget-grid { grid-template-columns: 1fr 1fr; }
     .timeline-grid { grid-template-columns: 1fr 1fr; }
     .progress-step span { display: none; }
     .form-nav { flex-direction: column-reverse; }
@@ -392,7 +370,6 @@
   }
   @media (max-width: 390px) {
     .wrap { padding: 0 12px; }
-    .budget-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -645,38 +622,7 @@
         </div>
       </div>
 
-      <!-- Budget -->
-      <div class="field">
-        <label>Approximate budget for the build <span class="req">*</span></label>
-        <div class="budget-grid">
-          <label class="budget-option">
-            <input type="radio" name="budget" value="Under $500" required>
-            <div class="budget-face">Under $500</div>
-          </label>
-          <label class="budget-option">
-            <input type="radio" name="budget" value="$500 – $1,000">
-            <div class="budget-face">$500 – $1,000</div>
-          </label>
-          <label class="budget-option">
-            <input type="radio" name="budget" value="$1,000 – $2,500">
-            <div class="budget-face">$1,000 – $2,500</div>
-          </label>
-          <label class="budget-option">
-            <input type="radio" name="budget" value="$2,500 – $5,000">
-            <div class="budget-face">$2,500 – $5,000</div>
-          </label>
-          <label class="budget-option">
-            <input type="radio" name="budget" value="$5,000+">
-            <div class="budget-face">$5,000+</div>
-          </label>
-          <label class="budget-option">
-            <input type="radio" name="budget" value="Not sure yet">
-            <div class="budget-face">Not sure yet</div>
-          </label>
-        </div>
-      </div>
-
-      <!-- Timeline -->
+      <!-- Timeline -->      <!-- Timeline -->
       <div class="field">
         <label>How soon do you need this live?</label>
         <div class="timeline-grid">
@@ -810,10 +756,7 @@ function validateStep(step) {
     if (!type) { showStepError('Please select the type of app you need.'); return false; }
     if (!desc) { showStepError('Please describe your project — even a few sentences is fine.'); return false; }
   }
-  if (step === 3) {
-    const budget = document.querySelector('input[name="budget"]:checked');
-    if (!budget) { showStepError('Please select your approximate budget.'); return false; }
-  }
+
   clearStepError();
   return true;
 }
@@ -900,7 +843,6 @@ function buildReview() {
       step: 3,
       rows: [
         ['Services needed', services.join(', ')],
-        ['Budget', checked('budget')],
         ['Timeline', checked('timeline')],
         ['Target date', val('targetDate')],
         ['Extra notes', val('additionalNotes')],
@@ -950,7 +892,6 @@ const fbApp = initializeApp(firebaseConfig);
 const db    = getDatabase(fbApp);
 
 async function createProjectInFirebase(payload) {
-  const budget   = document.querySelector('input[name="budget"]:checked');
   const timeline = document.querySelector('input[name="timeline"]:checked');
 
   const services = [];
@@ -998,7 +939,6 @@ async function createProjectInFirebase(payload) {
 
     notes: [
       services.length ? 'SERVICES REQUESTED: ' + services.join(', ') : '',
-      budget   ? 'BUDGET: ' + budget.value : '',
       timeline ? 'TIMELINE: ' + timeline.value : '',
       payload.additional_notes ? '\nADDITIONAL NOTES:\n' + payload.additional_notes : '',
       '\nSOURCE: Submitted via newtraildesign.com/start',
