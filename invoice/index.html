@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Invoice — New Trail Design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f6f9;
+    --surface: #ffffff;
+    --ink: #13182b;
+    --ink-soft: #545b72;
+    --ink-faint: #8a90a6;
+    --accent: #5848e0;
+    --accent-deep: #4636c4;
+    --accent-soft: #edebfc;
+    --warm: #e8923d;
+    --line: #e2e4ec;
+    --green: #1a7f4e;
+    --green-bg: #e7f6ee;
+    --red: #b3441f;
+    --red-bg: #fdf0ec;
+    --radius: 14px;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,h2,h3 { font-family: 'Fraunces', serif; font-weight: 600; margin: 0; }
+  a { color: inherit; }
+  p { margin: 0; }
+
+  /* ── Screen chrome ── */
+  .screen-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .logo {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 17px;
+    text-decoration: none;
+    color: var(--ink);
+  }
+  .logo span { color: var(--accent); }
+  .screen-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    padding: 9px 18px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    text-decoration: none;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary:hover { background: var(--accent-deep); }
+  .btn-ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+  .btn-ghost:hover { border-color: var(--ink); }
+
+  /* ── Loading / error ── */
+  #loadingState {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--ink-faint);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+  }
+  #errorState {
+    display: none;
+    max-width: 480px;
+    margin: 60px auto;
+    padding: 24px;
+    background: var(--red-bg);
+    color: var(--red);
+    border-radius: var(--radius);
+    font-size: 14px;
+    text-align: center;
+  }
+
+  /* ── Invoice wrapper ── */
+  #invoiceWrap { display: none; padding: 40px 20px 80px; }
+  .invoice {
+    max-width: 720px;
+    margin: 0 auto;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  /* ── Invoice header ── */
+  .inv-header {
+    background: var(--ink);
+    color: white;
+    padding: 36px 40px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .inv-brand { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; }
+  .inv-brand span { color: #a5b4fc; }
+  .inv-brand-sub { font-size: 13px; color: #94a3b8; margin-top: 4px; }
+  .inv-number-block { text-align: right; }
+  .inv-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #64748b; margin-bottom: 4px; }
+  .inv-number { font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 600; color: white; }
+  .inv-date { font-size: 13px; color: #94a3b8; margin-top: 4px; }
+
+  /* ── Invoice body ── */
+  .inv-body { padding: 36px 40px; }
+
+  .inv-parties {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-bottom: 36px;
+  }
+  .inv-party-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 8px;
+  }
+  .inv-party-name { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+  .inv-party-detail { font-size: 13.5px; color: var(--ink-soft); line-height: 1.7; }
+
+  /* ── Line items ── */
+  .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  .inv-table th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    text-align: left;
+    padding: 0 0 10px;
+    border-bottom: 2px solid var(--line);
+  }
+  .inv-table th:last-child { text-align: right; }
+  .inv-table td {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  .inv-table td:last-child { text-align: right; font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
+  .inv-item-name { font-weight: 600; font-size: 14.5px; margin-bottom: 3px; }
+  .inv-item-desc { font-size: 13px; color: var(--ink-soft); }
+
+  /* ── Totals ── */
+  .inv-totals { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; margin-bottom: 32px; }
+  .inv-total-row { display: flex; gap: 48px; font-size: 14px; }
+  .inv-total-row .t-label { color: var(--ink-soft); }
+  .inv-total-row .t-amount { font-family: 'IBM Plex Mono', monospace; font-weight: 600; min-width: 80px; text-align: right; }
+  .inv-grand-total {
+    display: flex;
+    gap: 48px;
+    padding-top: 12px;
+    border-top: 2px solid var(--ink);
+    margin-top: 4px;
+  }
+  .inv-grand-total .t-label { font-weight: 700; font-size: 15px; }
+  .inv-grand-total .t-amount { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 700; color: var(--accent); min-width: 80px; text-align: right; }
+
+  /* ── Payment status banner ── */
+  .inv-status-banner {
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  .inv-status-banner.paid { background: var(--green-bg); color: var(--green); }
+  .inv-status-banner.unpaid { background: var(--red-bg); color: var(--red); }
+  .inv-status-banner.deposit { background: #fcecd9; color: var(--warm); }
+  .inv-status-banner.overdue { background: #fef9c3; color: #854d0e; }
+
+  /* ── Pay now section ── */
+  .inv-pay-section {
+    background: var(--accent-soft);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 28px;
+    text-align: center;
+  }
+  .inv-pay-section h3 { font-size: 17px; margin-bottom: 8px; color: var(--accent-deep); }
+  .inv-pay-section p { font-size: 13.5px; color: var(--ink-soft); margin-bottom: 16px; }
+  .inv-pay-section a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent);
+    color: white;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 14px 28px;
+    border-radius: 999px;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .inv-pay-section a:hover { background: var(--accent-deep); }
+
+  /* ── Footer ── */
+  .inv-footer {
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+    padding: 20px 40px;
+    font-size: 13px;
+    color: var(--ink-faint);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* ── Print styles ── */
+  @media print {
+    .screen-bar { display: none !important; }
+    body { background: white; }
+    #invoiceWrap { padding: 0; }
+    .invoice { border: none; border-radius: 0; box-shadow: none; }
+    .inv-pay-section { display: none; }
+    .inv-header { background: #13182b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+
+  @media (max-width: 520px) {
+    .inv-header { padding: 24px 20px; }
+    .inv-body { padding: 24px 20px; }
+    .inv-parties { grid-template-columns: 1fr; gap: 20px; }
+    .inv-number-block { text-align: left; }
+    .inv-footer { padding: 16px 20px; }
+    .screen-bar { padding: 12px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Screen-only chrome -->
+<div class="screen-bar" id="screenBar" style="display:none">
+  <a href="/projects" class="logo">New Trail <span>Design</span></a>
+  <div class="screen-actions">
+    <button class="btn btn-ghost" onclick="window.print()">🖨 Print / Save PDF</button>
+    <a href="/projects" class="btn btn-ghost">← Projects</a>
+  </div>
+</div>
+
+<div id="loadingState">Loading invoice...</div>
+<div id="errorState"></div>
+<div id="invoiceWrap"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey:            'AIzaSyDUGcWkaRXtM71HFkD0zm47pk8unztjQW4',
+  authDomain:        'newtraildb.firebaseapp.com',
+  databaseURL:       'https://newtraildb-default-rtdb.firebaseio.com',
+  projectId:         'newtraildb',
+  storageBucket:     'newtraildb.firebasestorage.app',
+  messagingSenderId: '812703057534',
+  appId:             '1:812703057534:web:d10ee3739185ce61d5ba2f',
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db    = getDatabase(fbApp);
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function fmtDate(d) {
+  if (!d) return '';
+  const parts = d.split('-');
+  if (parts.length !== 3) return d;
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return months[parseInt(parts[1])-1] + ' ' + parseInt(parts[2]) + ', ' + parts[0];
+}
+
+function genInvoiceNumber(fbKey) {
+  const hash = fbKey.replace(/[^a-zA-Z0-9]/g,'').substring(0,6).toUpperCase();
+  return 'NTD-' + hash;
+}
+
+function showError(msg) {
+  document.getElementById('loadingState').style.display = 'none';
+  const err = document.getElementById('errorState');
+  err.textContent = msg;
+  err.style.display = 'block';
+}
+
+function buildInvoice(p, fbKey) {
+  const invoiceNum = genInvoiceNumber(fbKey);
+  const today = new Date();
+  const todayStr = fmtDate(today.toISOString().split('T')[0]);
+  const dueDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const dueDateStr = fmtDate(dueDate.toISOString().split('T')[0]);
+
+  const buildFee = parseFloat(p.buildFee || 350);
+  const monthlyFee = parseFloat(p.hosting || 0);
+  const total = buildFee + monthlyFee;
+
+  // Payment status
+  const payStatus = p.paymentStatus || 'Unpaid';
+  const isPaid = payStatus === 'Paid in full';
+  const isOverdue = payStatus === 'Overdue';
+  const isDeposit = payStatus === 'Deposit paid';
+
+  let statusBannerClass = 'unpaid';
+  let statusIcon = '⚠';
+  let statusText = 'Payment due by ' + dueDateStr;
+  if (isPaid) { statusBannerClass = 'paid'; statusIcon = '✓'; statusText = 'This invoice has been paid in full. Thank you!'; }
+  else if (isOverdue) { statusBannerClass = 'overdue'; statusIcon = '!'; statusText = 'This invoice is overdue. Please arrange payment as soon as possible.'; }
+  else if (isDeposit) { statusBannerClass = 'deposit'; statusIcon = '◑'; statusText = 'Deposit received. Remaining balance due by ' + dueDateStr + '.'; }
+
+  // Payment link
+  const payUrl = '/payment?name=' + encodeURIComponent(p.client||'') +
+    '&email=' + encodeURIComponent(p.email||'') +
+    '&project=' + encodeURIComponent(p.name||'') +
+    '&fee=' + encodeURIComponent(p.buildFee||'350') +
+    '&hosting=' + encodeURIComponent(p.hosting||'') +
+    '&invoice=' + encodeURIComponent(invoiceNum);
+
+  const hostingLabel = monthlyFee === 50 ? 'Hosting + Backend'
+    : monthlyFee === 35 ? 'Backend & database'
+    : monthlyFee === 20 ? 'Hosting'
+    : null;
+
+  const lineItems = [
+    { name: 'Custom app build', desc: esc(p.name || 'Custom application') + ' — designed and built from scratch', amount: buildFee },
+    ...(hostingLabel && monthlyFee > 0 ? [{ name: hostingLabel + ' (first month)', desc: 'Monthly service — renews each month. Cancel any time with 30 days notice.', amount: monthlyFee }] : []),
+  ];
+
+  const wrap = document.getElementById('invoiceWrap');
+  wrap.innerHTML = `
+    <div class="invoice">
+      <div class="inv-header">
+        <div>
+          <div class="inv-brand">New Trail <span>Design</span></div>
+          <div class="inv-brand-sub">hello@newtraildesign.com<br>newtraildesign.com</div>
+        </div>
+        <div class="inv-number-block">
+          <div class="inv-label">Invoice</div>
+          <div class="inv-number">${esc(invoiceNum)}</div>
+          <div class="inv-date">Issued ${todayStr}</div>
+        </div>
+      </div>
+
+      <div class="inv-body">
+
+        <div class="inv-parties">
+          <div>
+            <div class="inv-party-label">From</div>
+            <div class="inv-party-name">New Trail Design LLC</div>
+            <div class="inv-party-detail">hello@newtraildesign.com<br>newtraildesign.com</div>
+          </div>
+          <div>
+            <div class="inv-party-label">Bill to</div>
+            <div class="inv-party-name">${esc(p.client || 'Client')}</div>
+            <div class="inv-party-detail">
+              ${p.business ? esc(p.business) + '<br>' : ''}
+              ${p.email ? esc(p.email) + '<br>' : ''}
+              ${p.phone ? esc(p.phone) : ''}
+            </div>
+          </div>
+        </div>
+
+        <div class="inv-status-banner ${statusBannerClass}">${statusIcon} ${statusText}</div>
+
+        <table class="inv-table">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th style="text-align:right">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${lineItems.map(function(item) {
+              return '<tr><td><div class="inv-item-name">' + esc(item.name) + '</div><div class="inv-item-desc">' + item.desc + '</div></td><td>$' + item.amount.toFixed(2) + '</td></tr>';
+            }).join('')}
+          </tbody>
+        </table>
+
+        <div class="inv-totals">
+          ${lineItems.length > 1 ? '<div class="inv-total-row"><span class="t-label">Subtotal</span><span class="t-amount">$' + lineItems.reduce(function(s,i){return s+i.amount;},0).toFixed(2) + '</span></div>' : ''}
+          <div class="inv-grand-total">
+            <span class="t-label">Total due today</span>
+            <span class="t-amount">$${total.toFixed(2)}</span>
+          </div>
+        </div>
+
+        ${!isPaid ? `
+        <div class="inv-pay-section">
+          <h3>Pay this invoice online</h3>
+          <p>Secure payment powered by Square. All major cards accepted.</p>
+          <a href="${esc(payUrl)}" target="_blank">Pay $${total.toFixed(2)} now →</a>
+        </div>` : ''}
+
+        ${monthlyFee > 0 && !isPaid ? `
+        <p style="font-size:13px;color:var(--ink-faint);margin-bottom:28px;padding:12px 16px;background:var(--bg);border-radius:8px;">
+          After today's payment, your ${esc(hostingLabel||'')} service renews at <strong>$${monthlyFee.toFixed(2)}/month</strong>.
+          You'll receive a monthly invoice by email. Cancel with 30 days notice.
+        </p>` : ''}
+
+        ${p.notes ? `<div style="font-size:13px;color:var(--ink-soft);padding-top:20px;border-top:1px solid var(--line)"><strong style="color:var(--ink)">Project notes:</strong><br>${esc(p.notes)}</div>` : ''}
+
+      </div>
+
+      <div class="inv-footer">
+        <span>Thank you for choosing New Trail Design.</span>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:11px">${esc(invoiceNum)}</span>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('screenBar').style.display = 'flex';
+  wrap.style.display = 'block';
+  document.title = invoiceNum + ' — ' + esc(p.client || 'Invoice') + ' — New Trail Design';
+}
+
+// ── Load project from Firebase ─────────────────────────────
+const params = new URLSearchParams(window.location.search);
+const fbKey = params.get('fbkey');
+
+if (!fbKey) {
+  showError('No invoice specified. Open this page from the Projects dashboard.');
+} else {
+  get(ref(db, 'projects/' + fbKey)).then(function(snapshot) {
+    if (!snapshot.exists()) {
+      showError('Invoice not found. The project may have been deleted.');
+      return;
+    }
+    const p = snapshot.val();
+    buildInvoice(p, fbKey);
+  }).catch(function(err) {
+    showError('Could not load invoice: ' + err.message);
+  });
+}
+</script>
+</body>
+</html>
