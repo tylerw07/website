@@ -1,10 +1,9 @@
 // netlify/functions/charge.js
 //
-// Required Netlify environment variables:
-//   SQUARE_ACCESS_TOKEN = EAAAl6-LBXWhS_v-yPOnR5QMVFozxBKkli6x-3TRCLGFLfNUKnP3gJqlbwANWwLz
-//   (rotate this at developer.squareup.com after sharing publicly)
+// Set SQUARE_ACCESS_TOKEN in Netlify → Site configuration → Environment variables
+// Never put the actual token value in this file.
 //
-// Required npm package — add a package.json to your repo root:
+// Requires square npm package — package.json at repo root must include:
 //   { "dependencies": { "square": "^40.0.0" } }
 
 const { Client, Environment } = require('square');
