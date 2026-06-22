@@ -439,7 +439,7 @@
 // ── Configuration — REPLACE THESE ────────────────────────
 const SQUARE_APP_ID     = 'sandbox-sq0idb-VoMojbm61b0JU5QyQSAOyw';
 const SQUARE_LOCATION_ID = 'LPYE0RAF3P32B';
-const BACKEND_URL       = 'https://stellular-kringle-211669.netlify.app/';
+const BACKEND_URL       = 'https://stellular-kringle-211669.netlify.app/.netlify/functions/charge';
 // ─────────────────────────────────────────────────────────
 
 const PLANS = {
@@ -493,14 +493,29 @@ async function initSquare() {
     return;
   }
 
-  const payments = Square.payments(SQUARE_APP_ID, SQUARE_LOCATION_ID);
-  card = await payments.card({
-    style: {
-      '.input-container': { borderColor: '#e2e4ec', borderRadius: '9px' },
-      '.input-container.is-focus': { borderColor: '#5848e0' },
-    }
-  });
-  await card.attach('#card-container');
+  // Check Square SDK actually loaded
+  if (typeof Square === 'undefined') {
+    document.getElementById('card-container').innerHTML =
+      '<p style="color:var(--red,#b3441f);font-size:13.5px;padding:8px 0">Square SDK failed to load. Check your internet connection and try refreshing.</p>';
+    console.error('Square SDK not loaded — square.js may have been blocked.');
+    return;
+  }
+
+  try {
+    const payments = Square.payments(SQUARE_APP_ID, SQUARE_LOCATION_ID);
+    card = await payments.card({
+      style: {
+        '.input-container': { borderColor: '#e2e4ec', borderRadius: '9px' },
+        '.input-container.is-focus': { borderColor: '#5848e0' },
+      }
+    });
+    await card.attach('#card-container');
+    console.log('Square card initialized successfully');
+  } catch (err) {
+    document.getElementById('card-container').innerHTML =
+      '<p style="color:var(--red,#b3441f);font-size:13.5px;padding:8px 0">Square error: ' + err.message + '</p>';
+    console.error('Square initSquare error:', err);
+  }
 }
 
 // ── Form validation ────────────────────────────────────────
