@@ -78,6 +78,10 @@
   .project-client { font-size:13px; color:var(--ink-soft); margin-top:2px; }
   .status-badge { font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; letter-spacing:0.04em; padding:4px 10px; border-radius:999px; white-space:nowrap; flex-shrink:0; }
   .status-active { background:var(--green-bg); color:var(--green); }
+  .pay-paid { background:var(--green-bg); color:var(--green); font-size:11px; font-weight:600; font-family:'IBM Plex Mono',monospace; padding:3px 8px; border-radius:999px; letter-spacing:0.04em; }
+  .pay-unpaid { background:var(--red-bg); color:var(--red); font-size:11px; font-weight:600; font-family:'IBM Plex Mono',monospace; padding:3px 8px; border-radius:999px; letter-spacing:0.04em; }
+  .pay-overdue { background:#fef9c3; color:#854d0e; font-size:11px; font-weight:600; font-family:'IBM Plex Mono',monospace; padding:3px 8px; border-radius:999px; letter-spacing:0.04em; }
+  .pay-deposit { background:var(--warm-soft); color:var(--warm); font-size:11px; font-weight:600; font-family:'IBM Plex Mono',monospace; padding:3px 8px; border-radius:999px; letter-spacing:0.04em; }
   .status-completed { background:var(--accent-soft); color:var(--accent-deep); }
   .status-on-hold { background:var(--orange-bg); color:var(--orange); }
   .status-cancelled { background:#f3f4f6; color:#6b7280; }
@@ -330,6 +334,7 @@
     <div class="detail-grid">
       <div class="detail-item"><div class="detail-label">Build fee</div><div class="detail-value" id="dBuildFee"></div></div>
       <div class="detail-item"><div class="detail-label">Payment status</div><div class="detail-value" id="dPayment"></div></div>
+      <div class="detail-item"><div class="detail-label">Invoice link</div><div class="detail-value" id="dInvoiceLink">—</div></div>
       <div class="detail-item"><div class="detail-label">Monthly plan</div><div class="detail-value" id="dHosting"></div></div>
       <div class="detail-item"><div class="detail-label">Next billing</div><div class="detail-value" id="dNextBilling"></div></div>
     </div>
@@ -337,8 +342,10 @@
   <div class="detail-section" id="dBriefSection"><h4>Project brief</h4><div class="notes-box" id="dBrief"></div></div>
   <div class="detail-section" id="dNotesSection"><h4>Internal notes</h4><div class="notes-box" id="dNotes"></div></div>
   <div class="detail-section" id="dTagsSection"><h4>Tags</h4><div class="project-tags" id="dTags"></div></div>
-  <div class="drawer-actions">
+  <div class="drawer-actions" style="flex-wrap:wrap">
     <button class="btn btn-ghost" id="drawerEdit">Edit project</button>
+    <button class="btn btn-primary" id="drawerInvoice">Generate invoice</button>
+    <button class="btn btn-ghost" id="drawerMarkPaid" style="color:var(--green);border-color:var(--green)">Mark paid</button>
   </div>
 </div>
 
@@ -374,9 +381,18 @@ let listenerAttached = false;
 const USERNAME='admin', PASSWORD='817564Burg!@', SESSION_KEY='nt_auth';
 const loginGate=document.getElementById('loginGate'), dashboard=document.getElementById('dashboard'), logoutBtn=document.getElementById('logoutBtn');
 
-function showLoading(on){
-  document.getElementById('loadingState').style.display=on?'block':'none';
-  document.getElementById('projectGrid').style.display=on?'none':'grid';
+function showLoading(on, errorMsg){
+  const loadEl = document.getElementById('loadingState');
+  const gridEl = document.getElementById('projectGrid');
+  if(errorMsg){
+    loadEl.innerHTML = '<p style="font-family:monospace;font-size:13px;color:var(--red);background:var(--red-bg);padding:14px 18px;border-radius:10px;display:inline-block">' + errorMsg + '</p>';
+    loadEl.style.display = 'block';
+    gridEl.style.display = 'none';
+    return;
+  }
+  loadEl.innerHTML = '<p style="font-family:monospace;font-size:13px;letter-spacing:0.06em">Loading projects...</p>';
+  loadEl.style.display = on ? 'block' : 'none';
+  gridEl.style.display = on ? 'none' : 'grid';
 }
 
 function showDashboard(){
@@ -384,18 +400,39 @@ function showDashboard(){
   dashboard.style.display='block';
   logoutBtn.style.display='block';
   showLoading(true);
+
   if(!listenerAttached){
     listenerAttached=true;
-    onValue(projectsRef,function(snapshot){
-      projectsCache=[];
-      if(snapshot.exists()){
-        snapshot.forEach(function(child){
-          projectsCache.push(Object.assign({_fbKey:child.key},child.val()));
-        });
+
+    // Timeout — if Firebase hasn't responded in 8 seconds, show a clear error
+    const timeoutId = setTimeout(function(){
+      showLoading(false, 'Could not connect to database. Check your Firebase rules allow reads, then refresh.');
+    }, 8000);
+
+    onValue(
+      projectsRef,
+      function(snapshot){
+        clearTimeout(timeoutId);
+        projectsCache=[];
+        if(snapshot.exists()){
+          snapshot.forEach(function(child){
+            projectsCache.push(Object.assign({_fbKey:child.key},child.val()));
+          });
+        }
+        showLoading(false);
+        renderAll();
+      },
+      function(error){
+        // Firebase called the error callback — permission denied or config issue
+        clearTimeout(timeoutId);
+        console.error('Firebase read error:', error);
+        if(error.code === 'PERMISSION_DENIED'){
+          showLoading(false, 'Database permission denied. Go to Firebase Console → Realtime Database → Rules and set ".read": true for the projects node.');
+        } else {
+          showLoading(false, 'Firebase error: ' + error.message + '. Check your database URL and rules.');
+        }
       }
-      showLoading(false);
-      renderAll();
-    });
+    );
   } else {
     showLoading(false);
     renderAll();
@@ -474,11 +511,12 @@ function renderAll(){
   filtered.forEach(function(p){
     const tags=(p.tags||[]).slice(0,4).map(t=>'<span class="tag">'+esc(t)+'</span>').join('');
     const monthly=p.hosting?'<span class="monthly-badge">$'+p.hosting+'/mo</span>':'<span style="font-size:12px;color:var(--ink-faint)">App only</span>';
+    const payBadge = p.paymentStatus === 'Paid in full' ? '<span class="pay-paid">Paid</span>' : p.paymentStatus === 'Overdue' ? '<span class="pay-overdue">Overdue</span>' : p.paymentStatus === 'Deposit paid' ? '<span class="pay-deposit">Deposit</span>' : p.paymentStatus ? '<span class="pay-unpaid">Unpaid</span>' : '';
     const card=document.createElement('div');
-    card.className='project-card'; card.dataset.id=p.id;
-    card.innerHTML=`<div class="project-card-top"><div><div class="project-name">${esc(p.name)}</div><div class="project-client">${esc(p.client)}${p.business?' &middot; '+esc(p.business):''}</div></div><span class="status-badge ${sClass(p.status)}">${sLabel(p.status)}</span></div><div class="project-meta"><div class="meta-item"><div class="meta-label">Type</div><div class="meta-value">${esc(p.type||'&#8212;')}</div></div><div class="meta-item"><div class="meta-label">Billing</div><div class="meta-value">${esc(p.paymentStatus||'&#8212;')}</div></div><div class="meta-item"><div class="meta-label">Started</div><div class="meta-value">${fmtDate(p.startDate)}</div></div><div class="meta-item"><div class="meta-label">Deadline</div><div class="meta-value">${fmtDate(p.deadline)}</div></div></div>${tags?'<div class="project-tags">'+tags+'</div>':''}<div class="project-card-footer">${monthly}<div class="card-actions"><button class="btn btn-ghost btn-sm edit-btn" data-id="${p.id}">Edit</button></div></div>`;
-    card.addEventListener('click',function(e){if(e.target.classList.contains('edit-btn')||e.target.closest('.edit-btn'))return;openDrawer(p.id);});
-    card.querySelector('.edit-btn').addEventListener('click',function(e){e.stopPropagation();openModal(p.id);});
+    card.className='project-card'; card.dataset.id=p._fbKey;
+    card.innerHTML=`<div class="project-card-top"><div><div class="project-name">${esc(p.name)}</div><div class="project-client">${esc(p.client)}${p.business?' &middot; '+esc(p.business):''}</div></div><span class="status-badge ${sClass(p.status)}">${sLabel(p.status)}</span></div><div class="project-meta"><div class="meta-item"><div class="meta-label">Type</div><div class="meta-value">${esc(p.type||'&#8212;')}</div></div><div class="meta-item"><div class="meta-label">Billing</div><div class="meta-value">${esc(p.paymentStatus||'&#8212;')}</div></div><div class="meta-item"><div class="meta-label">Started</div><div class="meta-value">${fmtDate(p.startDate)}</div></div><div class="meta-item"><div class="meta-label">Deadline</div><div class="meta-value">${fmtDate(p.deadline)}</div></div></div>${tags?'<div class="project-tags">'+tags+'</div>':''}<div class="project-card-footer">${monthly}<div class="card-actions"><button class="btn btn-ghost btn-sm edit-btn" data-id="${p._fbKey}">Edit</button></div></div>`;
+    card.addEventListener('click',function(e){if(e.target.classList.contains('edit-btn')||e.target.closest('.edit-btn'))return;openDrawer(p._fbKey);});
+    card.querySelector('.edit-btn').addEventListener('click',function(e){e.stopPropagation();openModal(p._fbKey);});
     grid.appendChild(card);
   });
 }
@@ -494,7 +532,7 @@ document.getElementById('searchBox').addEventListener('input',function(){searchT
 let editingId=null;
 
 function openModal(id){
-  const projects=projectsCache; const p=id?projects.find(x=>x.id===id||x._fbKey===id):null; editingId=p?p._fbKey||p.id:null;
+  const projects=projectsCache; const p=id?projects.find(x=>x._fbKey===id):null; editingId=p?p._fbKey:null;
   document.getElementById('modalTitle').textContent=p?'Edit project':'New project';
   document.getElementById('deleteProjectBtn').style.display=p?'block':'none';
   const fields={fName:'name',fClient:'client',fBusiness:'business',fEmail:'email',fPhone:'phone',fStack:'stack',fUrl:'liveUrl',fRepo:'repo',fStartDate:'startDate',fDeadline:'deadline',fBuildFee:'buildFee',fNextBilling:'nextBilling',fBrief:'brief',fNotes:'notes'};
@@ -522,7 +560,7 @@ document.getElementById('modalSave').addEventListener('click',function(){
   const data={name,client,business:document.getElementById('fBusiness').value.trim(),email:document.getElementById('fEmail').value.trim(),phone:document.getElementById('fPhone').value.trim(),status:document.getElementById('fStatus').value,type:document.getElementById('fType').value,stack:document.getElementById('fStack').value.trim(),liveUrl:document.getElementById('fUrl').value.trim(),repo:document.getElementById('fRepo').value.trim(),startDate:document.getElementById('fStartDate').value,deadline:document.getElementById('fDeadline').value,buildFee:document.getElementById('fBuildFee').value,paymentStatus:document.getElementById('fPaymentStatus').value,hosting:document.getElementById('fHosting').value,nextBilling:document.getElementById('fNextBilling').value,brief:document.getElementById('fBrief').value.trim(),notes:document.getElementById('fNotes').value.trim(),tags,updatedAt:Date.now()};
   // Firebase handles save — onValue listener re-renders automatically
   saveBtn.disabled=true; saveBtn.textContent='Saving...';
-  fbSave(data, editingId ? projects.find(p=>p._fbKey===editingId||p.id===editingId)?._fbKey : null)
+  fbSave(data, editingId || null)
     .then(function(){closeModal();})
     .catch(function(err){alert('Save failed: '+err.message);})
     .finally(function(){saveBtn.disabled=false; saveBtn.textContent='Save project';});
@@ -530,14 +568,13 @@ document.getElementById('modalSave').addEventListener('click',function(){
 
 document.getElementById('deleteProjectBtn').addEventListener('click',function(){
   if(!editingId||!confirm('Delete this project? This cannot be undone.'))return;
-  const toDelete=projectsCache.find(p=>p.id===editingId||p._fbKey===editingId);
-  if(toDelete&&toDelete._fbKey){
-    fbDelete(toDelete._fbKey).then(function(){closeModal();closeDrawer();}).catch(function(err){alert('Delete failed: '+err.message);});
+  if(editingId){
+    fbDelete(editingId).then(function(){closeModal();closeDrawer();}).catch(function(err){alert('Delete failed: '+err.message);});
   }
 });
 
 function openDrawer(id){
-  const p=projectsCache.find(x=>x.id===id||x._fbKey===id); if(!p)return;
+  const p=projectsCache.find(x=>x._fbKey===id); if(!p)return;
   drawerProjectId=id;
   document.getElementById('drawerStatus').textContent=sLabel(p.status);
   document.getElementById('drawerStatus').className='status-badge '+sClass(p.status);
@@ -553,7 +590,11 @@ function openDrawer(id){
   document.getElementById('dStart').innerHTML=fmtDate(p.startDate);
   document.getElementById('dDeadline').innerHTML=fmtDate(p.deadline);
   document.getElementById('dBuildFee').textContent=p.buildFee?'$'+p.buildFee:'—';
-  document.getElementById('dPayment').textContent=p.paymentStatus||'—';
+  const payStatus = p.paymentStatus || '';
+  const payClass = payStatus === 'Paid in full' ? 'pay-paid' : payStatus === 'Overdue' ? 'pay-overdue' : payStatus === 'Deposit paid' ? 'pay-deposit' : payStatus ? 'pay-unpaid' : '';
+  document.getElementById('dPayment').innerHTML = payClass ? '<span class="'+payClass+'">'+esc(payStatus)+'</span>' : '—';
+  const invoiceUrl = '/payment?name='+encodeURIComponent(p.client||'')+'&email='+encodeURIComponent(p.email||'')+'&project='+encodeURIComponent(p.name||'')+'&fee='+encodeURIComponent(p.buildFee||'350')+'&hosting='+encodeURIComponent(p.hosting||'')+'&fbkey='+encodeURIComponent(p._fbKey||'');
+  document.getElementById('dInvoiceLink').innerHTML = '<a href="/invoice?fbkey='+encodeURIComponent(p._fbKey||'')+'" target="_blank" style="color:var(--accent)">Open invoice ↗</a>';
   document.getElementById('dHosting').textContent=p.hosting?'$'+p.hosting+'/mo':'None';
   document.getElementById('dNextBilling').innerHTML=fmtDate(p.nextBilling);
   const bs=document.getElementById('dBriefSection'); bs.style.display=p.brief?'block':'none'; document.getElementById('dBrief').textContent=p.brief||'';
@@ -566,6 +607,19 @@ function openDrawer(id){
 }
 
 function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('drawerOverlay').classList.remove('open');drawerProjectId=null;}
+document.getElementById('drawerInvoice').addEventListener('click',function(){
+  const p=projectsCache.find(x=>x._fbKey===drawerProjectId); if(!p)return;
+  window.open('/invoice?fbkey='+encodeURIComponent(p._fbKey), '_blank');
+});
+
+document.getElementById('drawerMarkPaid').addEventListener('click',function(){
+  const p=projectsCache.find(x=>x._fbKey===drawerProjectId); if(!p)return;
+  if(!confirm('Mark "'+p.name+'" as Paid in full?'))return;
+  fbSave(Object.assign({},p,{paymentStatus:'Paid in full'}), p._fbKey)
+    .then(function(){openDrawer(drawerProjectId);})
+    .catch(function(err){alert('Update failed: '+err.message);});
+});
+
 document.getElementById('drawerClose').addEventListener('click',closeDrawer);
 document.getElementById('drawerOverlay').addEventListener('click',closeDrawer);
 document.getElementById('drawerEdit').addEventListener('click',function(){if(drawerProjectId){closeDrawer();openModal(drawerProjectId);}});
