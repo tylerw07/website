@@ -246,8 +246,29 @@
   }
 
   /* ── Print styles ── */
+  .inv-download-btn {
+    text-align: center;
+    padding: 28px 40px 0;
+  }
+  .inv-download-btn button {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 13px 28px;
+    border-radius: 999px;
+    border: 2px solid var(--accent);
+    background: transparent;
+    color: var(--accent);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .inv-download-btn button:hover { background: var(--accent); color: white; }
   @media print {
     .screen-bar { display: none !important; }
+    .inv-download-btn { display: none !important; }
     body { background: white; }
     #invoiceWrap { padding: 0; }
     .invoice { border: none; border-radius: 0; box-shadow: none; }
@@ -271,7 +292,8 @@
 <div class="screen-bar" id="screenBar" style="display:none">
   <a href="/projects" class="logo">New Trail <span>Design</span></a>
   <div class="screen-actions">
-    <button class="btn btn-ghost" onclick="window.print()">🖨 Print / Save PDF</button>
+    <button class="btn btn-primary" id="downloadPdfBtn" onclick="downloadPDF()">⬇ Download PDF</button>
+    <button class="btn btn-ghost" onclick="window.print()">🖨 Print</button>
     <a href="/projects" class="btn btn-ghost">← Projects</a>
   </div>
 </div>
@@ -310,8 +332,17 @@ function fmtDate(d) {
 }
 
 function genInvoiceNumber(fbKey) {
-  const hash = fbKey.replace(/[^a-zA-Z0-9]/g,'').substring(0,6).toUpperCase();
-  return 'NTD-' + hash;
+  // Format: 3 uppercase letters + 4 digits e.g. NTD1234
+  const letters = fbKey.replace(/[^a-zA-Z]/g,'').substring(0,3).toUpperCase().padEnd(3,'X');
+  const digits  = fbKey.replace(/[^0-9]/g,'').substring(0,4).padEnd(4,'0');
+  // Fallback: if not enough chars, derive from hash of key
+  if (digits.length < 4 || letters.length < 3) {
+    let hash = 0;
+    for (let i = 0; i < fbKey.length; i++) hash = (hash * 31 + fbKey.charCodeAt(i)) & 0xffffffff;
+    const fallbackDigits = String(Math.abs(hash) % 10000).padStart(4,'0');
+    return letters.padEnd(3,'X') + fallbackDigits;
+  }
+  return letters + digits;
 }
 
 function showError(msg) {
@@ -348,6 +379,7 @@ function buildInvoice(p, fbKey) {
   // Payment link
   const payUrl = '/payment?name=' + encodeURIComponent(p.client||'') +
     '&email=' + encodeURIComponent(p.email||'') +
+    '&business=' + encodeURIComponent(p.business||'') +
     '&project=' + encodeURIComponent(p.name||'') +
     '&fee=' + encodeURIComponent(p.buildFee||'350') +
     '&hosting=' + encodeURIComponent(p.hosting||'') +
@@ -438,6 +470,9 @@ function buildInvoice(p, fbKey) {
 
       </div>
 
+      <div class="inv-download-btn">
+        <button onclick="downloadPDF()">⬇ Download invoice as PDF</button>
+      </div>
       <div class="inv-footer">
         <span>Thank you for choosing New Trail Design.</span>
         <span style="font-family:'IBM Plex Mono',monospace;font-size:11px">${esc(invoiceNum)}</span>
@@ -449,6 +484,16 @@ function buildInvoice(p, fbKey) {
   document.getElementById('screenBar').style.display = 'flex';
   wrap.style.display = 'block';
   document.title = invoiceNum + ' — ' + esc(p.client || 'Invoice') + ' — New Trail Design';
+}
+
+// ── Download PDF via print dialog ─────────────────────────
+function downloadPDF() {
+  const btn = document.getElementById('downloadPdfBtn');
+  if (btn) { btn.textContent = 'Preparing...'; btn.disabled = true; }
+  setTimeout(function() {
+    window.print();
+    if (btn) { btn.textContent = '⬇ Download PDF'; btn.disabled = false; }
+  }, 100);
 }
 
 // ── Load project from Firebase ─────────────────────────────
