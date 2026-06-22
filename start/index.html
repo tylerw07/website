@@ -1000,6 +1000,8 @@ document.getElementById('intakeForm').addEventListener('submit', async function(
       createProjectInFirebase(payload),
     ];
 
+    let recurringInvoiceFailed = false;
+
     if (monthlyAmount && clientEmail) {
       requests.push(
         fetch('https://create-subscription.tylerreedwilliams.workers.dev', {
@@ -1014,10 +1016,11 @@ document.getElementById('intakeForm').addEventListener('submit', async function(
           }),
         }).then(r => r.json()).then(json => {
           if (!json.success) {
-            // Non-fatal — log but don't block form submission
+            recurringInvoiceFailed = true;
             console.warn('Recurring invoice setup failed:', json.error);
           }
         }).catch(err => {
+          recurringInvoiceFailed = true;
           console.warn('Recurring invoice worker error:', err.message);
         })
       );
@@ -1031,6 +1034,14 @@ document.getElementById('intakeForm').addEventListener('submit', async function(
       document.getElementById('progressBar').style.display = 'none';
       document.getElementById('formHead').style.display = 'none';
       document.getElementById('intakeForm').style.display = 'none';
+      // Show warning note if recurring invoice setup failed
+      if (recurringInvoiceFailed && monthlyAmount) {
+        const warn = document.getElementById('successScreen').querySelector('p');
+        const note = document.createElement('p');
+        note.style.cssText = 'margin-top:14px;font-size:13px;background:#fdf0ec;color:#b3441f;padding:10px 14px;border-radius:8px;max-width:38ch;margin-left:auto;margin-right:auto';
+        note.textContent = '⚠ Note: recurring invoice setup needs manual attention — use the "Activate recurring invoice" button in your projects dashboard for this client.';
+        warn.parentNode.insertBefore(note, warn.nextSibling);
+      }
       document.getElementById('successScreen').style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
