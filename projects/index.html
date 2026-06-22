@@ -593,7 +593,6 @@ function openDrawer(id){
   const payStatus = p.paymentStatus || '';
   const payClass = payStatus === 'Paid in full' ? 'pay-paid' : payStatus === 'Overdue' ? 'pay-overdue' : payStatus === 'Deposit paid' ? 'pay-deposit' : payStatus ? 'pay-unpaid' : '';
   document.getElementById('dPayment').innerHTML = payClass ? '<span class="'+payClass+'">'+esc(payStatus)+'</span>' : '—';
-  const invoiceUrl = '/payment?name='+encodeURIComponent(p.client||'')+'&email='+encodeURIComponent(p.email||'')+'&project='+encodeURIComponent(p.name||'')+'&fee='+encodeURIComponent(p.buildFee||'350')+'&hosting='+encodeURIComponent(p.hosting||'')+'&fbkey='+encodeURIComponent(p._fbKey||'');
   document.getElementById('dInvoiceLink').innerHTML = '<a href="/invoice?fbkey='+encodeURIComponent(p._fbKey||'')+'" target="_blank" style="color:var(--accent)">Open invoice ↗</a>';
   document.getElementById('dHosting').textContent=p.hosting?'$'+p.hosting+'/mo':'None';
   document.getElementById('dNextBilling').innerHTML=fmtDate(p.nextBilling);
