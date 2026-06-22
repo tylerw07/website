@@ -1,0 +1,7 @@
+{
+  "name": "new-trail-design",
+  "version": "1.0.0",
+  "dependencies": {
+    "square": "^40.0.0"
+  }
+}
