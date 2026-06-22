@@ -655,6 +655,41 @@ document.getElementById('payBtn').addEventListener('click', async function() {
 
 updateSummary();
 initSquare();
+
+// Pre-populate from invoice URL params
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const name    = params.get('name');
+  const email   = params.get('email');
+  const project = params.get('project');
+  const hosting = params.get('hosting');
+  const invoice = params.get('invoice');
+
+  if (name) {
+    const parts = name.trim().split(' ');
+    document.getElementById('firstName').value = parts[0] || '';
+    document.getElementById('lastName').value  = parts.slice(1).join(' ') || '';
+  }
+  if (email)   document.getElementById('clientEmail').value  = email;
+  if (project) document.getElementById('projectNotes').value = 'Invoice for: ' + project;
+
+  if (invoice) {
+    document.title = invoice + ' — Pay Now — New Trail Design';
+    const heading = document.querySelector('.page-head h1');
+    if (heading) heading.textContent = 'Pay invoice ' + invoice;
+    const sub = document.querySelector('.page-head p');
+    if (sub && project) sub.textContent = 'Project: ' + project;
+  }
+
+  if (hosting) {
+    const h = String(hosting).trim();
+    let planVal = h === '50' ? 'both' : h === '35' ? 'backend' : h === '20' ? 'hosting' : 'none';
+    if (planVal !== 'none') {
+      const radio = document.querySelector('input[name="plan"][value="' + planVal + '"]');
+      if (radio) { radio.checked = true; currentPlan = planVal; updateSummary(); }
+    }
+  }
+})();
 </script>
 
 <!--
