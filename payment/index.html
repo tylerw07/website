@@ -142,30 +142,7 @@
     flex-shrink: 0;
   }
 
-  /* ── Plan options ── */
-  .plan-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-  .plan-option {
-    position: relative;
-    cursor: pointer;
-  }
-  .plan-option input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
-  .plan-face {
-    border: 2px solid var(--line);
-    border-radius: 12px;
-    padding: 18px;
-    transition: border-color 0.15s, background 0.15s;
-    height: 100%;
-  }
-  .plan-option input:checked + .plan-face {
-    border-color: var(--accent);
-    background: var(--accent-soft);
-  }
-  .plan-option:hover .plan-face { border-color: var(--ink-faint); }
+
   .plan-label { font-size: 14.5px; font-weight: 600; margin-bottom: 4px; }
   .plan-price { font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 600; color: var(--accent); }
   .plan-desc { font-size: 13px; color: var(--ink-soft); margin-top: 4px; }
@@ -327,7 +304,6 @@
     .page-head { margin-bottom: 28px; }
     .page-head h1 { font-size: 24px; }
     .page-head p { font-size: 14.5px; }
-    .plan-row { grid-template-columns: 1fr 1fr; gap: 10px; }
     .plan-face { padding: 14px; }
     .plan-price { font-size: 16px; }
     .plan-label { font-size: 13.5px; }
@@ -346,7 +322,6 @@
   }
   @media (max-width: 390px) {
     .wrap { padding: 0 12px; }
-    .plan-row { grid-template-columns: 1fr; }
     .page-head h1 { font-size: 22px; }
   }
 </style>
@@ -373,57 +348,9 @@
       <!-- Left column -->
       <div>
 
-        <!-- Step 1: Plan -->
-        <div class="card">
-          <div class="card-title"><span class="step-num">1</span> Choose a plan</div>
-
-          <div class="included-note" style="margin-bottom:20px;">
-            <span style="font-size:20px;">📦</span>
-            <span><strong>$350 app build fee</strong> is included with every plan. This covers your custom app, built and tested.</span>
-          </div>
-
-          <div class="plan-row">
-            <label class="plan-option">
-              <input type="radio" name="plan" value="none" checked>
-              <div class="plan-face">
-                <div class="plan-label">App only</div>
-                <div class="plan-price">$0<span style="font-size:13px;color:var(--ink-faint)">/mo</span></div>
-                <div class="plan-desc">You handle hosting and backend yourself.</div>
-              </div>
-            </label>
-
-            <label class="plan-option">
-              <input type="radio" name="plan" value="hosting">
-              <div class="plan-face">
-                <div class="plan-label">+ Hosting</div>
-                <div class="plan-price">$20<span style="font-size:13px;color:var(--ink-faint)">/mo</span></div>
-                <div class="plan-desc">Custom domain, HTTPS, uptime monitoring.</div>
-              </div>
-            </label>
-
-            <label class="plan-option">
-              <input type="radio" name="plan" value="backend">
-              <div class="plan-face">
-                <div class="plan-label">+ Backend</div>
-                <div class="plan-price">$35<span style="font-size:13px;color:var(--ink-faint)">/mo</span></div>
-                <div class="plan-desc">Managed database, file storage, daily backups.</div>
-              </div>
-            </label>
-
-            <label class="plan-option">
-              <input type="radio" name="plan" value="both">
-              <div class="plan-face">
-                <div class="plan-label">Hosting + Backend</div>
-                <div class="plan-price">$50<span style="font-size:13px;color:var(--ink-faint)">/mo</span></div>
-                <div class="plan-desc">Everything included — best value.</div>
-              </div>
-            </label>
-          </div>
-        </div>
-
         <!-- Step 2: Contact -->
         <div class="card">
-          <div class="card-title"><span class="step-num">2</span> Your details</div>
+          <div class="card-title"><span class="step-num">1</span> Your details</div>
           <div class="field-grid">
             <div class="field">
               <label for="firstName">First name</label>
@@ -448,9 +375,10 @@
           </div>
         </div>
 
+
         <!-- Step 3: Payment -->
         <div class="card">
-          <div class="card-title"><span class="step-num">3</span> Payment</div>
+          <div class="card-title"><span class="step-num">2</span> Payment</div>
           <div class="field" style="margin-bottom:0">
             <label>Card details</label>
             <div id="card-container"></div>
@@ -509,9 +437,9 @@
 
 <script>
 // ── Configuration — REPLACE THESE ────────────────────────
-const SQUARE_APP_ID     = 'PASTE_YOUR_SANDBOX_APP_ID';
-const SQUARE_LOCATION_ID = 'PASTE_YOUR_SANDBOX_LOCATION_ID';
-const BACKEND_URL       = 'https://your-backend.netlify.app/.netlify/functions/charge';
+const SQUARE_APP_ID     = 'sandbox-sq0idb-VoMojbm61b0JU5QyQSAOyw';
+const SQUARE_LOCATION_ID = 'EAAAl6-LBXWhS_v-yPOnR5QMVFozxBKkli6x-3TRCLGFLfNUKnP3gJqlbwANWwLz';
+const BACKEND_URL       = 'https://stellular-kringle-211669.netlify.app/';
 // ─────────────────────────────────────────────────────────
 
 const PLANS = {
@@ -624,7 +552,6 @@ document.getElementById('payBtn').addEventListener('click', async function() {
       customerEmail: document.getElementById('clientEmail').value.trim(),
       customerName: document.getElementById('firstName').value.trim() + ' ' + document.getElementById('lastName').value.trim(),
       businessName: document.getElementById('businessName').value.trim(),
-      projectNotes: document.getElementById('projectNotes').value.trim(),
       locationId: SQUARE_LOCATION_ID,
     };
 
@@ -671,23 +598,23 @@ initSquare();
     document.getElementById('lastName').value  = parts.slice(1).join(' ') || '';
   }
   if (email)   document.getElementById('clientEmail').value  = email;
-  if (project) document.getElementById('projectNotes').value = 'Invoice for: ' + project;
+  const business = params.get('business');
+  if (business)  document.getElementById('businessName').value = business;
 
   if (invoice) {
-    document.title = invoice + ' — Pay Now — New Trail Design';
-    const heading = document.querySelector('.page-head h1');
-    if (heading) heading.textContent = 'Pay invoice ' + invoice;
-    const sub = document.querySelector('.page-head p');
-    if (sub && project) sub.textContent = 'Project: ' + project;
+    document.title = 'Payment — New Trail Design';
+    if (project) {
+      const heading = document.querySelector('.page-head h1');
+      if (heading) heading.textContent = 'Complete your payment';
+      const sub = document.querySelector('.page-head p');
+      if (sub) sub.textContent = project ? 'Project: ' + project : 'Secure payment powered by Square.';
+    }
   }
 
   if (hosting) {
     const h = String(hosting).trim();
-    let planVal = h === '50' ? 'both' : h === '35' ? 'backend' : h === '20' ? 'hosting' : 'none';
-    if (planVal !== 'none') {
-      const radio = document.querySelector('input[name="plan"][value="' + planVal + '"]');
-      if (radio) { radio.checked = true; currentPlan = planVal; updateSummary(); }
-    }
+    currentPlan = h === '50' ? 'both' : h === '35' ? 'backend' : h === '20' ? 'hosting' : 'none';
+    updateSummary();
   }
 })();
 </script>
