@@ -438,8 +438,8 @@
 <script>
 // ── Configuration — REPLACE THESE ────────────────────────
 const SQUARE_APP_ID     = 'sandbox-sq0idb-VoMojbm61b0JU5QyQSAOyw';
-const SQUARE_LOCATION_ID = 'EAAAl6-LBXWhS_v-yPOnR5QMVFozxBKkli6x-3TRCLGFLfNUKnP3gJqlbwANWwLz';
-const BACKEND_URL       = 'https://stellular-kringle-211669.netlify.app/';
+const SQUARE_LOCATION_ID = 'LPYE0RAF3P32B';
+const BACKEND_URL       = 'https://stellular-kringle-211669.netlify.app/.netlify/functions/charge';
 // ─────────────────────────────────────────────────────────
 
 const PLANS = {
@@ -487,7 +487,7 @@ document.querySelectorAll('input[name="plan"]').forEach(function(radio) {
 
 // ── Initialise Square card element ────────────────────────
 async function initSquare() {
-  if (SQUARE_APP_ID === 'PASTE_YOUR_SANDBOX_APP_ID') {
+  if (SQUARE_APP_ID === 'sandbox-sq0idb-VoMojbm61b0JU5QyQSAOyw') {
     document.getElementById('card-container').innerHTML =
       '<p style="color:var(--ink-faint);font-size:13.5px;padding:8px 0">Square not connected yet — add your Application ID and Location ID to the top of this file to enable payments.</p>';
     return;
