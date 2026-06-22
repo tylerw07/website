@@ -94,6 +94,15 @@
   .project-card-footer { display:flex; justify-content:space-between; align-items:center; padding-top:10px; border-top:1px solid var(--line); margin-top:2px; }
   .monthly-badge { font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600; color:var(--warm); }
   .card-actions { display:flex; gap:8px; }
+  .invoice-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--red);
+    flex-shrink: 0;
+    margin-top: 2px;
+    title: 'Recurring invoice not set up';
+  }
   .empty-state { text-align:center; padding:80px 20px; color:var(--ink-faint); grid-column:1/-1; }
   .empty-state h3 { font-size:20px; margin-bottom:8px; color:var(--ink-soft); }
 
@@ -514,9 +523,10 @@ function renderAll(){
     const tags=(p.tags||[]).slice(0,4).map(t=>'<span class="tag">'+esc(t)+'</span>').join('');
     const monthly=p.hosting?'<span class="monthly-badge">$'+p.hosting+'/mo</span>':'<span style="font-size:12px;color:var(--ink-faint)">App only</span>';
     const payBadge = p.paymentStatus === 'Paid in full' ? '<span class="pay-paid">Paid</span>' : p.paymentStatus === 'Overdue' ? '<span class="pay-overdue">Overdue</span>' : p.paymentStatus === 'Deposit paid' ? '<span class="pay-deposit">Deposit</span>' : p.paymentStatus ? '<span class="pay-unpaid">Unpaid</span>' : '';
+    const invoiceDot = (p.hosting && parseFloat(p.hosting) > 0 && !p.squareInvoiceId) ? '<span class="invoice-dot" title="Recurring invoice not set up"></span>' : '';
     const card=document.createElement('div');
     card.className='project-card'; card.dataset.id=p._fbKey;
-    card.innerHTML=`<div class="project-card-top"><div><div class="project-name">${esc(p.name)}</div><div class="project-client">${esc(p.client)}${p.business?' &middot; '+esc(p.business):''}</div></div><span class="status-badge ${sClass(p.status)}">${sLabel(p.status)}</span></div><div class="project-meta"><div class="meta-item"><div class="meta-label">Type</div><div class="meta-value">${esc(p.type||'&#8212;')}</div></div><div class="meta-item"><div class="meta-label">Billing</div><div class="meta-value">${esc(p.paymentStatus||'&#8212;')}</div></div><div class="meta-item"><div class="meta-label">Started</div><div class="meta-value">${fmtDate(p.startDate)}</div></div><div class="meta-item"><div class="meta-label">Deadline</div><div class="meta-value">${fmtDate(p.deadline)}</div></div></div>${tags?'<div class="project-tags">'+tags+'</div>':''}<div class="project-card-footer">${monthly}<div class="card-actions"><button class="btn btn-ghost btn-sm edit-btn" data-id="${p._fbKey}">Edit</button></div></div>`;
+    card.innerHTML=`<div class="project-card-top"><div><div class="project-name">${esc(p.name)}</div><div class="project-client">${esc(p.client)}${p.business?' &middot; '+esc(p.business):''}</div></div><span class="status-badge ${sClass(p.status)}">${sLabel(p.status)}</span></div><div class="project-meta"><div class="meta-item"><div class="meta-label">Type</div><div class="meta-value">${esc(p.type||'&#8212;')}</div></div><div class="meta-item"><div class="meta-label">Billing</div><div class="meta-value">${esc(p.paymentStatus||'&#8212;')}</div></div><div class="meta-item"><div class="meta-label">Started</div><div class="meta-value">${fmtDate(p.startDate)}</div></div><div class="meta-item"><div class="meta-label">Deadline</div><div class="meta-value">${fmtDate(p.deadline)}</div></div></div>${tags?'<div class="project-tags">'+tags+'</div>':''}<div class="project-card-footer"><div style="display:flex;gap:8px;align-items:center">${monthly}'+payBadge+'</div><div class="card-actions">'+invoiceDot+'<button class="btn btn-ghost btn-sm edit-btn" data-id="${p._fbKey}">Edit</button></div></div>`;
     card.addEventListener('click',function(e){if(e.target.classList.contains('edit-btn')||e.target.closest('.edit-btn'))return;openDrawer(p._fbKey);});
     card.querySelector('.edit-btn').addEventListener('click',function(e){e.stopPropagation();openModal(p._fbKey);});
     grid.appendChild(card);
