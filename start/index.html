@@ -1021,6 +1021,11 @@ async function createProjectInFirebase(payload) {
   await set(newRef, project);
 }
 
+// Expose functions called from HTML onclick attributes to global scope
+// (required because this script uses type="module" which is scoped)
+window.goToStep = goToStep;
+window.toggleService = toggleService;
+
 document.getElementById('intakeForm').addEventListener('submit', async function(e) {
   e.preventDefault();
   const btn = document.getElementById('submitBtn');
