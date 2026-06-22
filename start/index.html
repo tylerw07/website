@@ -979,16 +979,51 @@ document.getElementById('intakeForm').addEventListener('submit', async function(
   const payload = Object.fromEntries(formData);
 
   try {
-    // Run both in parallel — email notification + Firebase project creation
-    const [emailRes] = await Promise.all([
+    // Calculate monthly amount based on service selections
+    const monthlyAmount = serviceState.hosting && serviceState.backend ? '50'
+      : serviceState.hosting ? '20'
+      : serviceState.backend ? '35'
+      : null;
+
+    const clientEmail = payload.email || '';
+    const clientName  = ((payload.first_name || '') + ' ' + (payload.last_name || '')).trim();
+    const projectName = payload.project_name || '';
+
+    // Build parallel requests — always send email + create Firebase project
+    // Also set up recurring invoice if client selected a monthly service
+    const requests = [
       fetch('https://api.web3forms.com/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify(payload),
       }),
       createProjectInFirebase(payload),
-    ]);
+    ];
 
+    if (monthlyAmount && clientEmail) {
+      requests.push(
+        fetch('https://create-subscription.tylerreedwilliams.workers.dev', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerEmail: clientEmail,
+            customerName:  clientName,
+            businessName:  payload.business_name || '',
+            monthlyAmount,
+            projectName,
+          }),
+        }).then(r => r.json()).then(json => {
+          if (!json.success) {
+            // Non-fatal — log but don't block form submission
+            console.warn('Recurring invoice setup failed:', json.error);
+          }
+        }).catch(err => {
+          console.warn('Recurring invoice worker error:', err.message);
+        })
+      );
+    }
+
+    const [emailRes] = await Promise.all(requests);
     const json = await emailRes.json();
 
     if (json.success) {
