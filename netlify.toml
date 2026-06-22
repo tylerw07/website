@@ -1,6 +1,0 @@
-[build]
-  functions = "netlify/functions"
-
-# Monthly invoice emails — runs at 9:00am UTC on the 1st of every month
-[functions."send-monthly-invoices"]
-  schedule = "0 9 1 * *"
