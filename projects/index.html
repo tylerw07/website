@@ -520,10 +520,7 @@ document.getElementById('modalSave').addEventListener('click',function(){
   if(!name||!client){alert('Project name and client name are required.');return;}
   const tags=document.getElementById('fTags').value.split(',').map(t=>t.trim()).filter(Boolean);
   const data={name,client,business:document.getElementById('fBusiness').value.trim(),email:document.getElementById('fEmail').value.trim(),phone:document.getElementById('fPhone').value.trim(),status:document.getElementById('fStatus').value,type:document.getElementById('fType').value,stack:document.getElementById('fStack').value.trim(),liveUrl:document.getElementById('fUrl').value.trim(),repo:document.getElementById('fRepo').value.trim(),startDate:document.getElementById('fStartDate').value,deadline:document.getElementById('fDeadline').value,buildFee:document.getElementById('fBuildFee').value,paymentStatus:document.getElementById('fPaymentStatus').value,hosting:document.getElementById('fHosting').value,nextBilling:document.getElementById('fNextBilling').value,brief:document.getElementById('fBrief').value.trim(),notes:document.getElementById('fNotes').value.trim(),tags,updatedAt:Date.now()};
-  const projects=load();
-  if(editingId){const idx=projects.findIndex(p=>p.id===editingId);if(idx!==-1)projects[idx]=Object.assign(projects[idx],data);}
-  else{projects.push(Object.assign({id:genId(),createdAt:Date.now()},data));}
-  // Firebase will trigger onValue which re-renders automatically
+  // Firebase handles save — onValue listener re-renders automatically
   saveBtn.disabled=true; saveBtn.textContent='Saving...';
   fbSave(data, editingId ? projects.find(p=>p._fbKey===editingId||p.id===editingId)?._fbKey : null)
     .then(function(){closeModal();})
