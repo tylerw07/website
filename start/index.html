@@ -619,7 +619,7 @@
             <div class="toggle-body">
               <div class="toggle-title">Hosting</div>
               <div class="toggle-price">$20 / month</div>
-              <div class="toggle-desc">Your app lives on its own subdomain with HTTPS, uptime monitoring. We manage the server — you never have to think about it.</div>
+              <div class="toggle-desc">Your app lives on its own domain with HTTPS, uptime monitoring, and regular backups. We manage the server — you never have to think about it.</div>
             </div>
           </button>
         </div>
@@ -642,6 +642,37 @@
         <input type="hidden" name="needs_backend" id="needs_backend" value="No">
         <div id="bundleNote" style="display:none;margin-top:10px;font-size:13px;background:var(--warm-soft);border-radius:8px;padding:10px 13px;color:var(--ink-soft)">
           💰 <strong>Bundle both for $50/mo</strong> — saves you $5 every month.
+        </div>
+      </div>
+
+      <!-- Budget -->
+      <div class="field">
+        <label>Approximate budget for the build <span class="req">*</span></label>
+        <div class="budget-grid">
+          <label class="budget-option">
+            <input type="radio" name="budget" value="Under $500" required>
+            <div class="budget-face">Under $500</div>
+          </label>
+          <label class="budget-option">
+            <input type="radio" name="budget" value="$500 – $1,000">
+            <div class="budget-face">$500 – $1,000</div>
+          </label>
+          <label class="budget-option">
+            <input type="radio" name="budget" value="$1,000 – $2,500">
+            <div class="budget-face">$1,000 – $2,500</div>
+          </label>
+          <label class="budget-option">
+            <input type="radio" name="budget" value="$2,500 – $5,000">
+            <div class="budget-face">$2,500 – $5,000</div>
+          </label>
+          <label class="budget-option">
+            <input type="radio" name="budget" value="$5,000+">
+            <div class="budget-face">$5,000+</div>
+          </label>
+          <label class="budget-option">
+            <input type="radio" name="budget" value="Not sure yet">
+            <div class="budget-face">Not sure yet</div>
+          </label>
         </div>
       </div>
 
@@ -696,7 +727,7 @@
 
       <div class="info-box">
         <span class="info-box-icon">📬</span>
-        <div>We'll review your submission and <strong>get back to you soon</strong> to talk through next steps.</div>
+        <div>We'll review your submission and <strong>get back to you within one business day</strong> to talk through next steps.</div>
       </div>
 
       <div id="statusMsg" class="status-msg"></div>
@@ -714,7 +745,7 @@
     <h2>Brief sent.</h2>
     <p>Thanks for reaching out. We'll be in touch within one business day to talk through your project.</p>
     <p style="margin-top:8px;color:var(--ink-faint);font-size:14px">In the meantime, feel free to email us directly at <a href="mailto:hello@newtraildesign.com" style="color:var(--accent)">hello@newtraildesign.com</a></p>
-    <a href="/" class="btn btn-ghost" style="margin-top:32px;display:inline-flex">← Back to Home Page</a>
+    <a href="/" class="btn btn-ghost" style="margin-top:32px;display:inline-flex">← Back to New Trail Design</a>
   </div>
 
 </div>
@@ -726,7 +757,7 @@
   </div>
 </footer>
 
-<script>
+<script type="module">
 // ── Step navigation ────────────────────────────────────────
 let currentStep = 1;
 const totalSteps = 4;
@@ -900,6 +931,96 @@ function buildReview() {
 }
 
 // ── Submit ─────────────────────────────────────────────────
+// ── Firebase setup (writes new project on form submit) ─────
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, push, set }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey:            'AIzaSyDUGcWkaRXtM71HFkD0zm47pk8unztjQW4',
+  authDomain:        'newtraildb.firebaseapp.com',
+  databaseURL:       'https://newtraildb-default-rtdb.firebaseio.com',
+  projectId:         'newtraildb',
+  storageBucket:     'newtraildb.firebasestorage.app',
+  messagingSenderId: '812703057534',
+  appId:             '1:812703057534:web:d10ee3739185ce61d5ba2f',
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db    = getDatabase(fbApp);
+
+async function createProjectInFirebase(payload) {
+  const budget   = document.querySelector('input[name="budget"]:checked');
+  const timeline = document.querySelector('input[name="timeline"]:checked');
+
+  const services = [];
+  if (serviceState.hosting) services.push('Hosting ($20/mo)');
+  if (serviceState.backend) services.push('Backend & database ($35/mo)');
+  if (serviceState.hosting && serviceState.backend) services.push('→ Bundle: $50/mo total');
+
+  const project = {
+    // Identity
+    name:          payload.project_name || 'Unnamed project',
+    client:        ((payload.first_name || '') + ' ' + (payload.last_name || '')).trim(),
+    business:      payload.business_name || '',
+    email:         payload.email || '',
+    phone:         payload.phone || '',
+    status:        'active',
+
+    // Project details
+    type:          payload.app_type || '',
+    stack:         '',
+    liveUrl:       '',
+    repo:          '',
+
+    // Dates
+    startDate:     new Date().toISOString().split('T')[0],
+    deadline:      payload.target_date || '',
+
+    // Billing
+    buildFee:      '350',
+    paymentStatus: 'Unpaid',
+    hosting:       serviceState.hosting && serviceState.backend ? '50'
+                 : serviceState.hosting ? '20'
+                 : serviceState.backend ? '35'
+                 : '',
+    nextBilling:   '',
+
+    // Notes — combine all intake details into the brief
+    brief: [
+      payload.project_description ? 'PROJECT DESCRIPTION:\n' + payload.project_description : '',
+      payload.target_users        ? '\nTARGET USERS:\n' + payload.target_users : '',
+      payload.key_features        ? '\nKEY FEATURES:\n' + payload.key_features : '',
+      payload.existing_systems    ? '\nEXISTING SYSTEMS:\n' + payload.existing_systems : '',
+      payload.design_preference   ? '\nDESIGN PREFERENCE:\n' + payload.design_preference : '',
+      payload.design_references   ? '\nDESIGN REFERENCES:\n' + payload.design_references : '',
+    ].filter(Boolean).join('\n'),
+
+    notes: [
+      services.length ? 'SERVICES REQUESTED: ' + services.join(', ') : '',
+      budget   ? 'BUDGET: ' + budget.value : '',
+      timeline ? 'TIMELINE: ' + timeline.value : '',
+      payload.additional_notes ? '\nADDITIONAL NOTES:\n' + payload.additional_notes : '',
+      '\nSOURCE: Submitted via newtraildesign.com/start',
+      payload.referral_source ? 'REFERRAL: ' + payload.referral_source : '',
+      payload.industry ? 'INDUSTRY: ' + payload.industry : '',
+    ].filter(Boolean).join('\n'),
+
+    tags: [
+      payload.app_type || '',
+      payload.industry || '',
+      serviceState.hosting ? 'hosting' : '',
+      serviceState.backend ? 'backend' : '',
+    ].filter(Boolean),
+
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  };
+
+  const newRef = push(ref(db, 'projects'));
+  await set(newRef, project);
+}
+
 document.getElementById('intakeForm').addEventListener('submit', async function(e) {
   e.preventDefault();
   const btn = document.getElementById('submitBtn');
@@ -913,12 +1034,17 @@ document.getElementById('intakeForm').addEventListener('submit', async function(
   const payload = Object.fromEntries(formData);
 
   try {
-    const res = await fetch('https://api.web3forms.com/submit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const json = await res.json();
+    // Run both in parallel — email notification + Firebase project creation
+    const [emailRes] = await Promise.all([
+      fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload),
+      }),
+      createProjectInFirebase(payload),
+    ]);
+
+    const json = await emailRes.json();
 
     if (json.success) {
       document.querySelector('.wrap > *:not(#successScreen)').style.display = 'none';
