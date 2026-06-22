@@ -337,6 +337,7 @@
       <div class="detail-item"><div class="detail-label">Invoice link</div><div class="detail-value" id="dInvoiceLink">—</div></div>
       <div class="detail-item"><div class="detail-label">Monthly plan</div><div class="detail-value" id="dHosting"></div></div>
       <div class="detail-item"><div class="detail-label">Next billing</div><div class="detail-value" id="dNextBilling"></div></div>
+      <div class="detail-item full"><div class="detail-label">Subscription</div><div class="detail-value" id="dSubStatus">—</div></div>
     </div>
   </div>
   <div class="detail-section" id="dBriefSection"><h4>Project brief</h4><div class="notes-box" id="dBrief"></div></div>
@@ -346,6 +347,7 @@
     <button class="btn btn-ghost" id="drawerEdit">Edit project</button>
     <button class="btn btn-primary" id="drawerInvoice">Generate invoice</button>
     <button class="btn btn-ghost" id="drawerMarkPaid" style="color:var(--green);border-color:var(--green)">Mark paid</button>
+    <button class="btn btn-ghost" id="drawerActivateSub" style="display:none;color:var(--accent);border-color:var(--accent)">⟳ Activate recurring invoice</button>
   </div>
 </div>
 
@@ -595,6 +597,29 @@ function openDrawer(id){
   document.getElementById('dPayment').innerHTML = payClass ? '<span class="'+payClass+'">'+esc(payStatus)+'</span>' : '—';
   document.getElementById('dInvoiceLink').innerHTML = '<a href="/invoice?fbkey='+encodeURIComponent(p._fbKey||'')+'" target="_blank" style="color:var(--accent)">Open invoice ↗</a>';
   document.getElementById('dHosting').textContent=p.hosting?'$'+p.hosting+'/mo':'None';
+
+  // Show activate subscription button only if project has a hosting plan
+  const activateBtn = document.getElementById('drawerActivateSub');
+  if (p.hosting && parseFloat(p.hosting) > 0) {
+    activateBtn.style.display = 'inline-flex';
+    // Update button label based on subscription status
+    if (p.squareInvoiceId) {
+      activateBtn.textContent = '✓ Monthly invoices active';
+      activateBtn.disabled = true;
+      activateBtn.style.opacity = '0.6';
+      activateBtn.style.cursor = 'default';
+      document.getElementById('dSubStatus').innerHTML = '<span style="color:var(--green);font-weight:600">Active</span> — Invoice ID: ' + esc(p.squareInvoiceId);
+    } else {
+      activateBtn.textContent = '⟳ Activate recurring invoice';
+      activateBtn.disabled = false;
+      activateBtn.style.opacity = '1';
+      activateBtn.style.cursor = 'pointer';
+      document.getElementById('dSubStatus').textContent = p.hosting ? 'Not yet activated' : '—';
+    }
+  } else {
+    activateBtn.style.display = 'none';
+    document.getElementById('dSubStatus').textContent = 'No subscription plan';
+  }
   document.getElementById('dNextBilling').innerHTML=fmtDate(p.nextBilling);
   const bs=document.getElementById('dBriefSection'); bs.style.display=p.brief?'block':'none'; document.getElementById('dBrief').textContent=p.brief||'';
   const ns=document.getElementById('dNotesSection'); ns.style.display=p.notes?'block':'none'; document.getElementById('dNotes').textContent=p.notes||'';
@@ -606,6 +631,55 @@ function openDrawer(id){
 }
 
 function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('drawerOverlay').classList.remove('open');drawerProjectId=null;}
+document.getElementById('drawerActivateSub').addEventListener('click', async function() {
+  const p = projectsCache.find(x=>x._fbKey===drawerProjectId); if(!p) return;
+  if (p.squareInvoiceId) return;
+
+  const planLabels = {'20':'Hosting ($20/mo)', '35':'Backend ($35/mo)', '50':'Hosting + Backend ($50/mo)'};
+  const planLabel = planLabels[p.hosting] || '$' + p.hosting + '/mo';
+
+  if (!p.email) {
+    alert('This project has no client email address. Add one in Edit project first.');
+    return;
+  }
+
+  if (!confirm('Set up a recurring monthly invoice for ' + p.client + '?\n\nPlan: ' + planLabel + '\n\nSquare will email them an invoice on the 1st of each month.')) return;
+
+  const btn = this;
+  btn.textContent = 'Setting up...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('https://create-subscription.tylerreedwilliams.workers.dev', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerEmail: p.email,
+        customerName:  p.client,
+        businessName:  p.business || '',
+        monthlyAmount: p.hosting,
+        projectName:   p.name,
+      }),
+    });
+
+    const json = await res.json();
+
+    if (json.success) {
+      await fbSave(Object.assign({}, p, { squareInvoiceId: json.invoiceId }), p._fbKey);
+      alert('Done! Square will send ' + p.client + ' a monthly invoice for $' + p.hosting + ' starting ' + json.startDate + '.');
+      openDrawer(drawerProjectId);
+    } else {
+      alert('Failed: ' + (json.error || 'Unknown error'));
+      btn.textContent = '⟳ Activate recurring invoice';
+      btn.disabled = false;
+    }
+  } catch(err) {
+    alert('Network error: ' + err.message);
+    btn.textContent = '⟳ Activate recurring invoice';
+    btn.disabled = false;
+  }
+});;
+
 document.getElementById('drawerInvoice').addEventListener('click',function(){
   const p=projectsCache.find(x=>x._fbKey===drawerProjectId); if(!p)return;
   window.open('/invoice?fbkey='+encodeURIComponent(p._fbKey), '_blank');
