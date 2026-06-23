@@ -414,7 +414,7 @@
     <button class="btn btn-ghost" id="drawerDepositInvoice" style="color:var(--warm);border-color:var(--warm)">Bill deposit</button>
     <button class="btn btn-ghost" id="drawerMarkDepositPaid" style="color:var(--green);border-color:var(--green)">✓ Deposit paid</button>
     <button class="btn btn-ghost" id="drawerMarkPaid" style="color:var(--green);border-color:var(--green)">✓ Mark paid in full</button>
-    <button class="btn btn-ghost" id="drawerActivateSub" style="display:none;color:var(--accent);border-color:var(--accent)">⟳ Activate recurring invoice</button>
+    <button class="btn btn-ghost" id="drawerActivateSub" style="display:none;color:var(--accent);border-color:var(--accent)">⟳ Activate annual invoice</button>
   </div>
   <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line)">
     <button class="btn btn-danger" id="drawerDeleteBtn">🗑 Delete project</button>
@@ -744,7 +744,12 @@ function openDrawer(id){
   const payClass = payStatus === 'Paid in full' ? 'pay-paid' : payStatus === 'Overdue' ? 'pay-overdue' : payStatus === 'Deposit paid' ? 'pay-deposit' : payStatus ? 'pay-unpaid' : '';
   document.getElementById('dPayment').innerHTML = payClass ? '<span class="'+payClass+'">'+esc(payStatus)+'</span>' : ' - ';
   document.getElementById('dInvoiceLink').innerHTML = '<a href="/invoice?fbkey='+encodeURIComponent(p._fbKey||'')+'" target="_blank" style="color:var(--accent)">Open invoice ↗</a>';
-  document.getElementById('dHosting').textContent=p.hosting?'$'+p.hosting+'/mo':'None';
+  if (p.hosting) {
+    const annualAmt = (parseFloat(p.hosting) * 12).toFixed(0);
+    document.getElementById('dHosting').textContent = '$' + p.hosting + '/mo  ·  $' + annualAmt + '/yr billed annually';
+  } else {
+    document.getElementById('dHosting').textContent = 'None';
+  }
   const depositPaid = p.depositStatus === 'Paid';
   document.getElementById('dDepositStatus').innerHTML = depositPaid
     ? '<span class="deposit-paid">Paid</span>'
@@ -795,7 +800,7 @@ function openDrawer(id){
       activateBtn.style.cursor = 'default';
       document.getElementById('dSubStatus').innerHTML = '<span style="color:var(--green);font-weight:600">Active</span>  -  Invoice ID: ' + esc(p.squareInvoiceId);
     } else {
-      activateBtn.textContent = '⟳ Activate recurring invoice';
+      activateBtn.textContent = '⟳ Activate annual invoice';
       activateBtn.disabled = false;
       activateBtn.style.opacity = '1';
       activateBtn.style.cursor = 'pointer';
@@ -910,15 +915,16 @@ document.getElementById('drawerActivateSub').addEventListener('click', async fun
   const p = projectsCache.find(x=>x._fbKey===drawerProjectId); if(!p) return;
   if (p.squareInvoiceId) return;
 
-  const planLabels = {'20':'Hosting ($20/mo)', '35':'Backend ($35/mo)', '50':'Hosting + Backend ($50/mo)'};
-  const planLabel = planLabels[p.hosting] || '$' + p.hosting + '/mo';
+  const annualTotal = (parseFloat(p.hosting) * 12).toFixed(0);
+  const planLabels = {'20':'Hosting ($20/mo · $240/yr)', '35':'Backend ($35/mo · $420/yr)', '50':'Hosting + Backend ($50/mo · $600/yr)'};
+  const planLabel = planLabels[p.hosting] || '$' + p.hosting + '/mo · $' + annualTotal + '/yr';
 
   if (!p.email) {
     alert('This project has no client email address. Add one by editing the project card.');
     return;
   }
 
-  if (!confirm('Set up a recurring monthly invoice for ' + p.client + '?\n\nPlan: ' + planLabel + '\n\nSquare will email them an invoice on the 1st of each month.')) return;
+  if (!confirm('Set up an annual invoice for ' + p.client + '?\n\nPlan: ' + planLabel + '\n\nSquare will email them one invoice per year, due every January 1st. They get a 2-week and 1-day reminder.')) return;
 
   const btn = this;
   btn.textContent = 'Setting up...';
@@ -941,7 +947,8 @@ document.getElementById('drawerActivateSub').addEventListener('click', async fun
 
     if (json.success) {
       await fbSave(Object.assign({}, p, { squareInvoiceId: json.invoiceId }), p._fbKey);
-      alert('Done! Square will send ' + p.client + ' a monthly invoice for $' + p.hosting + ' starting ' + json.startDate + '.');
+      const annual = (parseFloat(p.hosting) * 12).toFixed(2);
+      alert('Done! Square will send ' + p.client + ' an annual invoice for $' + annual + ' (12 × $' + p.hosting + '/mo) due on ' + json.dueDate + '.');
       openDrawer(drawerProjectId);
     } else {
       alert('Failed: ' + (json.error || 'Unknown error'));
