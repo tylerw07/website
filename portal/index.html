@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%235848e0'/%3E%3Ccircle cx='9' cy='23' r='2.5' fill='white'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='white'/%3E%3Ccircle cx='23' cy='9' r='2.5' fill='white'/%3E%3Cline x1='9' y1='23' x2='16' y2='16' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='16' y1='16' x2='23' y2='9' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3Cpolyline points='19,8 23,9 22,13' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Client Portal — New Trail Design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#f5f6f9; --surface:#fff; --ink:#13182b; --ink-soft:#545b72; --ink-faint:#8a90a6;
+    --accent:#5848e0; --accent-deep:#4636c4; --accent-soft:#edebfc;
+    --warm:#e8923d; --warm-soft:#fcecd9; --line:#e2e4ec;
+    --green:#1a7f4e; --green-bg:#e7f6ee; --red:#b3441f; --red-bg:#fdf0ec;
+    --radius:14px; --max:820px;
+  }
+  *{box-sizing:border-box;} html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,h4{font-family:'Fraunces',serif;font-weight:600;margin:0;}
+  a{color:inherit;} p{margin:0;}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 20px;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);}
+
+  header{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100;}
+  .header-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;gap:12px;}
+  .logo{font-family:'Fraunces',serif;font-weight:600;font-size:18px;text-decoration:none;color:var(--ink);display:flex;align-items:center;}
+  .logo span{color:var(--accent);}
+  #logoutBtn{font-size:13px;font-weight:600;color:var(--ink-faint);background:none;border:none;cursor:pointer;display:none;}
+  #logoutBtn:hover{color:var(--red);}
+
+  .btn{font-family:'IBM Plex Sans',sans-serif;font-size:14px;font-weight:600;padding:10px 20px;border-radius:999px;border:1px solid transparent;cursor:pointer;display:inline-flex;align-items:center;gap:7px;text-decoration:none;transition:background 0.15s;white-space:nowrap;}
+  .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .btn-primary:hover{background:var(--accent-deep);}
+  .btn-ghost{background:transparent;color:var(--ink);border-color:var(--line);}
+  .btn-ghost:hover{border-color:var(--ink);}
+  .btn-sm{font-size:12.5px;padding:7px 14px;}
+  .btn-full{width:100%;justify-content:center;}
+
+  /* Login */
+  #loginGate{min-height:80vh;display:flex;align-items:center;justify-content:center;padding:40px 20px;}
+  .login-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:40px;width:100%;max-width:360px;}
+  .login-card h1{font-size:22px;margin:10px 0 6px;}
+  .login-card p{color:var(--ink-soft);font-size:14px;margin-bottom:24px;}
+  .field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+  .field label{font-size:12.5px;font-weight:600;color:var(--ink-soft);}
+  .field input{font-family:'IBM Plex Sans',sans-serif;font-size:14.5px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);}
+  .field input:focus{outline:2px solid var(--accent);outline-offset:1px;background:var(--surface);}
+  .login-error{display:none;background:var(--red-bg);color:var(--red);font-size:13px;padding:9px 12px;border-radius:8px;margin-bottom:12px;}
+
+  /* Dashboard */
+  #dashboard{display:none;padding-bottom:60px;}
+  .page-top{padding:36px 0 28px;}
+  .page-top h1{font-size:clamp(22px,3vw,30px);margin-top:6px;}
+  .page-top p{color:var(--ink-soft);font-size:14.5px;margin-top:6px;}
+
+  /* Status card */
+  .status-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:24px 28px;margin-bottom:24px;}
+  .status-card h3{font-size:16px;margin-bottom:16px;}
+  .status-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .status-item .status-label{font-size:12px;font-weight:600;color:var(--ink-faint);margin-bottom:3px;}
+  .status-item .status-value{font-size:14.5px;color:var(--ink);}
+  .status-item.full{grid-column:1/-1;}
+  .pill{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.04em;padding:3px 9px;border-radius:999px;display:inline-block;}
+  .pill-green{background:var(--green-bg);color:var(--green);}
+  .pill-red{background:var(--red-bg);color:var(--red);}
+  .pill-warm{background:var(--warm-soft);color:var(--warm);}
+  .pill-yellow{background:#fef9c3;color:#854d0e;}
+  .pill-grey{background:#f3f4f6;color:#6b7280;}
+  .pill-purple{background:var(--accent-soft);color:var(--accent-deep);}
+
+  /* Progress tracker */
+  .progress-track{display:flex;align-items:center;gap:0;margin:20px 0 8px;}
+  .track-step{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
+  .track-circle{width:32px;height:32px;border-radius:50%;border:2px solid var(--line);background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--ink-faint);transition:all 0.2s;}
+  .track-circle.done{background:var(--green);border-color:var(--green);color:#fff;}
+  .track-circle.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .track-label{font-size:11px;color:var(--ink-faint);text-align:center;font-family:'IBM Plex Mono',monospace;font-weight:500;}
+  .track-label.done{color:var(--green);}
+  .track-label.active{color:var(--accent);}
+  .track-line{flex:1;height:2px;background:var(--line);margin-bottom:20px;}
+  .track-line.done{background:var(--green);}
+
+  /* Invoice history */
+  .invoice-list{display:flex;flex-direction:column;gap:0;}
+  .invoice-item{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--line);}
+  .invoice-item:last-child{border-bottom:none;}
+  .invoice-name{font-size:13.5px;font-weight:600;}
+  .invoice-meta{font-size:12px;color:var(--ink-faint);font-family:'IBM Plex Mono',monospace;margin-top:2px;}
+  .invoice-amount{font-family:'Fraunces',serif;font-size:16px;font-weight:600;}
+
+  /* Support requests */
+  .request-form{background:var(--bg);border-radius:10px;padding:18px;margin-bottom:20px;}
+  .request-form textarea{width:100%;font-family:'IBM Plex Sans',sans-serif;font-size:14px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);resize:vertical;min-height:90px;}
+  .request-form textarea:focus{outline:2px solid var(--accent);outline-offset:1px;}
+  .request-form select{width:100%;font-family:'IBM Plex Sans',sans-serif;font-size:14px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);margin-bottom:10px;}
+  .request-list{display:flex;flex-direction:column;gap:12px;}
+  .request-item{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;}
+  .request-item-header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px;}
+  .request-item-type{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--ink-faint);}
+  .request-item-msg{font-size:13.5px;color:var(--ink-soft);line-height:1.6;}
+  .request-item-date{font-size:11px;color:var(--ink-faint);font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
+  .empty-state{text-align:center;padding:32px 20px;color:var(--ink-faint);font-size:14px;}
+
+  @media(max-width:600px){
+    .status-grid{grid-template-columns:1fr;}
+    .track-label{font-size:10px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap header-inner">
+    <a href="/" class="logo">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" style="flex-shrink:0;margin-right:8px"><rect width="28" height="28" rx="7" fill="#5848e0"/><circle cx="9" cy="21" r="2.2" fill="white"/><circle cx="14" cy="14" r="2.2" fill="white"/><circle cx="20" cy="8" r="2.2" fill="white"/><line x1="9" y1="21" x2="14" y2="14" stroke="white" stroke-width="2.2" stroke-linecap="round"/><line x1="14" y1="14" x2="20" y2="8" stroke="white" stroke-width="2.2" stroke-linecap="round"/><polyline points="17,7 20,8 19,11.5" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      New Trail <span>Design</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;background:var(--accent-soft);color:var(--accent);padding:3px 9px;border-radius:999px;">Client Portal</span>
+      <button id="logoutBtn">Log out</button>
+    </div>
+  </div>
+</header>
+
+<!-- LOGIN -->
+<div id="loginGate">
+  <div class="login-card">
+    <p class="eyebrow">Client Portal</p>
+    <h1>Welcome back</h1>
+    <p>Sign in with the credentials you created when you submitted your project.</p>
+    <div class="login-error" id="loginError">Incorrect username or password.</div>
+    <div class="field"><label>Username</label><input type="text" id="loginUser" autocomplete="username"></div>
+    <div class="field"><label>Password</label><input type="password" id="loginPass" autocomplete="current-password"></div>
+    <button class="btn btn-primary btn-full" id="loginBtn">Sign in →</button>
+    <p style="font-size:12.5px;color:var(--ink-faint);margin-top:16px;text-align:center">Don't have an account yet? <a href="/start" style="color:var(--accent)">Start a project</a></p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="wrap">
+    <div class="page-top">
+      <p class="eyebrow">Client Portal</p>
+      <h1 id="welcomeHeading">Welcome</h1>
+      <p id="welcomeSub">Here's the current status of your project.</p>
+    </div>
+
+    <!-- Project status card -->
+    <div class="status-card">
+      <h3>Project overview</h3>
+      <div class="status-grid">
+        <div class="status-item">
+          <div class="status-label">Project name</div>
+          <div class="status-value" id="pName">—</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Status</div>
+          <div class="status-value" id="pStatus">—</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Type</div>
+          <div class="status-value" id="pType">—</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Start date</div>
+          <div class="status-value" id="pStart">—</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Target deadline</div>
+          <div class="status-value" id="pDeadline">—</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Live URL</div>
+          <div class="status-value" id="pUrl">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress tracker -->
+    <div class="status-card">
+      <h3>Project progress</h3>
+      <div class="progress-track" id="progressTrack">
+        <div class="track-step">
+          <div class="track-circle" id="tc1">1</div>
+          <div class="track-label" id="tl1">Brief received</div>
+        </div>
+        <div class="track-line" id="tline1"></div>
+        <div class="track-step">
+          <div class="track-circle" id="tc2">2</div>
+          <div class="track-label" id="tl2">Deposit paid</div>
+        </div>
+        <div class="track-line" id="tline2"></div>
+        <div class="track-step">
+          <div class="track-circle" id="tc3">3</div>
+          <div class="track-label" id="tl3">In development</div>
+        </div>
+        <div class="track-line" id="tline3"></div>
+        <div class="track-step">
+          <div class="track-circle" id="tc4">4</div>
+          <div class="track-label" id="tl4">Review & launch</div>
+        </div>
+        <div class="track-line" id="tline4"></div>
+        <div class="track-step">
+          <div class="track-circle" id="tc5">✓</div>
+          <div class="track-label" id="tl5">Live</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Billing -->
+    <div class="status-card">
+      <h3>Billing</h3>
+      <div class="status-grid" style="margin-bottom:20px">
+        <div class="status-item">
+          <div class="status-label">Build fee</div>
+          <div class="status-value" id="pBuildFee">—</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Payment status</div>
+          <div class="status-value" id="pPayStatus">—</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Deposit</div>
+          <div class="status-value" id="pDepositStatus">—</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Monthly plan</div>
+          <div class="status-value" id="pHosting">—</div>
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--line);padding-top:16px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--ink-faint);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:12px">Payment history</div>
+        <div id="invoiceList" class="invoice-list">
+          <div class="empty-state">No payments recorded yet.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Support requests -->
+    <div class="status-card">
+      <h3>Support requests</h3>
+      <div class="request-form">
+        <select id="requestType">
+          <option value="Bug report">🐛 Bug report</option>
+          <option value="Feature request">✨ Feature request</option>
+          <option value="Question">❓ Question</option>
+          <option value="Change request">✏️ Change request</option>
+          <option value="Other">📋 Other</option>
+        </select>
+        <textarea id="requestMsg" placeholder="Describe the issue or request in as much detail as possible…"></textarea>
+        <button class="btn btn-primary btn-sm" style="margin-top:10px" id="submitRequestBtn">Submit request</button>
+      </div>
+      <div id="requestList" class="request-list">
+        <div class="empty-state" id="requestEmpty">No requests yet.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, get, push, set, onValue }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey:            'AIzaSyDUGcWkaRXtM71HFkD0zm47pk8unztjQW4',
+  authDomain:        'newtraildb.firebaseapp.com',
+  databaseURL:       'https://newtraildb-default-rtdb.firebaseio.com',
+  projectId:         'newtraildb',
+  storageBucket:     'newtraildb.firebasestorage.app',
+  messagingSenderId: '812703057534',
+  appId:             '1:812703057534:web:d10ee3739185ce61d5ba2f',
+};
+
+const SESSION_KEY = 'nt_portal_user';
+const fbApp = initializeApp(firebaseConfig);
+const db = getDatabase(fbApp);
+
+let currentProjectKey = null;
+let currentUsername = null;
+
+// ── Auth ──────────────────────────────────────────────────────────────────
+const loginGate  = document.getElementById('loginGate');
+const dashboard  = document.getElementById('dashboard');
+const logoutBtn  = document.getElementById('logoutBtn');
+
+async function tryLogin(username, password) {
+  username = username.trim().toLowerCase();
+  if (!username || !password) return false;
+
+  try {
+    const snap = await get(ref(db, 'portalAccounts/' + username));
+    if (!snap.exists()) return false;
+    const account = snap.val();
+    if (account.password !== password) return false;
+
+    // Success — store session
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({
+      username,
+      projectKey: account.projectKey,
+      name: account.name,
+    }));
+    return { projectKey: account.projectKey, name: account.name, username };
+  } catch(err) {
+    console.error('Login error:', err);
+    return false;
+  }
+}
+
+function showDashboard(session) {
+  currentProjectKey = session.projectKey;
+  currentUsername   = session.username;
+  loginGate.style.display = 'none';
+  dashboard.style.display = 'block';
+  logoutBtn.style.display = 'block';
+  loadProject();
+}
+
+// Check existing session
+const stored = sessionStorage.getItem(SESSION_KEY);
+if (stored) {
+  try { showDashboard(JSON.parse(stored)); } catch(e) { sessionStorage.removeItem(SESSION_KEY); }
+}
+
+document.getElementById('loginBtn').addEventListener('click', async function() {
+  const u = document.getElementById('loginUser').value;
+  const p = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginError');
+  this.disabled = true;
+  this.textContent = 'Signing in…';
+
+  const result = await tryLogin(u, p);
+  if (result) {
+    errEl.style.display = 'none';
+    showDashboard(result);
+  } else {
+    errEl.style.display = 'block';
+    this.disabled = false;
+    this.textContent = 'Sign in →';
+  }
+});
+
+// Enter key on login
+document.getElementById('loginPass').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') document.getElementById('loginBtn').click();
+});
+
+logoutBtn.addEventListener('click', function() {
+  sessionStorage.removeItem(SESSION_KEY);
+  location.reload();
+});
+
+// ── Load project ──────────────────────────────────────────────────────────
+function loadProject() {
+  if (!currentProjectKey) return;
+
+  onValue(ref(db, 'projects/' + currentProjectKey), function(snap) {
+    if (!snap.exists()) return;
+    const p = snap.val();
+    renderProject(p);
+  });
+
+  // Load support requests
+  onValue(ref(db, 'supportRequests/' + currentProjectKey), function(snap) {
+    renderRequests(snap);
+  });
+}
+
+function renderProject(p) {
+  // Welcome heading
+  const session = JSON.parse(sessionStorage.getItem(SESSION_KEY) || '{}');
+  const name = session.name ? session.name.split(' ')[0] : 'there';
+  document.getElementById('welcomeHeading').textContent = 'Hey, ' + name + ' 👋';
+  document.getElementById('welcomeSub').textContent = 'Here\'s the current status of ' + (p.name || 'your project') + '.';
+
+  // Overview
+  document.getElementById('pName').textContent = p.name || '—';
+  document.getElementById('pType').textContent = p.type || '—';
+  document.getElementById('pStart').textContent = p.startDate ? new Date(p.startDate).toLocaleDateString('en-US', {month:'long',day:'numeric',year:'numeric'}) : '—';
+  document.getElementById('pDeadline').textContent = p.deadline ? new Date(p.deadline).toLocaleDateString('en-US', {month:'long',day:'numeric',year:'numeric'}) : 'TBD';
+
+  const statusMap = { active: 'In progress', completed: 'Completed', paused: 'Paused', cancelled: 'Cancelled' };
+  const statusPill = { active: 'pill-purple', completed: 'pill-green', paused: 'pill-yellow', cancelled: 'pill-grey' };
+  document.getElementById('pStatus').innerHTML = `<span class="pill ${statusPill[p.status] || 'pill-grey'}">${statusMap[p.status] || p.status || '—'}</span>`;
+
+  const urlEl = document.getElementById('pUrl');
+  if (p.liveUrl) {
+    urlEl.innerHTML = `<a href="${esc(p.liveUrl)}" target="_blank" style="color:var(--accent)">${esc(p.liveUrl)}</a>`;
+  } else {
+    urlEl.textContent = 'Not live yet';
+  }
+
+  // Progress tracker
+  const depositPaid = p.depositStatus === 'Paid';
+  const isActive    = p.status === 'active';
+  const isComplete  = p.status === 'completed';
+  const hasUrl      = !!p.liveUrl;
+
+  const steps = [
+    { done: true,                   active: false   }, // Brief always received
+    { done: depositPaid,            active: !depositPaid && isActive },
+    { done: isActive || isComplete, active: isActive && depositPaid && !isComplete },
+    { done: isComplete || hasUrl,   active: isActive && hasUrl && !isComplete },
+    { done: isComplete,             active: false   },
+  ];
+
+  steps.forEach(function(s, i) {
+    const n = i + 1;
+    const circle = document.getElementById('tc' + n);
+    const label  = document.getElementById('tl' + n);
+    circle.className = 'track-circle' + (s.done ? ' done' : s.active ? ' active' : '');
+    label.className  = 'track-label'  + (s.done ? ' done' : s.active ? ' active' : '');
+    if (n < 5) {
+      const line = document.getElementById('tline' + n);
+      line.className = 'track-line' + (s.done ? ' done' : '');
+    }
+  });
+
+  // Billing
+  document.getElementById('pBuildFee').textContent = p.buildFee ? '$' + p.buildFee : '—';
+  document.getElementById('pHosting').textContent = p.hosting ? '$' + p.hosting + '/mo' : 'No monthly plan';
+
+  const payPill = { 'Paid in full': 'pill-green', 'Deposit paid': 'pill-warm', 'Unpaid': 'pill-red', 'Overdue': 'pill-yellow' };
+  document.getElementById('pPayStatus').innerHTML = `<span class="pill ${payPill[p.paymentStatus] || 'pill-grey'}">${p.paymentStatus || 'Unpaid'}</span>`;
+  document.getElementById('pDepositStatus').innerHTML = depositPaid
+    ? '<span class="pill pill-green">Paid</span>'
+    : '<span class="pill pill-yellow">Not paid</span>';
+
+  // Invoice history from onboarding checklist
+  const invoiceList = document.getElementById('invoiceList');
+  invoiceList.innerHTML = '';
+  const payments = [];
+  if (depositPaid) payments.push({ label: 'Deposit payment', amount: '100.00', date: p.depositPaidAt || p.createdAt, type: 'deposit' });
+  if (p.paymentStatus === 'Paid in full') payments.push({ label: 'Build fee — balance', amount: p.buildFee ? (parseFloat(p.buildFee) - 100).toFixed(2) : '—', date: p.updatedAt, type: 'build' });
+  if (p.lastSubscriptionPaidAt) payments.push({ label: 'Monthly plan', amount: p.hosting || '—', date: p.lastSubscriptionPaidAt, type: 'monthly' });
+
+  if (payments.length === 0) {
+    invoiceList.innerHTML = '<div class="empty-state">No payments recorded yet.</div>';
+  } else {
+    payments.forEach(function(pay) {
+      const date = pay.date ? new Date(pay.date).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}) : '—';
+      const colorMap = { deposit: 'var(--warm)', build: 'var(--green)', monthly: 'var(--accent)' };
+      const div = document.createElement('div');
+      div.className = 'invoice-item';
+      div.innerHTML = `
+        <div>
+          <div class="invoice-name">${esc(pay.label)}</div>
+          <div class="invoice-meta">${date}</div>
+        </div>
+        <div class="invoice-amount" style="color:${colorMap[pay.type] || 'var(--green)'}">$${pay.amount}</div>
+      `;
+      invoiceList.appendChild(div);
+    });
+  }
+}
+
+// ── Support requests ──────────────────────────────────────────────────────
+function renderRequests(snap) {
+  const list  = document.getElementById('requestList');
+  const empty = document.getElementById('requestEmpty');
+  const items = [];
+  if (snap.exists()) snap.forEach(c => items.push(c.val()));
+  items.sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+
+  list.innerHTML = '';
+  if (items.length === 0) {
+    list.appendChild(empty);
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  const statusColors = {
+    'Open':        'pill-purple',
+    'In progress': 'pill-warm',
+    'Resolved':    'pill-green',
+    'Closed':      'pill-grey',
+  };
+
+  items.forEach(function(item) {
+    const date = item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+    const status = item.status || 'Open';
+    const div = document.createElement('div');
+    div.className = 'request-item';
+    div.innerHTML = `
+      <div class="request-item-header">
+        <div>
+          <div class="request-item-type">${esc(item.type || 'Request')}</div>
+          <span class="pill ${statusColors[status] || 'pill-grey'}" style="font-size:10px;margin-top:4px;display:inline-block">${status}</span>
+        </div>
+        <div class="request-item-date">${date}</div>
+      </div>
+      <div class="request-item-msg">${esc(item.message || '')}</div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+document.getElementById('submitRequestBtn').addEventListener('click', async function() {
+  const msg  = document.getElementById('requestMsg').value.trim();
+  const type = document.getElementById('requestType').value;
+  if (!msg) { alert('Please describe your request.'); return; }
+  if (!currentProjectKey) return;
+
+  this.disabled = true;
+  this.textContent = 'Submitting…';
+
+  try {
+    await set(push(ref(db, 'supportRequests/' + currentProjectKey)), {
+      type,
+      message: msg,
+      status:  'Open',
+      username: currentUsername || '',
+      createdAt: Date.now(),
+    });
+    document.getElementById('requestMsg').value = '';
+    document.getElementById('requestType').value = 'Bug report';
+  } catch(err) {
+    alert('Failed to submit: ' + err.message);
+  } finally {
+    this.disabled = false;
+    this.textContent = 'Submit request';
+  }
+});
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
