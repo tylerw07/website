@@ -212,9 +212,8 @@
       <div>
         <p class="eyebrow">Finance</p>
         <h1>Dashboard</h1>
-        <p>Income, expenses, and client billing status.</p>
+        <p>Income, expenses, and client billing status. <span id="lastUpdated" style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-faint)"></span></p>
       </div>
-      <button class="btn btn-ghost btn-sm" id="refreshBtn">↺ Refresh</button>
     </div>
 
     <!-- TAB BAR -->
@@ -465,8 +464,7 @@ function init() {
   loadExpenses();
   loadProjects();
   loadSquarePayments();
-
-  // Set period label
+  startPolling();
   updatePeriodLabel();
 }
 
@@ -516,15 +514,12 @@ document.querySelectorAll('[data-clientfilter]').forEach(function(pill) {
   });
 });
 
-// ── Refresh ────────────────────────────────────────────────────────────────
-document.getElementById('refreshBtn').addEventListener('click', function() {
-  this.textContent = '↺ Refreshing…';
-  this.disabled = true;
-  loadSquarePayments().finally(() => {
-    this.textContent = '↺ Refresh';
-    this.disabled = false;
-  });
-});
+// ── Auto-poll Square payments every 30 seconds ────────────────────────────
+function startPolling() {
+  setInterval(function() {
+    loadSquarePayments(true); // silent = true, no loading spinner
+  }, 30000);
+}
 
 // ── Firebase: projects ─────────────────────────────────────────────────────
 function loadProjects() {
@@ -554,10 +549,12 @@ function loadExpenses() {
 }
 
 // ── Square payments ────────────────────────────────────────────────────────
-async function loadSquarePayments() {
-  document.getElementById('incomeLoading').style.display = 'block';
-  document.getElementById('incomeList').innerHTML = '';
-  document.getElementById('incomeEmpty').style.display = 'none';
+async function loadSquarePayments(silent = false) {
+  if (!silent) {
+    document.getElementById('incomeLoading').style.display = 'block';
+    document.getElementById('incomeList').innerHTML = '';
+    document.getElementById('incomeEmpty').style.display = 'none';
+  }
 
   try {
     const res = await fetch(WORKER + '/square/payments');
@@ -565,14 +562,24 @@ async function loadSquarePayments() {
     if (data.success) {
       squarePayments = data.payments || [];
     } else {
-      squarePayments = [];
+      if (!silent) squarePayments = [];
       console.error('Square payments error:', data.error);
     }
   } catch(err) {
-    squarePayments = [];
+    if (!silent) squarePayments = [];
     console.error('Square fetch error:', err);
   }
-  document.getElementById('incomeLoading').style.display = 'none';
+
+  if (!silent) {
+    document.getElementById('incomeLoading').style.display = 'none';
+  }
+
+  // Update last-updated timestamp
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit' });
+  const el = document.getElementById('lastUpdated');
+  if (el) el.textContent = 'Updated ' + timeStr;
+
   renderIncomeTab();
 }
 
@@ -666,20 +673,24 @@ function renderIncomeTab() {
     incomeEmpty.style.display = 'block';
   } else {
     incomeEmpty.style.display = 'none';
-    filteredPayments.forEach(function(p) {
+    // Sort newest first
+    const sorted = [...filteredPayments].sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+    sorted.forEach(function(p) {
       const amount = (p.amount_money?.amount || 0) / 100;
       const date = new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const time = new Date(p.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
       const note = p.note || '';
       const isDeposit = amount === 100 || note.toLowerCase().includes('deposit');
       const isMonthly = note.toLowerCase().includes('monthly');
       const tagClass = isDeposit ? 'income-tag-deposit' : isMonthly ? 'income-tag-monthly' : 'income-tag-build';
       const tagLabel = isDeposit ? 'Deposit' : isMonthly ? 'Monthly' : 'Build fee';
+      const shortId = (p.id || '').slice(-6).toUpperCase();
       const item = document.createElement('div');
       item.className = 'income-item';
       item.innerHTML = `
         <div class="income-item-left">
           <div class="income-item-name">${esc(note || 'Payment')} <span class="income-tag ${tagClass}">${tagLabel}</span></div>
-          <div class="income-item-meta">${date} · ${esc(p.source_type || 'Card')}</div>
+          <div class="income-item-meta">${date} ${time} · ${esc(p.source_type || 'Card')} · #${shortId}</div>
         </div>
         <div class="income-item-amount">+$${amount.toFixed(2)}</div>
       `;
