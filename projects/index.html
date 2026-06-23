@@ -378,12 +378,14 @@
   <div class="detail-section" id="dNotesSection"><h4>Internal notes</h4><div class="notes-box" id="dNotes"></div></div>
   <div class="detail-section" id="dTagsSection"><h4>Tags</h4><div class="project-tags" id="dTags"></div></div>
   <div class="drawer-actions" style="flex-wrap:wrap">
-    <button class="btn btn-ghost" id="drawerEdit">Edit project</button>
     <button class="btn btn-primary" id="drawerInvoice">Generate invoice</button>
     <button class="btn btn-ghost" id="drawerDepositInvoice" style="color:var(--warm);border-color:var(--warm)">Bill deposit</button>
     <button class="btn btn-ghost" id="drawerMarkDepositPaid" style="color:var(--green);border-color:var(--green)">✓ Deposit paid</button>
     <button class="btn btn-ghost" id="drawerMarkPaid" style="color:var(--green);border-color:var(--green)">✓ Mark paid in full</button>
     <button class="btn btn-ghost" id="drawerActivateSub" style="display:none;color:var(--accent);border-color:var(--accent)">⟳ Activate recurring invoice</button>
+  </div>
+  <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line)">
+    <button class="btn btn-danger" id="drawerDeleteBtn">🗑 Delete project</button>
   </div>
 </div>
 </div>
@@ -749,7 +751,7 @@ document.getElementById('drawerActivateSub').addEventListener('click', async fun
   const planLabel = planLabels[p.hosting] || '$' + p.hosting + '/mo';
 
   if (!p.email) {
-    alert('This project has no client email address. Add one in Edit project first.');
+    alert('This project has no client email address. Add one by editing the project card.');
     return;
   }
 
@@ -851,9 +853,18 @@ document.getElementById('drawerMarkPaid').addEventListener('click',function(){
     .catch(function(err){alert('Update failed: '+err.message);});
 });
 
+document.getElementById('drawerDeleteBtn').addEventListener('click', function() {
+  if (!drawerProjectId) return;
+  // Store the project key so confirmDelete knows what to delete
+  editingId = drawerProjectId;
+  document.getElementById('confirmUser').value = '';
+  document.getElementById('confirmPass').value = '';
+  document.getElementById('confirmError').style.display = 'none';
+  document.getElementById('confirmDeleteOverlay').classList.add('open');
+});
+
 document.getElementById('drawerClose').addEventListener('click',closeDrawer);
 document.getElementById('drawerOverlay').addEventListener('click',function(e){if(e.target===this)closeDrawer();});
-document.getElementById('drawerEdit').addEventListener('click',function(){if(drawerProjectId){closeDrawer();openModal(drawerProjectId);}});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeModal();closeDrawer();}});
 renderAll();
 </script>
