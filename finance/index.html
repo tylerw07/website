@@ -421,6 +421,13 @@ const USERNAME = 'admin', PASSWORD = '817564Burg!@', SESSION_KEY = 'nt_auth';
 const fbApp = initializeApp(firebaseConfig);
 const db = getDatabase(fbApp);
 
+// ── State (declared first so all functions can access them) ───────────────
+let projects = [];
+let squarePayments = [];
+let expenses = [];
+let activePeriod = 'month';
+let activeClientFilter = 'all';
+
 // ── Auth ──────────────────────────────────────────────────────────────────
 const loginGate = document.getElementById('loginGate');
 const dashboard = document.getElementById('dashboard');
@@ -451,13 +458,6 @@ logoutBtn.addEventListener('click', function() {
   sessionStorage.removeItem(SESSION_KEY);
   location.reload();
 });
-
-// ── State ──────────────────────────────────────────────────────────────────
-let projects = [];
-let squarePayments = [];
-let expenses = [];
-let activePeriod = 'month';
-let activeClientFilter = 'all';
 
 // ── Init ───────────────────────────────────────────────────────────────────
 function init() {
