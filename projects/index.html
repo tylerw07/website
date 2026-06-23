@@ -82,6 +82,9 @@
   .pay-unpaid { background:var(--red-bg); color:var(--red); font-size:11px; font-weight:600; font-family:'IBM Plex Mono',monospace; padding:3px 8px; border-radius:999px; letter-spacing:0.04em; }
   .pay-overdue { background:#fef9c3; color:#854d0e; font-size:11px; font-weight:600; font-family:'IBM Plex Mono',monospace; padding:3px 8px; border-radius:999px; letter-spacing:0.04em; }
   .pay-deposit { background:var(--warm-soft); color:var(--warm); font-size:11px; font-weight:600; font-family:'IBM Plex Mono',monospace; padding:3px 8px; border-radius:999px; letter-spacing:0.04em; }
+  .deposit-dot { width:9px; height:9px; border-radius:50%; background:#854d0e; flex-shrink:0; margin-top:2px; }
+  .deposit-paid { background:var(--green-bg); color:var(--green); font-size:11px; font-weight:600; font-family:'IBM Plex Mono',monospace; padding:3px 8px; border-radius:999px; letter-spacing:0.04em; }
+  .deposit-unpaid { background:#fef9c3; color:#854d0e; font-size:11px; font-weight:600; font-family:'IBM Plex Mono',monospace; padding:3px 8px; border-radius:999px; letter-spacing:0.04em; }
   .status-completed { background:var(--accent-soft); color:var(--accent-deep); }
   .status-on-hold { background:var(--orange-bg); color:var(--orange); }
   .status-cancelled { background:#f3f4f6; color:#6b7280; }
@@ -279,6 +282,13 @@
           <option>Overdue</option>
         </select>
       </div>
+      <div class="field"><label>Deposit status</label>
+        <select id="fDepositStatus">
+          <option value="">&#8212; Select &#8212;</option>
+          <option>Not paid</option>
+          <option>Paid</option>
+        </select>
+      </div>
       <div class="field"><label>Hosting plan</label>
         <select id="fHosting">
           <option value="">None</option>
@@ -347,6 +357,7 @@
       <div class="detail-item"><div class="detail-label">Monthly plan</div><div class="detail-value" id="dHosting"></div></div>
       <div class="detail-item"><div class="detail-label">Next billing</div><div class="detail-value" id="dNextBilling"></div></div>
       <div class="detail-item full"><div class="detail-label">Subscription</div><div class="detail-value" id="dSubStatus">—</div></div>
+      <div class="detail-item"><div class="detail-label">Deposit ($100)</div><div class="detail-value" id="dDepositStatus">—</div></div>
     </div>
   </div>
   <div class="detail-section" id="dBriefSection"><h4>Project brief</h4><div class="notes-box" id="dBrief"></div></div>
@@ -355,7 +366,9 @@
   <div class="drawer-actions" style="flex-wrap:wrap">
     <button class="btn btn-ghost" id="drawerEdit">Edit project</button>
     <button class="btn btn-primary" id="drawerInvoice">Generate invoice</button>
-    <button class="btn btn-ghost" id="drawerMarkPaid" style="color:var(--green);border-color:var(--green)">Mark paid</button>
+    <button class="btn btn-ghost" id="drawerDepositInvoice" style="color:var(--warm);border-color:var(--warm)">Bill deposit</button>
+    <button class="btn btn-ghost" id="drawerMarkDepositPaid" style="color:var(--green);border-color:var(--green)">✓ Deposit paid</button>
+    <button class="btn btn-ghost" id="drawerMarkPaid" style="color:var(--green);border-color:var(--green)">✓ Mark paid in full</button>
     <button class="btn btn-ghost" id="drawerActivateSub" style="display:none;color:var(--accent);border-color:var(--accent)">⟳ Activate recurring invoice</button>
   </div>
 </div>
@@ -366,7 +379,7 @@ import { getDatabase, ref, push, set, remove, onValue, update }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
 // ╔══════════════════════════════════════════════════════════╗
-// ║  FIREBASE CONFIG — replace all PASTE_ values below      ║
+// ║  FIREBASE CONFIG  -  replace all PASTE_ values below      ║
 // ║  Find them at: console.firebase.google.com               ║
 // ║  → your project → Project settings → Your apps          ║
 // ║  → Firebase SDK snippet → Config                         ║
@@ -385,7 +398,7 @@ const fbApp = initializeApp(firebaseConfig);
 const db    = getDatabase(fbApp);
 const projectsRef = ref(db, 'projects');
 
-// Live cache — kept in sync by Firebase real-time listener
+// Live cache  -  kept in sync by Firebase real-time listener
 let projectsCache = [];
 let listenerAttached = false;
 
@@ -415,7 +428,7 @@ function showDashboard(){
   if(!listenerAttached){
     listenerAttached=true;
 
-    // Timeout — if Firebase hasn't responded in 8 seconds, show a clear error
+    // Timeout  -  if Firebase hasn't responded in 8 seconds, show a clear error
     const timeoutId = setTimeout(function(){
       showLoading(false, 'Could not connect to database. Check your Firebase rules allow reads, then refresh.');
     }, 8000);
@@ -434,7 +447,7 @@ function showDashboard(){
         renderAll();
       },
       function(error){
-        // Firebase called the error callback — permission denied or config issue
+        // Firebase called the error callback  -  permission denied or config issue
         clearTimeout(timeoutId);
         console.error('Firebase read error:', error);
         if(error.code === 'PERMISSION_DENIED'){
@@ -524,9 +537,10 @@ function renderAll(){
     const monthly=p.hosting?'<span class="monthly-badge">$'+p.hosting+'/mo</span>':'<span style="font-size:12px;color:var(--ink-faint)">App only</span>';
     const payBadge = p.paymentStatus === 'Paid in full' ? '<span class="pay-paid">Paid</span>' : p.paymentStatus === 'Overdue' ? '<span class="pay-overdue">Overdue</span>' : p.paymentStatus === 'Deposit paid' ? '<span class="pay-deposit">Deposit</span>' : p.paymentStatus ? '<span class="pay-unpaid">Unpaid</span>' : '';
     const invoiceDot = (p.hosting && parseFloat(p.hosting) > 0 && !p.squareInvoiceId) ? '<span class="invoice-dot" title="Recurring invoice not set up"></span>' : '';
+    const depositDot = (!p.depositStatus || p.depositStatus === 'Not paid') ? '<span class="deposit-dot" title="Deposit not paid"></span>' : '';
     const card=document.createElement('div');
     card.className='project-card'; card.dataset.id=p._fbKey;
-    card.innerHTML=`<div class="project-card-top"><div><div class="project-name">${esc(p.name)}</div><div class="project-client">${esc(p.client)}${p.business?' &middot; '+esc(p.business):''}</div></div><span class="status-badge ${sClass(p.status)}">${sLabel(p.status)}</span></div><div class="project-meta"><div class="meta-item"><div class="meta-label">Type</div><div class="meta-value">${esc(p.type||'&#8212;')}</div></div><div class="meta-item"><div class="meta-label">Billing</div><div class="meta-value">${esc(p.paymentStatus||'&#8212;')}</div></div><div class="meta-item"><div class="meta-label">Started</div><div class="meta-value">${fmtDate(p.startDate)}</div></div><div class="meta-item"><div class="meta-label">Deadline</div><div class="meta-value">${fmtDate(p.deadline)}</div></div></div>${tags?'<div class="project-tags">'+tags+'</div>':''}<div class="project-card-footer"><div style="display:flex;gap:8px;align-items:center">${monthly}${payBadge}</div><div class="card-actions">${invoiceDot}<button class="btn btn-ghost btn-sm edit-btn" data-id="${p._fbKey}">Edit</button></div></div>`;
+    card.innerHTML=`<div class="project-card-top"><div><div class="project-name">${esc(p.name)}</div><div class="project-client">${esc(p.client)}${p.business?' &middot; '+esc(p.business):''}</div></div><span class="status-badge ${sClass(p.status)}">${sLabel(p.status)}</span></div><div class="project-meta"><div class="meta-item"><div class="meta-label">Type</div><div class="meta-value">${esc(p.type||'&#8212;')}</div></div><div class="meta-item"><div class="meta-label">Billing</div><div class="meta-value">${esc(p.paymentStatus||'&#8212;')}</div></div><div class="meta-item"><div class="meta-label">Started</div><div class="meta-value">${fmtDate(p.startDate)}</div></div><div class="meta-item"><div class="meta-label">Deadline</div><div class="meta-value">${fmtDate(p.deadline)}</div></div></div>${tags?'<div class="project-tags">'+tags+'</div>':''}<div class="project-card-footer"><div style="display:flex;gap:8px;align-items:center">${monthly}${payBadge}</div><div class="card-actions">${depositDot}${invoiceDot}<button class="btn btn-ghost btn-sm edit-btn" data-id="${p._fbKey}">Edit</button></div></div>`;
     card.addEventListener('click',function(e){if(e.target.classList.contains('edit-btn')||e.target.closest('.edit-btn'))return;openDrawer(p._fbKey);});
     card.querySelector('.edit-btn').addEventListener('click',function(e){e.stopPropagation();openModal(p._fbKey);});
     grid.appendChild(card);
@@ -552,6 +566,7 @@ function openModal(id){
   document.getElementById('fStatus').value=p?p.status:'active';
   document.getElementById('fType').value=p?p.type||'':'';
   document.getElementById('fPaymentStatus').value=p?p.paymentStatus||'':'';
+  document.getElementById('fDepositStatus').value=p?p.depositStatus||'':'';
   document.getElementById('fHosting').value=p?p.hosting||'':'';
   document.getElementById('fTags').value=p?(p.tags||[]).join(', '):'';
   document.getElementById('projectModal').classList.add('open');
@@ -569,8 +584,8 @@ document.getElementById('modalSave').addEventListener('click',function(){
   const client=document.getElementById('fClient').value.trim();
   if(!name||!client){alert('Project name and client name are required.');return;}
   const tags=document.getElementById('fTags').value.split(',').map(t=>t.trim()).filter(Boolean);
-  const data={name,client,business:document.getElementById('fBusiness').value.trim(),email:document.getElementById('fEmail').value.trim(),phone:document.getElementById('fPhone').value.trim(),status:document.getElementById('fStatus').value,type:document.getElementById('fType').value,stack:document.getElementById('fStack').value.trim(),liveUrl:document.getElementById('fUrl').value.trim(),repo:document.getElementById('fRepo').value.trim(),startDate:document.getElementById('fStartDate').value,deadline:document.getElementById('fDeadline').value,buildFee:document.getElementById('fBuildFee').value,paymentStatus:document.getElementById('fPaymentStatus').value,hosting:document.getElementById('fHosting').value,nextBilling:document.getElementById('fNextBilling').value,brief:document.getElementById('fBrief').value.trim(),notes:document.getElementById('fNotes').value.trim(),tags,updatedAt:Date.now()};
-  // Firebase handles save — onValue listener re-renders automatically
+  const data={name,client,business:document.getElementById('fBusiness').value.trim(),email:document.getElementById('fEmail').value.trim(),phone:document.getElementById('fPhone').value.trim(),status:document.getElementById('fStatus').value,type:document.getElementById('fType').value,stack:document.getElementById('fStack').value.trim(),liveUrl:document.getElementById('fUrl').value.trim(),repo:document.getElementById('fRepo').value.trim(),startDate:document.getElementById('fStartDate').value,deadline:document.getElementById('fDeadline').value,buildFee:document.getElementById('fBuildFee').value,paymentStatus:document.getElementById('fPaymentStatus').value,depositStatus:document.getElementById('fDepositStatus').value,hosting:document.getElementById('fHosting').value,nextBilling:document.getElementById('fNextBilling').value,brief:document.getElementById('fBrief').value.trim(),notes:document.getElementById('fNotes').value.trim(),tags,updatedAt:Date.now()};
+  // Firebase handles save  -  onValue listener re-renders automatically
   saveBtn.disabled=true; saveBtn.textContent='Saving...';
   fbSave(data, editingId || null)
     .then(function(){closeModal();})
@@ -592,21 +607,25 @@ function openDrawer(id){
   document.getElementById('drawerStatus').className='status-badge '+sClass(p.status);
   document.getElementById('drawerName').textContent=p.name;
   document.getElementById('drawerClient').textContent=p.client+(p.business?' · '+p.business:'');
-  document.getElementById('dBusiness').textContent=p.business||'—';
-  document.getElementById('dEmail').innerHTML=p.email?'<a href="mailto:'+esc(p.email)+'" style="color:var(--accent)">'+esc(p.email)+'</a>':'—';
-  document.getElementById('dPhone').textContent=p.phone||'—';
-  document.getElementById('dType').textContent=p.type||'—';
-  document.getElementById('dStack').textContent=p.stack||'—';
-  document.getElementById('dUrl').innerHTML=p.liveUrl?'<a href="'+esc(p.liveUrl)+'" target="_blank" style="color:var(--accent)">'+esc(p.liveUrl)+' ↗</a>':'—';
-  document.getElementById('dRepo').innerHTML=p.repo?'<a href="'+esc(p.repo)+'" target="_blank" style="color:var(--accent)">'+esc(p.repo)+' ↗</a>':'—';
+  document.getElementById('dBusiness').textContent=p.business||' - ';
+  document.getElementById('dEmail').innerHTML=p.email?'<a href="mailto:'+esc(p.email)+'" style="color:var(--accent)">'+esc(p.email)+'</a>':' - ';
+  document.getElementById('dPhone').textContent=p.phone||' - ';
+  document.getElementById('dType').textContent=p.type||' - ';
+  document.getElementById('dStack').textContent=p.stack||' - ';
+  document.getElementById('dUrl').innerHTML=p.liveUrl?'<a href="'+esc(p.liveUrl)+'" target="_blank" style="color:var(--accent)">'+esc(p.liveUrl)+' ↗</a>':' - ';
+  document.getElementById('dRepo').innerHTML=p.repo?'<a href="'+esc(p.repo)+'" target="_blank" style="color:var(--accent)">'+esc(p.repo)+' ↗</a>':' - ';
   document.getElementById('dStart').innerHTML=fmtDate(p.startDate);
   document.getElementById('dDeadline').innerHTML=fmtDate(p.deadline);
-  document.getElementById('dBuildFee').textContent=p.buildFee?'$'+p.buildFee:'—';
+  document.getElementById('dBuildFee').textContent=p.buildFee?'$'+p.buildFee:' - ';
   const payStatus = p.paymentStatus || '';
   const payClass = payStatus === 'Paid in full' ? 'pay-paid' : payStatus === 'Overdue' ? 'pay-overdue' : payStatus === 'Deposit paid' ? 'pay-deposit' : payStatus ? 'pay-unpaid' : '';
-  document.getElementById('dPayment').innerHTML = payClass ? '<span class="'+payClass+'">'+esc(payStatus)+'</span>' : '—';
+  document.getElementById('dPayment').innerHTML = payClass ? '<span class="'+payClass+'">'+esc(payStatus)+'</span>' : ' - ';
   document.getElementById('dInvoiceLink').innerHTML = '<a href="/invoice?fbkey='+encodeURIComponent(p._fbKey||'')+'" target="_blank" style="color:var(--accent)">Open invoice ↗</a>';
   document.getElementById('dHosting').textContent=p.hosting?'$'+p.hosting+'/mo':'None';
+  const depositPaid = p.depositStatus === 'Paid';
+  document.getElementById('dDepositStatus').innerHTML = depositPaid
+    ? '<span class="deposit-paid">Paid</span>'
+    : '<span class="deposit-unpaid">Not paid</span>';
 
   // Show activate subscription button only if project has a hosting plan
   const activateBtn = document.getElementById('drawerActivateSub');
@@ -618,13 +637,13 @@ function openDrawer(id){
       activateBtn.disabled = true;
       activateBtn.style.opacity = '0.6';
       activateBtn.style.cursor = 'default';
-      document.getElementById('dSubStatus').innerHTML = '<span style="color:var(--green);font-weight:600">Active</span> — Invoice ID: ' + esc(p.squareInvoiceId);
+      document.getElementById('dSubStatus').innerHTML = '<span style="color:var(--green);font-weight:600">Active</span>  -  Invoice ID: ' + esc(p.squareInvoiceId);
     } else {
       activateBtn.textContent = '⟳ Activate recurring invoice';
       activateBtn.disabled = false;
       activateBtn.style.opacity = '1';
       activateBtn.style.cursor = 'pointer';
-      document.getElementById('dSubStatus').textContent = p.hosting ? 'Not yet activated' : '—';
+      document.getElementById('dSubStatus').textContent = p.hosting ? 'Not yet activated' : ' - ';
     }
   } else {
     activateBtn.style.display = 'none';
@@ -689,6 +708,46 @@ document.getElementById('drawerActivateSub').addEventListener('click', async fun
     btn.disabled = false;
   }
 });;
+
+document.getElementById('drawerDepositInvoice').addEventListener('click', async function() {
+  const p = projectsCache.find(x=>x._fbKey===drawerProjectId); if(!p) return;
+  if (p.depositStatus === 'Paid') { alert('Deposit has already been marked as paid.'); return; }
+  const btn = this;
+  btn.textContent = 'Generating...';
+  btn.disabled = true;
+  try {
+    const res = await fetch('https://create-subscription.tylerreedwilliams.workers.dev/payment-link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amountCents: 10000,
+        title:       'New Trail Design  -  Deposit for ' + (p.name || 'project'),
+        description: '$100 deposit to begin work. Remaining balance due at launch.',
+        invoiceNum:  'DEP-' + (p._fbKey || '').slice(-6).toUpperCase(),
+      }),
+    });
+    const json = await res.json();
+    if (json.success && json.url) {
+      window.open(json.url, '_blank');
+      alert('Deposit payment link opened! Copy and send this URL to your client: ' + json.url);
+    } else {
+      alert('Failed to generate link: ' + (json.error || 'Unknown error'));
+    }
+  } catch(err) {
+    alert('Network error: ' + err.message);
+  } finally {
+    btn.textContent = 'Bill deposit';
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('drawerMarkDepositPaid').addEventListener('click', function() {
+  const p = projectsCache.find(x=>x._fbKey===drawerProjectId); if(!p) return;
+  if (!confirm('Mark deposit as paid for "' + p.name + '"?')) return;
+  fbSave(Object.assign({}, p, { depositStatus: 'Paid' }), p._fbKey)
+    .then(function() { openDrawer(drawerProjectId); })
+    .catch(function(err) { alert('Update failed: ' + err.message); });
+});
 
 document.getElementById('drawerInvoice').addEventListener('click',function(){
   const p=projectsCache.find(x=>x._fbKey===drawerProjectId); if(!p)return;
