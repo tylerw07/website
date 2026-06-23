@@ -121,10 +121,9 @@
   .section-divider { grid-column:1/-1; font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); padding-top:8px; border-top:1px solid var(--line); margin-top:4px; }
   .modal-footer { display:flex; justify-content:space-between; align-items:center; margin-top:24px; gap:12px; }
 
-  .drawer-overlay { display:none; position:fixed; inset:0; background:rgba(19,24,43,0.35); z-index:300; }
-  .drawer-overlay.open { display:block; }
-  .drawer { position:fixed; top:0; right:-600px; width:min(580px,100vw); height:100vh; background:var(--surface); border-left:1px solid var(--line); z-index:301; overflow-y:auto; padding:28px; transition:right 0.25s ease; }
-  .drawer.open { right:0; }
+  .drawer-overlay { display:none; position:fixed; inset:0; background:rgba(19,24,43,0.45); z-index:300; align-items:flex-start; justify-content:center; padding:40px 20px; overflow-y:auto; }
+  .drawer-overlay.open { display:flex; }
+  .drawer { background:var(--surface); border-radius:var(--radius); width:100%; max-width:680px; padding:32px; position:relative; margin:auto; }
   .drawer-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px; gap:16px; }
   .drawer-header h2 { font-size:22px; line-height:1.2; }
   .drawer-close { font-size:22px; line-height:1; background:none; border:none; cursor:pointer; color:var(--ink-faint); padding:4px; flex-shrink:0; }
@@ -136,7 +135,7 @@
   .detail-item .detail-value { font-size:14.5px; color:var(--ink); }
   .detail-item.full { grid-column:1/-1; }
   .notes-box { background:var(--bg); border-radius:10px; padding:14px; font-size:14px; color:var(--ink-soft); white-space:pre-wrap; line-height:1.7; }
-  .drawer-actions { display:flex; gap:10px; margin-top:28px; }
+  .drawer-actions { display:flex; gap:10px; margin-top:28px; flex-wrap:wrap; }
 
   @media (max-width:680px) {
     .stats-bar { grid-template-columns:1fr 1fr; }
@@ -317,7 +316,7 @@
 </div>
 
 <!-- DRAWER -->
-<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="drawer-overlay" id="drawerOverlay">
 <div class="drawer" id="drawer">
   <div class="drawer-header">
     <div>
@@ -374,6 +373,7 @@
     <button class="btn btn-ghost" id="drawerMarkPaid" style="color:var(--green);border-color:var(--green)">✓ Mark paid in full</button>
     <button class="btn btn-ghost" id="drawerActivateSub" style="display:none;color:var(--accent);border-color:var(--accent)">⟳ Activate recurring invoice</button>
   </div>
+</div>
 </div>
 
 <script type="module">
@@ -658,11 +658,10 @@ function openDrawer(id){
   const ts=document.getElementById('dTagsSection');
   if(p.tags&&p.tags.length){ts.style.display='block';document.getElementById('dTags').innerHTML=p.tags.map(t=>'<span class="tag">'+esc(t)+'</span>').join('');}
   else{ts.style.display='none';}
-  document.getElementById('drawer').classList.add('open');
   document.getElementById('drawerOverlay').classList.add('open');
 }
 
-function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('drawerOverlay').classList.remove('open');drawerProjectId=null;}
+function closeDrawer(){document.getElementById('drawerOverlay').classList.remove('open');drawerProjectId=null;}
 document.getElementById('drawerActivateSub').addEventListener('click', async function() {
   const p = projectsCache.find(x=>x._fbKey===drawerProjectId); if(!p) return;
   if (p.squareInvoiceId) return;
@@ -766,7 +765,7 @@ document.getElementById('drawerMarkPaid').addEventListener('click',function(){
 });
 
 document.getElementById('drawerClose').addEventListener('click',closeDrawer);
-document.getElementById('drawerOverlay').addEventListener('click',closeDrawer);
+document.getElementById('drawerOverlay').addEventListener('click',function(e){if(e.target===this)closeDrawer();});
 document.getElementById('drawerEdit').addEventListener('click',function(){if(drawerProjectId){closeDrawer();openModal(drawerProjectId);}});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeModal();closeDrawer();}});
 renderAll();
