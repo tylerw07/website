@@ -658,33 +658,85 @@ document.getElementById('modalClose').addEventListener('click',closeModal);
 document.getElementById('modalCancel').addEventListener('click',closeModal);
 document.getElementById('projectModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
 
-document.getElementById('modalSave').addEventListener('click',function(){
-  const saveBtn=this;
-  const name=document.getElementById('fName').value.trim();
-  const client=document.getElementById('fClient').value.trim();
-  if(!name||!client){alert('Project name and client name are required.');return;}
-  const tags=document.getElementById('fTags').value.split(',').map(t=>t.trim()).filter(Boolean);
-  const data={name,client,business:document.getElementById('fBusiness').value.trim(),email:document.getElementById('fEmail').value.trim(),phone:document.getElementById('fPhone').value.trim(),status:document.getElementById('fStatus').value,type:document.getElementById('fType').value,stack:document.getElementById('fStack').value.trim(),liveUrl:document.getElementById('fUrl').value.trim(),repo:document.getElementById('fRepo').value.trim(),startDate:document.getElementById('fStartDate').value,deadline:document.getElementById('fDeadline').value,buildFee:document.getElementById('fBuildFee').value,paymentStatus:document.getElementById('fPaymentStatus').value,depositStatus:document.getElementById('fDepositStatus').value,hosting:document.getElementById('fHosting').value,nextBilling:document.getElementById('fNextBilling').value,brief:document.getElementById('fBrief').value.trim(),notes:document.getElementById('fNotes').value.trim(),tags,updatedAt:Date.now()};
-  // Firebase handles save  -  onValue listener re-renders automatically
-  saveBtn.disabled=true; saveBtn.textContent='Saving...';
-  fbSave(data, editingId || null)
-    .then(async function(){
-      if (portalUser) {
-        const accountData = { projectKey: editingId, email: data.email||'', name: data.client||'', updatedAt: Date.now() };
+document.getElementById('modalSave').addEventListener('click', async function() {
+  const saveBtn = this;
+  const name   = document.getElementById('fName').value.trim();
+  const client = document.getElementById('fClient').value.trim();
+  if (!name || !client) { alert('Project name and client name are required.'); return; }
+
+  const tags = document.getElementById('fTags').value.split(',').map(t => t.trim()).filter(Boolean);
+  const data = {
+    name, client,
+    business:      document.getElementById('fBusiness').value.trim(),
+    email:         document.getElementById('fEmail').value.trim(),
+    phone:         document.getElementById('fPhone').value.trim(),
+    status:        document.getElementById('fStatus').value,
+    type:          document.getElementById('fType').value,
+    stack:         document.getElementById('fStack').value.trim(),
+    liveUrl:       document.getElementById('fUrl').value.trim(),
+    repo:          document.getElementById('fRepo').value.trim(),
+    startDate:     document.getElementById('fStartDate').value,
+    deadline:      document.getElementById('fDeadline').value,
+    buildFee:      document.getElementById('fBuildFee').value,
+    paymentStatus: document.getElementById('fPaymentStatus').value,
+    depositStatus: document.getElementById('fDepositStatus').value,
+    hosting:       document.getElementById('fHosting').value,
+    nextBilling:   document.getElementById('fNextBilling').value,
+    brief:         document.getElementById('fBrief').value.trim(),
+    notes:         document.getElementById('fNotes').value.trim(),
+    tags,
+    updatedAt: Date.now(),
+  };
+
+  // Read portal credentials NOW, in the same scope as the save
+  const portalUser = document.getElementById('fPortalUser').value.trim().toLowerCase();
+  const portalPass = document.getElementById('fPortalPass').value;
+
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving...';
+
+  try {
+    const savedKey = await fbSave(data, editingId || null);
+    const projectKey = editingId || savedKey;
+
+    // Save portal credentials if a username was provided
+    if (portalUser) {
+      const accountData = {
+        projectKey,
+        email:     data.email || '',
+        name:      data.client || '',
+        updatedAt: Date.now(),
+      };
+      try {
         const existingSnap = await get(ref(db, 'portalAccounts/' + portalUser));
         if (existingSnap.exists() && !portalPass) {
-          await set(ref(db, 'portalAccounts/' + portalUser), Object.assign({}, existingSnap.val(), accountData));
+          // Keep existing password, update other fields
+          await set(ref(db, 'portalAccounts/' + portalUser),
+            Object.assign({}, existingSnap.val(), accountData));
         } else if (portalPass) {
-          await set(ref(db, 'portalAccounts/' + portalUser), Object.assign(accountData, { password: portalPass }));
+          // New or updated password
+          await set(ref(db, 'portalAccounts/' + portalUser),
+            Object.assign({}, accountData, { password: portalPass }));
         } else {
-          await set(ref(db, 'portalAccounts/' + portalUser), Object.assign(accountData, { password: '' }));
+          // No existing account and no password — save placeholder
+          await set(ref(db, 'portalAccounts/' + portalUser),
+            Object.assign({}, accountData, { password: '' }));
         }
-        await update(ref(db, 'projects/' + editingId), { portalUsername: portalUser });
+        // Tag the project record with the portal username
+        await update(ref(db, 'projects/' + projectKey), { portalUsername: portalUser });
+      } catch(portalErr) {
+        console.error('Portal account save failed:', portalErr);
+        alert('Project saved, but portal credentials failed to save: ' + portalErr.message);
       }
-      closeModal();
-    })
-    .catch(function(err){alert('Save failed: '+err.message);})
-    .finally(function(){saveBtn.disabled=false; saveBtn.textContent='Save project';});
+    }
+
+    closeModal();
+  } catch(err) {
+    alert('Save failed: ' + err.message);
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save project';
+  }
 });
 
 document.getElementById('deleteProjectBtn').addEventListener('click',function(){
@@ -709,18 +761,11 @@ document.getElementById('confirmDelete').addEventListener('click',function(){
   document.getElementById('confirmDeleteOverlay').classList.remove('open');
   const keyToDelete=editingId;
   fbDelete(keyToDelete)
-    .then(async function(newKey){
-      if (portalUser && portalPass) {
-        const key = newKey || editingId;
-        await set(ref(db, 'portalAccounts/' + portalUser), {
-          projectKey: key, email: data.email||'', name: data.client||'', password: portalPass, createdAt: Date.now()
-        });
-        await update(ref(db, 'projects/' + key), { portalUsername: portalUser });
-      }
+    .then(function() {
       closeModal();
       closeDrawer();
     })
-    .catch(function(err){alert('Delete failed: '+err.message);});
+    .catch(function(err) { alert('Delete failed: ' + err.message); });
 });
 
 function openDrawer(id){
