@@ -354,7 +354,7 @@ function showError(msg) {
 
 function buildPaySection(payUrl, payUrlReady, total) {
   if (!payUrlReady) {
-    return '<div class="inv-pay-section"><h3>Pay this invoice online</h3><p>Payment link coming soon — contact us at <a href="mailto:hello@newtraildesign.com" style="color:var(--accent)">hello@newtraildesign.com</a></p></div>';
+    return '<div class="inv-pay-section"><h3>Pay this invoice online</h3><p>Payment link coming soon  -  contact us at <a href="mailto:hello@newtraildesign.com" style="color:var(--accent)">hello@newtraildesign.com</a></p></div>';
   }
   return '<div class="inv-pay-section"><h3>Pay this invoice online</h3><p>Secure payment powered by Square. All major cards accepted.</p><a href="' + esc(payUrl) + '" target="_blank">Pay $' + total.toFixed(2) + ' now →</a></div>';
 }
@@ -397,7 +397,7 @@ async function buildInvoice(p, fbKey) {
       : monthlyFee === 20 ? 'Hosting'
       : null;
 
-    const linkTitle = 'New Trail Design — ' + esc(p.name || 'App build');
+    const linkTitle = 'New Trail Design  -  ' + esc(p.name || 'App build');
     const linkDesc  = hostingLabel
       ? 'App build fee + first month ' + hostingLabel
       : 'App build fee';
@@ -427,8 +427,8 @@ async function buildInvoice(p, fbKey) {
     : null;
 
   const lineItems = [
-    { name: 'Custom app build', desc: esc(p.name || 'Custom application') + ' — designed and built from scratch', amount: buildFee },
-    ...(hostingLabel && monthlyFee > 0 ? [{ name: hostingLabel + ' (first month)', desc: 'Monthly service — renews each month. Cancel any time with 30 days notice.', amount: monthlyFee }] : []),
+    { name: 'Custom app build', desc: esc(p.name || 'Custom application') + '  -  designed and built from scratch', amount: buildFee },
+    ...(hostingLabel && monthlyFee > 0 ? [{ name: hostingLabel + ' (first month)', desc: 'Monthly service  -  renews each month. Cancel any time with 30 days notice.', amount: monthlyFee }] : []),
   ];
 
   const wrap = document.getElementById('invoiceWrap');
@@ -514,7 +514,7 @@ async function buildInvoice(p, fbKey) {
   document.getElementById('loadingState').style.display = 'none';
   document.getElementById('screenBar').style.display = 'flex';
   wrap.style.display = 'block';
-  document.title = invoiceNum + ' — ' + esc(p.client || 'Invoice') + ' — New Trail Design';
+  document.title = invoiceNum + '  -  ' + esc(p.client || 'Invoice') + '  -  New Trail Design';
 }
 
 // ── Download PDF via print dialog ─────────────────────────
@@ -531,20 +531,22 @@ function downloadPDF() {
 const params = new URLSearchParams(window.location.search);
 const fbKey = params.get('fbkey');
 
-if (!fbKey) {
-  showError('No invoice specified. Open this page from the Projects dashboard.');
-} else {
-  get(ref(db, 'projects/' + fbKey)).then(function(snapshot) {
+(async function() {
+  if (!fbKey) {
+    showError('No invoice specified. Open this page from the Projects dashboard.');
+    return;
+  }
+  try {
+    const snapshot = await get(ref(db, 'projects/' + fbKey));
     if (!snapshot.exists()) {
       showError('Invoice not found. The project may have been deleted.');
       return;
     }
-    const p = snapshot.val();
-    await buildInvoice(p, fbKey);
-  }).catch(function(err) {
+    await buildInvoice(snapshot.val(), fbKey);
+  } catch(err) {
     showError('Could not load invoice: ' + err.message);
-  });
-}
+  }
+})();
 </script>
 </body>
 </html>
