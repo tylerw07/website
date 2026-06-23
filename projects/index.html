@@ -324,6 +324,17 @@
       <div class="field full"><label>Project brief / scope</label><textarea id="fBrief" placeholder="What the client needs and what we're building..."></textarea></div>
       <div class="field full"><label>Internal notes</label><textarea id="fNotes" placeholder="Progress notes, blockers, decisions made..."></textarea></div>
       <div class="field full"><label>Tags (comma-separated)</label><input type="text" id="fTags" placeholder="firebase, auth, scheduling"></div>
+      <div class="section-divider">Client portal access</div>
+      <div class="field">
+        <label>Portal username</label>
+        <input type="text" id="fPortalUser" placeholder="e.g. janedoe" autocomplete="off" autocapitalize="off" style="font-family:'IBM Plex Mono',monospace">
+        <div style="font-size:12px;color:var(--ink-faint);margin-top:4px">Lowercase letters, numbers, underscores only. Leave blank if not yet set up.</div>
+      </div>
+      <div class="field">
+        <label>Portal password</label>
+        <input type="password" id="fPortalPass" placeholder="Leave blank to keep existing password" autocomplete="new-password">
+        <div style="font-size:12px;color:var(--ink-faint);margin-top:4px" id="fPortalPassHint" style="display:none"></div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-danger" id="deleteProjectBtn" style="display:none">Delete project</button>
@@ -353,6 +364,7 @@
       <div class="detail-item"><div class="detail-label">Email</div><div class="detail-value" id="dEmail"></div></div>
       <div class="detail-item"><div class="detail-label">Phone</div><div class="detail-value" id="dPhone"></div></div>
       <div class="detail-item"><div class="detail-label">Project type</div><div class="detail-value" id="dType"></div></div>
+      <div class="detail-item"><div class="detail-label">Portal username</div><div class="detail-value" id="dPortalUser">—</div></div>
     </div>
   </div>
   <div class="detail-section">
@@ -539,9 +551,12 @@ async function fbSave(data, fbKey){
   clean.updatedAt=Date.now();
   if(fbKey){
     await update(ref(db,'projects/'+fbKey),clean);
+    return fbKey;
   } else {
     clean.createdAt=Date.now();
-    await set(push(projectsRef),clean);
+    const newRef = push(projectsRef);
+    await set(newRef, clean);
+    return newRef.key;
   }
 }
 
@@ -621,6 +636,19 @@ function openModal(projectId){
   document.getElementById('fDepositStatus').value=p?p.depositStatus||'':'';
   document.getElementById('fHosting').value=p?p.hosting||'':'';
   document.getElementById('fTags').value=p?(p.tags||[]).join(', '):'';
+
+  // Load existing portal credentials if editing
+  document.getElementById('fPortalUser').value = '';
+  document.getElementById('fPortalPass').value = '';
+  const hintEl = document.getElementById('fPortalPassHint');
+  if (p && p.portalUsername) {
+    document.getElementById('fPortalUser').value = p.portalUsername;
+    hintEl.textContent = 'Current password is set. Enter a new one to change it, or leave blank to keep it.';
+    hintEl.style.display = 'block';
+  } else {
+    hintEl.style.display = 'none';
+  }
+
   document.getElementById('projectModal').classList.add('open');
 }
 
@@ -640,7 +668,21 @@ document.getElementById('modalSave').addEventListener('click',function(){
   // Firebase handles save  -  onValue listener re-renders automatically
   saveBtn.disabled=true; saveBtn.textContent='Saving...';
   fbSave(data, editingId || null)
-    .then(function(){closeModal();})
+    .then(async function(){
+      if (portalUser) {
+        const accountData = { projectKey: editingId, email: data.email||'', name: data.client||'', updatedAt: Date.now() };
+        const existingSnap = await get(ref(db, 'portalAccounts/' + portalUser));
+        if (existingSnap.exists() && !portalPass) {
+          await set(ref(db, 'portalAccounts/' + portalUser), Object.assign({}, existingSnap.val(), accountData));
+        } else if (portalPass) {
+          await set(ref(db, 'portalAccounts/' + portalUser), Object.assign(accountData, { password: portalPass }));
+        } else {
+          await set(ref(db, 'portalAccounts/' + portalUser), Object.assign(accountData, { password: '' }));
+        }
+        await update(ref(db, 'projects/' + editingId), { portalUsername: portalUser });
+      }
+      closeModal();
+    })
     .catch(function(err){alert('Save failed: '+err.message);})
     .finally(function(){saveBtn.disabled=false; saveBtn.textContent='Save project';});
 });
@@ -667,7 +709,17 @@ document.getElementById('confirmDelete').addEventListener('click',function(){
   document.getElementById('confirmDeleteOverlay').classList.remove('open');
   const keyToDelete=editingId;
   fbDelete(keyToDelete)
-    .then(function(){closeModal();closeDrawer();})
+    .then(async function(newKey){
+      if (portalUser && portalPass) {
+        const key = newKey || editingId;
+        await set(ref(db, 'portalAccounts/' + portalUser), {
+          projectKey: key, email: data.email||'', name: data.client||'', password: portalPass, createdAt: Date.now()
+        });
+        await update(ref(db, 'projects/' + key), { portalUsername: portalUser });
+      }
+      closeModal();
+      closeDrawer();
+    })
     .catch(function(err){alert('Delete failed: '+err.message);});
 });
 
