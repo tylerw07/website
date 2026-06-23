@@ -136,6 +136,17 @@
   .detail-item.full { grid-column:1/-1; }
   .notes-box { background:var(--bg); border-radius:10px; padding:14px; font-size:14px; color:var(--ink-soft); white-space:pre-wrap; line-height:1.7; }
   .drawer-actions { display:flex; gap:10px; margin-top:28px; flex-wrap:wrap; }
+  .confirm-overlay { display:none; position:fixed; inset:0; background:rgba(19,24,43,0.6); z-index:500; align-items:center; justify-content:center; padding:20px; }
+  .confirm-overlay.open { display:flex; }
+  .confirm-box { background:var(--surface); border-radius:var(--radius); padding:28px 32px; width:100%; max-width:380px; }
+  .confirm-box h3 { font-size:18px; margin-bottom:10px; color:var(--red); }
+  .confirm-box p { font-size:14px; color:var(--ink-soft); margin-bottom:20px; }
+  .confirm-field { margin-bottom:12px; }
+  .confirm-field label { font-size:12.5px; font-weight:600; color:var(--ink-soft); display:block; margin-bottom:5px; }
+  .confirm-field input { width:100%; font-family:'IBM Plex Sans',sans-serif; font-size:14px; padding:9px 12px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink); box-sizing:border-box; }
+  .confirm-field input:focus { outline:2px solid var(--red); outline-offset:1px; }
+  .confirm-error { font-size:13px; color:var(--red); margin-bottom:12px; display:none; background:var(--red-bg); padding:8px 12px; border-radius:6px; }
+  .confirm-actions { display:flex; gap:10px; justify-content:flex-end; }
 
   @media (max-width:680px) {
     .stats-bar { grid-template-columns:1fr 1fr; }
@@ -208,7 +219,7 @@
     <div class="page-top">
       <div><h1>Projects</h1><p>All client work, tracked in one place.</p></div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <a href="/finance" class="btn btn-ghost" style="text-decoration:none">📊 Finance</a>
+        <a href="/finance" class="btn btn-ghost" style="text-decoration:none">&#128202; Finance</a>
         <button class="btn btn-primary" id="newProjectBtn">+ New project</button>
       </div>
     </div>
@@ -374,6 +385,21 @@
     <button class="btn btn-ghost" id="drawerActivateSub" style="display:none;color:var(--accent);border-color:var(--accent)">⟳ Activate recurring invoice</button>
   </div>
 </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="confirm-overlay" id="confirmDeleteOverlay">
+  <div class="confirm-box">
+    <h3>Delete project</h3>
+    <p>This cannot be undone. Enter your admin credentials to confirm.</p>
+    <div class="confirm-error" id="confirmError">Incorrect username or password.</div>
+    <div class="confirm-field"><label>Username</label><input type="text" id="confirmUser" autocomplete="off"></div>
+    <div class="confirm-field"><label>Password</label><input type="password" id="confirmPass" autocomplete="off"></div>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" id="confirmCancel">Cancel</button>
+      <button class="btn btn-danger" id="confirmDelete">Delete project</button>
+    </div>
+  </div>
 </div>
 
 <script type="module">
@@ -560,12 +586,12 @@ document.getElementById('searchBox').addEventListener('input',function(){searchT
 
 let editingId=null;
 
-function openModal(id){
-  const projects=projectsCache; const p=id?projects.find(x=>x._fbKey===id):null; editingId=p?p._fbKey:null;
+function openModal(projectId){
+  const projects=projectsCache; const p=projectId?projects.find(x=>x._fbKey===projectId):null; editingId=p?p._fbKey:null;
   document.getElementById('modalTitle').textContent=p?'Edit project':'New project';
   document.getElementById('deleteProjectBtn').style.display=p?'block':'none';
   const fields={fName:'name',fClient:'client',fBusiness:'business',fEmail:'email',fPhone:'phone',fStack:'stack',fUrl:'liveUrl',fRepo:'repo',fStartDate:'startDate',fDeadline:'deadline',fBuildFee:'buildFee',fNextBilling:'nextBilling',fBrief:'brief',fNotes:'notes'};
-  Object.keys(fields).forEach(function(id){document.getElementById(id).value=p?p[fields[id]]||'':id==='fBuildFee'?'350':'';});
+  Object.keys(fields).forEach(function(fieldId){document.getElementById(fieldId).value=p?p[fields[fieldId]]||'':fieldId==='fBuildFee'?'350':'';});
   document.getElementById('fStatus').value=p?p.status:'active';
   document.getElementById('fType').value=p?p.type||'':'';
   document.getElementById('fPaymentStatus').value=p?p.paymentStatus||'':'';
@@ -597,10 +623,29 @@ document.getElementById('modalSave').addEventListener('click',function(){
 });
 
 document.getElementById('deleteProjectBtn').addEventListener('click',function(){
-  if(!editingId||!confirm('Delete this project? This cannot be undone.'))return;
-  if(editingId){
-    fbDelete(editingId).then(function(){closeModal();closeDrawer();}).catch(function(err){alert('Delete failed: '+err.message);});
+  if(!editingId)return;
+  document.getElementById('confirmUser').value='';
+  document.getElementById('confirmPass').value='';
+  document.getElementById('confirmError').style.display='none';
+  document.getElementById('confirmDeleteOverlay').classList.add('open');
+});
+
+document.getElementById('confirmCancel').addEventListener('click',function(){
+  document.getElementById('confirmDeleteOverlay').classList.remove('open');
+});
+
+document.getElementById('confirmDelete').addEventListener('click',function(){
+  const u=document.getElementById('confirmUser').value;
+  const pw=document.getElementById('confirmPass').value;
+  if(u!==USERNAME||pw!==PASSWORD){
+    document.getElementById('confirmError').style.display='block';
+    return;
   }
+  document.getElementById('confirmDeleteOverlay').classList.remove('open');
+  const keyToDelete=editingId;
+  fbDelete(keyToDelete)
+    .then(function(){closeModal();closeDrawer();})
+    .catch(function(err){alert('Delete failed: '+err.message);});
 });
 
 function openDrawer(id){
@@ -629,6 +674,39 @@ function openDrawer(id){
   document.getElementById('dDepositStatus').innerHTML = depositPaid
     ? '<span class="deposit-paid">Paid</span>'
     : '<span class="deposit-unpaid">Not paid</span>';
+
+  // Style deposit button as active/toggled when paid
+  const depBtn = document.getElementById('drawerMarkDepositPaid');
+  if (depositPaid) {
+    depBtn.textContent = '✓ Deposit paid';
+    depBtn.style.background = 'var(--green-bg)';
+    depBtn.style.color = 'var(--green)';
+    depBtn.style.borderColor = 'var(--green)';
+    depBtn.title = 'Click to unmark deposit as paid';
+  } else {
+    depBtn.textContent = 'Mark deposit paid';
+    depBtn.style.background = 'transparent';
+    depBtn.style.color = 'var(--ink-soft)';
+    depBtn.style.borderColor = 'var(--line)';
+    depBtn.title = 'Click to mark deposit as paid';
+  }
+
+  // Style "paid in full" button based on payment status
+  const paidBtn = document.getElementById('drawerMarkPaid');
+  const isFullyPaid = p.paymentStatus === 'Paid in full';
+  if (isFullyPaid) {
+    paidBtn.textContent = '✓ Paid in full';
+    paidBtn.style.background = 'var(--green-bg)';
+    paidBtn.style.color = 'var(--green)';
+    paidBtn.style.borderColor = 'var(--green)';
+    paidBtn.title = 'Click to remove paid status';
+  } else {
+    paidBtn.textContent = 'Mark paid in full';
+    paidBtn.style.background = 'transparent';
+    paidBtn.style.color = 'var(--ink-soft)';
+    paidBtn.style.borderColor = 'var(--line)';
+    paidBtn.title = 'Click to mark as paid in full';
+  }
 
   // Show activate subscription button only if project has a hosting plan
   const activateBtn = document.getElementById('drawerActivateSub');
@@ -745,8 +823,12 @@ document.getElementById('drawerDepositInvoice').addEventListener('click', async 
 
 document.getElementById('drawerMarkDepositPaid').addEventListener('click', function() {
   const p = projectsCache.find(x=>x._fbKey===drawerProjectId); if(!p) return;
-  if (!confirm('Mark deposit as paid for "' + p.name + '"?')) return;
-  fbSave(Object.assign({}, p, { depositStatus: 'Paid' }), p._fbKey)
+  const isPaid = p.depositStatus === 'Paid';
+  const msg = isPaid
+    ? 'Unmark deposit as paid for "' + p.name + '"? This will set it back to Not paid.'
+    : 'Mark deposit as paid for "' + p.name + '"?';
+  if (!confirm(msg)) return;
+  fbSave(Object.assign({}, p, { depositStatus: isPaid ? 'Not paid' : 'Paid' }), p._fbKey)
     .then(function() { openDrawer(drawerProjectId); })
     .catch(function(err) { alert('Update failed: ' + err.message); });
 });
@@ -758,8 +840,12 @@ document.getElementById('drawerInvoice').addEventListener('click',function(){
 
 document.getElementById('drawerMarkPaid').addEventListener('click',function(){
   const p=projectsCache.find(x=>x._fbKey===drawerProjectId); if(!p)return;
-  if(!confirm('Mark "'+p.name+'" as Paid in full?'))return;
-  fbSave(Object.assign({},p,{paymentStatus:'Paid in full'}), p._fbKey)
+  const isPaid = p.paymentStatus === 'Paid in full';
+  const msg = isPaid
+    ? 'Remove "Paid in full" status from "' + p.name + '"? This will set it back to Unpaid.'
+    : 'Mark "' + p.name + '" as Paid in full?';
+  if(!confirm(msg))return;
+  fbSave(Object.assign({},p,{paymentStatus: isPaid ? 'Unpaid' : 'Paid in full'}), p._fbKey)
     .then(function(){openDrawer(drawerProjectId);})
     .catch(function(err){alert('Update failed: '+err.message);});
 });
