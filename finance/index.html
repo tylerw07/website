@@ -168,6 +168,17 @@
   .full-panel-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
   .full-panel-header h3 { font-size:16px; }
 
+  .sq-card { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:18px 20px; }
+  .sq-card-header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:10px; }
+  .sq-card-left { display:flex; flex-direction:column; gap:4px; }
+  .sq-card-client { font-size:14px; font-weight:600; color:var(--ink); }
+  .sq-card-project { font-size:12px; color:var(--ink-faint); font-family:'IBM Plex Mono',monospace; }
+  .sq-card-type { font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; color:var(--ink-faint); letter-spacing:0.06em; }
+  .sq-card-date { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-faint); white-space:nowrap; }
+  .sq-card-msg { font-size:13.5px; color:var(--ink-soft); line-height:1.6; margin-bottom:12px; }
+  .sq-card-footer { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .sq-status-select { font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; padding:4px 10px; border-radius:999px; border:1px solid var(--line); cursor:pointer; background:var(--bg); }
+
   @media (max-width:860px) {
     .metrics-bar { grid-template-columns:repeat(3,1fr); }
     .finance-columns { grid-template-columns:1fr; }
@@ -225,6 +236,7 @@
     <div class="tab-bar">
       <button class="tab-btn active" data-tab="income">Income & Expenses</button>
       <button class="tab-btn" data-tab="clients">Client Bills</button>
+      <button class="tab-btn" data-tab="support">Support Queue <span id="openRequestsBadge" style="display:none;background:var(--red);color:#fff;font-size:10px;padding:1px 6px;border-radius:999px;margin-left:4px;font-family:'IBM Plex Mono',monospace">0</span></button>
     </div>
 
     <!-- ══════════════════════ TAB 1: INCOME & EXPENSES ══════════════════════ -->
@@ -401,6 +413,44 @@
 
     </div><!-- /tab-clients -->
 
+    <!-- ══════════════════════ TAB 3: SUPPORT QUEUE ══════════════════════ -->
+    <div class="tab-panel" id="tab-support">
+
+      <!-- Support metrics -->
+      <div class="metrics-bar" style="grid-template-columns:repeat(4,1fr);margin-bottom:28px">
+        <div class="metric-card">
+          <div class="metric-label">Total requests</div>
+          <div class="metric-value" id="sqTotal">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Open</div>
+          <div class="metric-value metric-red" id="sqOpen">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">In progress</div>
+          <div class="metric-value metric-warm" id="sqInProgress">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Resolved</div>
+          <div class="metric-value metric-green" id="sqResolved">—</div>
+        </div>
+      </div>
+
+      <!-- Filter pills -->
+      <div class="period-bar" style="margin-bottom:20px">
+        <button class="period-pill active" data-sqfilter="all">All</button>
+        <button class="period-pill" data-sqfilter="Open">Open</button>
+        <button class="period-pill" data-sqfilter="In progress">In progress</button>
+        <button class="period-pill" data-sqfilter="Resolved">Resolved</button>
+        <button class="period-pill" data-sqfilter="Closed">Closed</button>
+      </div>
+
+      <div id="sqLoading" class="loading-text">Loading support requests…</div>
+      <div id="sqList" style="display:flex;flex-direction:column;gap:12px"></div>
+      <div id="sqEmpty" class="empty-state" style="display:none"><p>No requests match this filter.</p></div>
+
+    </div><!-- /tab-support -->
+
   </div><!-- /wrap -->
 </div><!-- /dashboard -->
 
@@ -431,6 +481,8 @@ let squarePayments = [];
 let expenses = [];
 let activePeriod = 'month';
 let activeClientFilter = 'all';
+let allSupportRequests = []; // flat list of { ...request, _projectKey, clientName, projectName }
+let sqFilter = 'all';
 let hiddenPaymentIds = new Set(); // payment IDs hidden by user
 
 // ── Auth ──────────────────────────────────────────────────────────────────
@@ -471,6 +523,7 @@ function init() {
   loadProjects();
   loadHiddenPayments();
   loadSquarePayments();
+  loadSupportQueue();
   startPolling();
   updatePeriodLabel();
 }
@@ -539,6 +592,7 @@ function loadProjects() {
     }
     renderClientTab();
     renderIncomeTab(); // MRR comes from projects
+    renderSupportQueue(); // refresh client names
   });
 }
 
@@ -626,6 +680,119 @@ function inRange(dateStr) {
   const { start, end } = getDateRange();
   const d = new Date(dateStr);
   return d >= start && d <= end;
+}
+
+// ── Support queue pills ───────────────────────────────────────────────────
+document.querySelectorAll('[data-sqfilter]').forEach(function(pill) {
+  pill.addEventListener('click', function() {
+    document.querySelectorAll('[data-sqfilter]').forEach(p => p.classList.remove('active'));
+    this.classList.add('active');
+    sqFilter = this.dataset.sqfilter;
+    renderSupportQueue();
+  });
+});
+
+// ── Load support requests (all projects) ──────────────────────────────────
+function loadSupportQueue() {
+  // We load per-project requests when projects load, so wire into project listener
+  // This function sets up the listener on the top-level supportRequests node
+  onValue(ref(db, 'supportRequests'), function(snapshot) {
+    allSupportRequests = [];
+    if (!snapshot.exists()) { renderSupportQueue(); return; }
+
+    snapshot.forEach(function(projectSnap) {
+      const projectKey = projectSnap.key;
+      // Find matching project for client/project name
+      const project = projects.find(p => p._fbKey === projectKey);
+      projectSnap.forEach(function(reqSnap) {
+        allSupportRequests.push(Object.assign({}, reqSnap.val(), {
+          _key: reqSnap.key,
+          _projectKey: projectKey,
+          clientName:  project ? (project.client || project.name || 'Unknown') : 'Unknown',
+          projectName: project ? (project.name || '') : '',
+        }));
+      });
+    });
+
+    // Sort newest first
+    allSupportRequests.sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+    renderSupportQueue();
+  });
+}
+
+function renderSupportQueue() {
+  document.getElementById('sqLoading').style.display = 'none';
+
+  // Metrics
+  const total      = allSupportRequests.length;
+  const openCount  = allSupportRequests.filter(r => r.status === 'Open' || !r.status).length;
+  const inProgress = allSupportRequests.filter(r => r.status === 'In progress').length;
+  const resolved   = allSupportRequests.filter(r => r.status === 'Resolved' || r.status === 'Closed').length;
+
+  document.getElementById('sqTotal').textContent     = total;
+  document.getElementById('sqOpen').textContent      = openCount;
+  document.getElementById('sqInProgress').textContent = inProgress;
+  document.getElementById('sqResolved').textContent  = resolved;
+
+  // Badge on tab
+  const badge = document.getElementById('openRequestsBadge');
+  if (openCount > 0) { badge.textContent = openCount; badge.style.display = 'inline'; }
+  else { badge.style.display = 'none'; }
+
+  // Filter
+  const filtered = sqFilter === 'all'
+    ? allSupportRequests
+    : allSupportRequests.filter(r => (r.status || 'Open') === sqFilter);
+
+  const list  = document.getElementById('sqList');
+  const empty = document.getElementById('sqEmpty');
+  list.innerHTML = '';
+
+  if (filtered.length === 0) { empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  const typeIcons = { 'Bug report':'🐛', 'Feature request':'✨', 'Question':'❓', 'Change request':'✏️', 'Other':'📋' };
+  const statusBg  = { 'Open':'var(--red-bg);color:var(--red)', 'In progress':'var(--warm-soft);color:var(--orange)', 'Resolved':'var(--green-bg);color:var(--green)', 'Closed':'#f3f4f6;color:#6b7280' };
+
+  filtered.forEach(function(req) {
+    const date = req.createdAt ? new Date(req.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+    const status = req.status || 'Open';
+    const bg = statusBg[status] || statusBg['Open'];
+    const icon = typeIcons[req.type] || '📋';
+    const card = document.createElement('div');
+    card.className = 'sq-card';
+    card.innerHTML = `
+      <div class="sq-card-header">
+        <div class="sq-card-left">
+          <div class="sq-card-client">${esc(req.clientName)}</div>
+          <div class="sq-card-project">${esc(req.projectName)}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="sq-card-type">${icon} ${esc(req.type || 'Request')}</div>
+          <div class="sq-card-date">${date}</div>
+        </div>
+      </div>
+      <div class="sq-card-msg">${esc(req.message || '')}</div>
+      <div class="sq-card-footer">
+        <select class="sq-status-select" style="background:${bg}" data-pkey="${req._projectKey}" data-rkey="${req._key}">
+          <option ${status==='Open'?'selected':''}>Open</option>
+          <option ${status==='In progress'?'selected':''}>In progress</option>
+          <option ${status==='Resolved'?'selected':''}>Resolved</option>
+          <option ${status==='Closed'?'selected':''}>Closed</option>
+        </select>
+        <span style="font-size:12px;color:var(--ink-faint)">${esc(req.username ? '@'+req.username : '')}</span>
+      </div>
+    `;
+
+    card.querySelector('.sq-status-select').addEventListener('change', function() {
+      const newStatus = this.value;
+      const bg2 = statusBg[newStatus] || statusBg['Open'];
+      this.style.cssText = `background:${bg2}`;
+      set(ref(db, 'supportRequests/' + req._projectKey + '/' + req._key + '/status'), newStatus);
+    });
+
+    list.appendChild(card);
+  });
 }
 
 // ── Render: Income tab ─────────────────────────────────────────────────────
