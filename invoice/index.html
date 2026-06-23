@@ -359,7 +359,7 @@ function buildPaySection(payUrl, payUrlReady, total) {
   return '<div class="inv-pay-section"><h3>Pay this invoice online</h3><p>Secure payment powered by Square. All major cards accepted.</p><a href="' + esc(payUrl) + '" target="_blank">Pay $' + total.toFixed(2) + ' now →</a></div>';
 }
 
-function buildInvoice(p, fbKey) {
+async function buildInvoice(p, fbKey) {
   const invoiceNum = genInvoiceNumber(fbKey);
   const today = new Date();
   const todayStr = fmtDate(today.toISOString().split('T')[0]);
@@ -384,23 +384,42 @@ function buildInvoice(p, fbKey) {
   else if (isDeposit) { statusBannerClass = 'deposit'; statusIcon = '◑'; statusText = 'Deposit received. Remaining balance due by ' + dueDateStr + '.'; }
 
   // Payment link
-  // ── Square payment links ──────────────────────────────────────────
-  // Create these in your Square Dashboard → Online → Payment Links
-  // then paste the URLs below. Create one for each plan combination.
-  const SQUARE_PAYMENT_LINKS = {
-    none:    'https://square.link/u/CjnNZNu4',      // $350 — app only
-    hosting: 'https://square.link/u/bG32bwEh',       // $370 — app + hosting first month
-    backend: 'https://square.link/u/Uxf8yG0U',       // $385 — app + backend first month
-    both:    'https://square.link/u/HzbA4P37',          // $400 — app + both first month
-  };
+  // ── Fetch dynamic Square payment link from Cloudflare Worker ─────
+  // Amount = build fee + first month of hosting if applicable
+  const WORKER_URL = 'https://create-subscription.tylerreedwilliams.workers.dev/payment-link';
 
-  const planKey = p.hosting === '50' ? 'both'
-    : p.hosting === '35' ? 'backend'
-    : p.hosting === '20' ? 'hosting'
-    : 'none';
+  let payUrl = null;
+  let payUrlReady = false;
 
-  const payUrl = SQUARE_PAYMENT_LINKS[planKey];
-  const payUrlReady = payUrl && !payUrl.startsWith('PASTE_');
+  try {
+    const hostingLabel = monthlyFee === 50 ? 'Hosting + Backend'
+      : monthlyFee === 35 ? 'Backend'
+      : monthlyFee === 20 ? 'Hosting'
+      : null;
+
+    const linkTitle = 'New Trail Design — ' + esc(p.name || 'App build');
+    const linkDesc  = hostingLabel
+      ? 'App build fee + first month ' + hostingLabel
+      : 'App build fee';
+
+    const linkRes = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amountCents: Math.round(total * 100),
+        title:       linkTitle,
+        description: linkDesc,
+        invoiceNum,
+      }),
+    });
+    const linkJson = await linkRes.json();
+    if (linkJson.success && linkJson.url) {
+      payUrl = linkJson.url;
+      payUrlReady = true;
+    }
+  } catch(err) {
+    console.warn('Could not generate payment link:', err.message);
+  }
 
   const hostingLabel = monthlyFee === 50 ? 'Hosting + Backend'
     : monthlyFee === 35 ? 'Backend & database'
@@ -521,7 +540,7 @@ if (!fbKey) {
       return;
     }
     const p = snapshot.val();
-    buildInvoice(p, fbKey);
+    await buildInvoice(p, fbKey);
   }).catch(function(err) {
     showError('Could not load invoice: ' + err.message);
   });
