@@ -458,7 +458,6 @@ let squarePayments = [];
 let expenses = [];
 let activePeriod = 'month';
 let activeClientFilter = 'all';
-let expensesRef;
 
 // ── Init ───────────────────────────────────────────────────────────────────
 function init() {
@@ -543,8 +542,7 @@ function loadProjects() {
 
 // ── Firebase: expenses ─────────────────────────────────────────────────────
 function loadExpenses() {
-  expensesRef = ref(db, 'expenses');
-  onValue(expensesRef, function(snapshot) {
+  onValue(ref(db, 'expenses'), function(snapshot) {
     expenses = [];
     if (snapshot.exists()) {
       snapshot.forEach(function(child) {
