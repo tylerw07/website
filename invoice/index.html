@@ -42,7 +42,7 @@
   a { color: inherit; }
   p { margin: 0; }
 
-  /* ── Screen chrome ── */
+  
   .screen-bar {
     background: var(--surface);
     border-bottom: 1px solid var(--line);
@@ -81,7 +81,7 @@
   .btn-ghost { background: transparent; color: var(--ink); border-color: var(--line); }
   .btn-ghost:hover { border-color: var(--ink); }
 
-  /* ── Loading / error ── */
+  
   #loadingState {
     text-align: center;
     padding: 80px 20px;
@@ -102,7 +102,7 @@
     text-align: center;
   }
 
-  /* ── Invoice wrapper ── */
+  
   #invoiceWrap { display: none; padding: 40px 20px 80px; }
   .invoice {
     max-width: 720px;
@@ -113,7 +113,7 @@
     overflow: hidden;
   }
 
-  /* ── Invoice header ── */
+  
   .inv-header {
     background: var(--ink);
     color: white;
@@ -132,7 +132,7 @@
   .inv-number { font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 600; color: white; }
   .inv-date { font-size: 13px; color: #94a3b8; margin-top: 4px; }
 
-  /* ── Invoice body ── */
+  
   .inv-body { padding: 36px 40px; }
 
   .inv-parties {
@@ -153,7 +153,7 @@
   .inv-party-name { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 600; margin-bottom: 4px; }
   .inv-party-detail { font-size: 13.5px; color: var(--ink-soft); line-height: 1.7; }
 
-  /* ── Line items ── */
+  
   .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
   .inv-table th {
     font-family: 'IBM Plex Mono', monospace;
@@ -176,7 +176,7 @@
   .inv-item-name { font-weight: 600; font-size: 14.5px; margin-bottom: 3px; }
   .inv-item-desc { font-size: 13px; color: var(--ink-soft); }
 
-  /* ── Totals ── */
+  
   .inv-totals { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; margin-bottom: 32px; }
   .inv-total-row { display: flex; gap: 48px; font-size: 14px; }
   .inv-total-row .t-label { color: var(--ink-soft); }
@@ -191,7 +191,7 @@
   .inv-grand-total .t-label { font-weight: 700; font-size: 15px; }
   .inv-grand-total .t-amount { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 700; color: var(--accent); min-width: 80px; text-align: right; }
 
-  /* ── Payment status banner ── */
+  
   .inv-status-banner {
     border-radius: 10px;
     padding: 14px 18px;
@@ -207,7 +207,7 @@
   .inv-status-banner.deposit { background: #fcecd9; color: var(--warm); }
   .inv-status-banner.overdue { background: #fef9c3; color: #854d0e; }
 
-  /* ── Pay now section ── */
+  
   .inv-pay-section {
     background: var(--accent-soft);
     border-radius: var(--radius);
@@ -232,7 +232,7 @@
   }
   .inv-pay-section a:hover { background: var(--accent-deep); }
 
-  /* ── Footer ── */
+  
   .inv-footer {
     background: var(--bg);
     border-top: 1px solid var(--line);
@@ -246,7 +246,7 @@
     gap: 8px;
   }
 
-  /* ── Print styles ── */
+  
   .inv-download-btn {
     text-align: center;
     padding: 28px 40px 0;
@@ -292,12 +292,11 @@
 </head>
 <body>
 
-<!-- Screen-only chrome -->
 <div class="screen-bar" id="screenBar" style="display:none">
   <a href="/projects" class="logo" style="display:flex;align-items:center"><img src="/logo.png" width="28" height="28" alt="New Trail Design" aria-hidden="true" style="flex-shrink:0;vertical-align:middle;margin-right:8px">New Trail <span>Design</span></a>
   <div class="screen-actions">
-    <button class="btn btn-primary" id="downloadPdfBtn" onclick="downloadPDF()">⬇ Download PDF</button>
-    <button class="btn btn-ghost" onclick="window.print()">🖨 Print</button>
+    <button class="btn btn-primary" id="downloadPdfBtn" onclick="downloadPDF()"> Download PDF</button>
+    <button class="btn btn-ghost" onclick="window.print()"> Print</button>
     <a href="/projects" class="btn btn-ghost">← Projects</a>
   </div>
 </div>
@@ -336,10 +335,10 @@ function fmtDate(d) {
 }
 
 function genInvoiceNumber(fbKey) {
-  // Format: 3 uppercase letters + 4 digits e.g. NTD1234
+  
   const letters = fbKey.replace(/[^a-zA-Z]/g,'').substring(0,3).toUpperCase().padEnd(3,'X');
   const digits  = fbKey.replace(/[^0-9]/g,'').substring(0,4).padEnd(4,'0');
-  // Fallback: if not enough chars, derive from hash of key
+  
   if (digits.length < 4 || letters.length < 3) {
     let hash = 0;
     for (let i = 0; i < fbKey.length; i++) hash = (hash * 31 + fbKey.charCodeAt(i)) & 0xffffffff;
@@ -372,24 +371,25 @@ async function buildInvoice(p, fbKey) {
 
   const buildFee = parseFloat(p.buildFee || 350);
   const monthlyFee = parseFloat(p.hosting || 0);
-  const total = buildFee + monthlyFee;
+  const setupFee = p.setupFee ? 50 : 0;
+  const total = buildFee + monthlyFee + setupFee;
 
-  // Payment status
+  
   const payStatus = p.paymentStatus || 'Unpaid';
   const isPaid = payStatus === 'Paid in full';
   const isOverdue = payStatus === 'Overdue';
   const isDeposit = payStatus === 'Deposit paid';
 
   let statusBannerClass = 'unpaid';
-  let statusIcon = '⚠';
+  let statusIcon = '';
   let statusText = 'Payment due by ' + dueDateStr;
-  if (isPaid) { statusBannerClass = 'paid'; statusIcon = '✓'; statusText = 'This invoice has been paid in full. Thank you!'; }
+  if (isPaid) { statusBannerClass = 'paid'; statusIcon = ''; statusText = 'This invoice has been paid in full. Thank you!'; }
   else if (isOverdue) { statusBannerClass = 'overdue'; statusIcon = '!'; statusText = 'This invoice is overdue. Please arrange payment as soon as possible.'; }
-  else if (isDeposit) { statusBannerClass = 'deposit'; statusIcon = '◑'; statusText = 'Deposit received. Remaining balance due by ' + dueDateStr + '.'; }
+  else if (isDeposit) { statusBannerClass = 'deposit'; statusIcon = ''; statusText = 'Deposit received. Remaining balance due by ' + dueDateStr + '.'; }
 
-  // Payment link
-  // ── Fetch dynamic Square payment link from Cloudflare Worker ─────
-  // Amount = build fee + first month of hosting if applicable
+  
+  
+  
   const WORKER_URL = 'https://create-subscription.tylerreedwilliams.workers.dev/payment-link';
 
   let payUrl = null;
@@ -432,6 +432,7 @@ async function buildInvoice(p, fbKey) {
 
   const lineItems = [
     { name: 'Custom app build', desc: esc(p.name || 'Custom application') + '  -  designed and built from scratch', amount: buildFee },
+    ...(setupFee > 0 ? [{ name: 'Assisted onboarding setup fee', desc: 'One-time setup fee for account configuration, domain, and hosting onboarding.', amount: 50 }] : []),
     ...(hostingLabel && monthlyFee > 0 ? [{ name: hostingLabel + ' (first month)', desc: 'Monthly service  -  renews each month. Cancel any time with 30 days notice.', amount: monthlyFee }] : []),
   ];
 
@@ -506,7 +507,7 @@ async function buildInvoice(p, fbKey) {
       </div>
 
       <div class="inv-download-btn">
-        <button onclick="downloadPDF()">⬇ Download invoice as PDF</button>
+        <button onclick="downloadPDF()"> Download invoice as PDF</button>
       </div>
       <div class="inv-footer">
         <span>Thank you for choosing New Trail Design.</span>
@@ -521,11 +522,10 @@ async function buildInvoice(p, fbKey) {
   document.title = invoiceNum + '  -  ' + esc(p.client || 'Invoice') + '  -  New Trail Design';
 }
 
-// ── Download PDF via print dialog ─────────────────────────
 function downloadPDF() {
   const btn = document.getElementById('downloadPdfBtn');
   if (btn) { btn.textContent = 'Preparing PDF...'; btn.disabled = true; }
-  // Set document title so browser uses it as the saved PDF filename
+  
   const originalTitle = document.title;
   const invNum = document.querySelector('.inv-number');
   const clientEl = document.querySelector('.inv-party-name');
@@ -537,11 +537,10 @@ function downloadPDF() {
   setTimeout(function() {
     window.print();
     document.title = originalTitle;
-    if (btn) { btn.textContent = '⬇ Download PDF'; btn.disabled = false; }
+    if (btn) { btn.textContent = ' Download PDF'; btn.disabled = false; }
   }, 300);
 }
 
-// ── Load project from Firebase ─────────────────────────────
 const params = new URLSearchParams(window.location.search);
 const fbKey = params.get('fbkey');
 
