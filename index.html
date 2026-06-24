@@ -65,7 +65,7 @@
     color: var(--accent);
   }
 
-  /* ── Header ── */
+  
   header {
     position: sticky;
     top: 0;
@@ -119,7 +119,7 @@
   .nav-cta:hover, .nav-cta:focus-visible { background: var(--accent-deep); }
   .nav-toggle { display: none; }
 
-  /* ── Hero ── */
+  
   .hero {
     padding: 88px 0 100px;
   }
@@ -169,7 +169,7 @@
   .btn-ghost { background: transparent; color: var(--ink); border-color: var(--line); }
   .btn-ghost:hover, .btn-ghost:focus-visible { border-color: var(--ink); }
 
-  /* ── Terminal signature element ── */
+  
   .terminal {
     background: var(--code-bg);
     border-radius: 16px;
@@ -217,7 +217,7 @@
   @keyframes blink { 50% { opacity: 0; } }
   .t-line { opacity: 0; animation: fadeIn 0.4s ease forwards; }
 
-  /* ── Section scaffolding ── */
+  
   section { padding: 88px 0; }
   .section-head { max-width: 560px; margin: 0 0 48px; }
   .section-head h2 {
@@ -227,7 +227,7 @@
   }
   .section-head p { color: var(--ink-soft); font-size: 16.5px; margin: 0; }
 
-  /* ── Services ── */
+  
   .services { background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
   .service-grid {
     display: grid;
@@ -256,7 +256,7 @@
   .service-card h3 { font-size: 19px; margin-bottom: 10px; }
   .service-card p { color: var(--ink-soft); font-size: 14.5px; margin: 0; }
 
-  /* ── Process ── */
+  
   .process-list { display: flex; flex-direction: column; }
   .process-row {
     display: grid;
@@ -276,7 +276,7 @@
   .process-row h3 { font-size: 20px; margin-bottom: 6px; }
   .process-row p { color: var(--ink-soft); margin: 0; max-width: 60ch; }
 
-  /* ── Pricing ── */
+  
   .pricing { background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
   .price-grid {
     display: grid;
@@ -363,7 +363,7 @@
     max-width: none;
   }
 
-  /* ── Footer ── */
+  
   footer {
     border-top: 1px solid var(--line);
     padding: 36px 0;
@@ -378,13 +378,13 @@
   .footer-row .logo { font-size: 16px; }
   footer p { color: var(--ink-faint); font-size: 13.5px; margin: 0; }
 
-  /* ── Focus visibility ── */
+  
   a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
 
-  /* ── Responsive ── */
+  
   @media (max-width: 880px) {
     .hero-grid { grid-template-columns: 1fr; gap: 36px; }
     .service-grid { grid-template-columns: 1fr; }
@@ -597,9 +597,9 @@
     { type: 'out',    text: '→ connecting database...' },
     { type: 'out',    text: '→ deploying to my-app.com...' },
     { type: 'gap' },
-    { type: 'ok',     text: '✓ build complete' },
-    { type: 'ok',     text: '✓ database connected' },
-    { type: 'result', text: '✓ live in production' },
+    { type: 'ok',     text: ' build complete' },
+    { type: 'ok',     text: ' database connected' },
+    { type: 'result', text: ' live in production' },
   ];
 
   var body = document.getElementById('termBody');
