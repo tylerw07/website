@@ -1056,13 +1056,39 @@ document.getElementById('intakeForm').addEventListener('submit', async function(
   const formData = new FormData(this);
   const payload = Object.fromEntries(formData);
 
+  // Build a clean Web3Forms payload with correct field names
+  // exclude portal credentials and use Web3Forms expected field names
+  const web3payload = {
+    access_key:        payload.access_key || 'c532615a-c40a-48f0-8ea4-174109630bac',
+    subject:           'New project inquiry — New Trail Design',
+    from_name:         ((payload.first_name || '') + ' ' + (payload.last_name || '')).trim(),
+    email:             payload.email || '',
+    botcheck:          '',
+    phone:             payload.phone || '',
+    business:          payload.business_name || '',
+    industry:          payload.industry || '',
+    referral_source:   payload.referral_source || '',
+    project_name:      payload.project_name || '',
+    app_type:          payload.app_type || '',
+    project_description: payload.project_description || '',
+    target_users:      payload.target_users || '',
+    key_features:      payload.key_features || '',
+    existing_systems:  payload.existing_systems || '',
+    design_preference: payload.design_preference || '',
+    design_references: payload.design_references || '',
+    needs_hosting:     payload.needs_hosting || '',
+    needs_backend:     payload.needs_backend || '',
+    timeline:          payload.timeline || '',
+    budget:            payload.budget || '',
+  };
+
   try {
     // Build parallel requests — email notification + Firebase project creation
     const requests = [
       fetch('https://api.web3forms.com/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(web3payload),
       }),
       createProjectInFirebase(payload),
     ];
