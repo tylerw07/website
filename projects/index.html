@@ -253,10 +253,11 @@
         <button class="btn btn-primary" id="newProjectBtn">+ New project</button>
       </div>
     </div>
-    <div class="stats-bar">
+    <div class="stats-bar" style="grid-template-columns:repeat(5,1fr)">
       <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value" id="statTotal">0</div></div>
       <div class="stat-card"><div class="stat-label">Active</div><div class="stat-value" id="statActive" style="color:var(--green)">0</div></div>
       <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value" id="statCompleted" style="color:var(--accent)">0</div></div>
+      <div class="stat-card"><div class="stat-label">Archived</div><div class="stat-value" id="statArchived" style="color:var(--ink-faint)">0</div></div>
       <div class="stat-card"><div class="stat-label">Monthly MRR</div><div class="stat-value" id="statMRR" style="color:var(--warm)">$0</div></div>
     </div>
     <!-- Multi-select action bar -->
@@ -605,6 +606,39 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 
 let activeFilter='all', searchTerm='', drawerProjectId=null;
 
+// Multi-select state — declared here so renderAll and all handlers can use them
+let selectMode = false;
+let selectedKeys = new Set();
+let deleteTargetKeys = [];
+
+function updateSelectCount() {
+  const n = selectedKeys.size;
+  const el = document.getElementById('selectCount');
+  if (el) el.textContent = n + ' selected';
+  const btn = document.getElementById('deleteSelectedBtn');
+  if (btn) btn.disabled = n === 0;
+}
+
+function enterSelectMode() {
+  selectMode = true;
+  const btn = document.getElementById('selectModeBtn');
+  if (btn) { btn.classList.add('active'); btn.textContent = '✕ Cancel'; }
+  const bar = document.getElementById('selectModeBar');
+  if (bar) bar.classList.add('visible');
+  renderAll();
+}
+
+function exitSelectMode() {
+  selectMode = false;
+  selectedKeys.clear();
+  const btn = document.getElementById('selectModeBtn');
+  if (btn) { btn.classList.remove('active'); btn.textContent = '☑ Select'; }
+  const bar = document.getElementById('selectModeBar');
+  if (bar) bar.classList.remove('visible');
+  updateSelectCount();
+  renderAll();
+}
+
 function renderAll(){
   const projects=projectsCache;
   document.getElementById('statTotal').textContent=projects.length;
@@ -813,7 +847,6 @@ document.getElementById('confirmCancel').addEventListener('click',function(){
 });
 
 // Dedicated variable for delete target — avoids dependency on editingId
-let deleteTargetKeys = []; // array supports both single and bulk delete
 
 document.getElementById('confirmDelete').addEventListener('click', async function() {
   const u  = document.getElementById('confirmUser').value;
@@ -842,6 +875,7 @@ document.getElementById('confirmDelete').addEventListener('click', async functio
 });
 
 function openDrawer(id){
+  if (selectMode) return; // don't open drawer in select mode
   const p=projectsCache.find(x=>x._fbKey===id); if(!p)return;
   drawerProjectId=id;
   document.getElementById('drawerStatus').textContent=sLabel(p.status);
@@ -1038,40 +1072,13 @@ function loadSupportRequests(projectKey) {
   }, { onlyOnce: false });
 }
 
-// ── Multi-select ──────────────────────────────────────────────────────────
-let selectMode = false;
-let selectedKeys = new Set();
-
-function enterSelectMode() {
-  selectMode = true;
-  document.getElementById('selectModeBtn').classList.add('active');
-  document.getElementById('selectModeBtn').textContent = '✕ Cancel';
-  document.getElementById('selectModeBar').classList.add('visible');
-  renderAll();
-}
-
-function exitSelectMode() {
-  selectMode = false;
-  selectedKeys.clear();
-  document.getElementById('selectModeBtn').classList.remove('active');
-  document.getElementById('selectModeBtn').textContent = '☑ Select';
-  document.getElementById('selectModeBar').classList.remove('visible');
-  updateSelectCount();
-  renderAll();
-}
-
-function updateSelectCount() {
-  const n = selectedKeys.size;
-  document.getElementById('selectCount').textContent = n + ' selected';
-  document.getElementById('deleteSelectedBtn').disabled = n === 0;
-}
-
+// ── Multi-select event listeners ──────────────────────────────────────────
 document.getElementById('selectModeBtn').addEventListener('click', function() {
   selectMode ? exitSelectMode() : enterSelectMode();
 });
 
 document.getElementById('selectAllBtn').addEventListener('click', function() {
-  projectsCache.forEach(p => {
+  projectsCache.forEach(function(p) {
     if (activeFilter === 'all' && p.status !== 'archived') selectedKeys.add(p._fbKey);
     else if (activeFilter !== 'all' && p.status === activeFilter) selectedKeys.add(p._fbKey);
   });
@@ -1092,7 +1099,6 @@ document.getElementById('deleteSelectedBtn').addEventListener('click', function(
   document.getElementById('confirmUser').value = '';
   document.getElementById('confirmPass').value = '';
   document.getElementById('confirmError').style.display = 'none';
-  // Update confirm dialog title to show count
   document.querySelector('.confirm-box h3').textContent = 'Delete ' + n + ' project' + (n > 1 ? 's' : '');
   document.querySelector('.confirm-box p').textContent = 'This cannot be undone. Enter your admin credentials to delete ' + n + ' project' + (n > 1 ? 's' : '') + '.';
   document.getElementById('confirmDeleteOverlay').classList.add('open');
