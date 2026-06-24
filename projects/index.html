@@ -216,6 +216,11 @@
     .detail-grid { grid-template-columns:1fr; }
     .check-item label { font-size:13px; }
   }
+
+  .pw-wrap { position:relative; display:flex; align-items:center; }
+  .pw-wrap input { width:100%; padding-right:42px !important; }
+  .pw-toggle { position:absolute; right:10px; background:none; border:none; cursor:pointer; color:var(--ink-faint); padding:4px; font-size:13px; font-family:'IBM Plex Mono',monospace; font-weight:600; letter-spacing:0.04em; user-select:none; }
+  .pw-toggle:hover { color:var(--ink); }
 </style>
 </head>
 <body>
@@ -237,7 +242,7 @@
     <div class="error-msg" id="loginError">Incorrect username or password.</div>
     <form id="loginForm">
       <div class="field"><label>Username</label><input type="text" id="loginUser" autocomplete="username" required></div>
-      <div class="field"><label>Password</label><input type="password" id="loginPass" autocomplete="current-password" required></div>
+      <div class="field"><label>Password</label><div class="pw-wrap" style=""><input type="password" id="loginPass" autocomplete="current-password" required><button type="button" class="pw-toggle" onclick="togglePw('loginPass', this)" tabindex="-1">SHOW</button></div></div>
       <button type="submit" class="btn btn-primary btn-full">Sign in</button>
     </form>
   </div>
@@ -369,7 +374,7 @@
       </div>
       <div class="field">
         <label>Portal password</label>
-        <input type="password" id="fPortalPass" placeholder="Leave blank to keep existing password" autocomplete="new-password">
+        <div class="pw-wrap" style=""><input type="password" id="fPortalPass" placeholder="Leave blank to keep existing password" autocomplete="new-password"><button type="button" class="pw-toggle" onclick="togglePw('fPortalPass', this)" tabindex="-1">SHOW</button></div>
         <div style="font-size:12px;color:var(--ink-faint);margin-top:4px" id="fPortalPassHint" style="display:none"></div>
       </div>
     </div>
@@ -466,7 +471,7 @@
     <p>This cannot be undone. Enter your admin credentials to confirm.</p>
     <div class="confirm-error" id="confirmError">Incorrect username or password.</div>
     <div class="confirm-field"><label>Username</label><input type="text" id="confirmUser" autocomplete="off"></div>
-    <div class="confirm-field"><label>Password</label><input type="password" id="confirmPass" autocomplete="off"></div>
+    <div class="confirm-field"><label>Password</label><div class="pw-wrap" style=""><input type="password" id="confirmPass" autocomplete="off"><button type="button" class="pw-toggle" onclick="togglePw('confirmPass', this)" tabindex="-1">SHOW</button></div></div>
     <div class="confirm-actions">
       <button class="btn btn-ghost" id="confirmCancel">Cancel</button>
       <button class="btn btn-danger" id="confirmDelete">Delete project</button>
@@ -842,28 +847,46 @@ document.getElementById('confirmCancel').addEventListener('click',function(){
 });
 
 document.getElementById('confirmDelete').addEventListener('click', async function() {
-  const u  = document.getElementById('confirmUser').value;
+  const u  = document.getElementById('confirmUser').value.trim();
   const pw = document.getElementById('confirmPass').value;
+  const errEl = document.getElementById('confirmError');
+
   if (u !== USERNAME || pw !== PASSWORD) {
-    document.getElementById('confirmError').style.display = 'block';
+    errEl.style.display = 'block';
     return;
   }
-  document.getElementById('confirmDeleteOverlay').classList.remove('open');
-  this.disabled = true;
-  this.textContent = 'Deleting…';
+
+  errEl.style.display = 'none';
+
+  if (!deleteTargetKeys || deleteTargetKeys.length === 0) {
+    alert('Nothing to delete — please try again.');
+    document.getElementById('confirmDeleteOverlay').classList.remove('open');
+    return;
+  }
+
+  const btn = document.getElementById('confirmDelete');
+  const overlay = document.getElementById('confirmDeleteOverlay');
+  overlay.classList.remove('open');
+  btn.disabled = true;
+  btn.textContent = 'Deleting...';
+
+  const keysToDelete = deleteTargetKeys.slice();
 
   try {
-    await Promise.all(deleteTargetKeys.map(key => fbDelete(key)));
+    for (const key of keysToDelete) {
+      await remove(ref(db, 'projects/' + key));
+    }
     deleteTargetKeys = [];
     selectedKeys.clear();
     closeModal();
     closeDrawer();
-    exitSelectMode();
+    if (selectMode) exitSelectMode();
   } catch(err) {
     alert('Delete failed: ' + err.message);
+    overlay.classList.remove('open');
   } finally {
-    this.disabled = false;
-    this.textContent = 'Delete project';
+    btn.disabled = false;
+    btn.textContent = 'Delete project';
   }
 });
 
@@ -1242,6 +1265,15 @@ document.getElementById('drawerClose').addEventListener('click',closeDrawer);
 document.getElementById('drawerOverlay').addEventListener('click',function(e){if(e.target===this)closeDrawer();});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeModal();closeDrawer();}});
 renderAll();
+
+
+function togglePw(inputId, btn) {
+  const inp = document.getElementById(inputId);
+  if (!inp) return;
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  btn.textContent = show ? 'HIDE' : 'SHOW';
+}
 </script>
 </body>
 </html>
