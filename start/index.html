@@ -372,6 +372,11 @@
   @media (max-width: 390px) {
     .wrap { padding: 0 12px; }
   }
+
+  .pw-wrap { position:relative; display:flex; align-items:center; }
+  .pw-wrap input { width:100%; padding-right:42px !important; }
+  .pw-toggle { position:absolute; right:10px; background:none; border:none; cursor:pointer; color:var(--ink-faint); padding:4px; font-size:13px; font-family:'IBM Plex Mono',monospace; font-weight:600; letter-spacing:0.04em; user-select:none; }
+  .pw-toggle:hover { color:var(--ink); }
 </style>
 </head>
 <body>
@@ -690,7 +695,7 @@
 
       <div class="field">
         <label>Confirm password</label>
-        <input type="password" id="portalPasswordConfirm" placeholder="Repeat your password" autocomplete="new-password">
+        <div class="pw-wrap" style=""><input type="password" id="portalPasswordConfirm" placeholder="Repeat your password" autocomplete="new-password"><button type="button" class="pw-toggle" onclick="togglePw('portalPasswordConfirm', this)" tabindex="-1">SHOW</button></div>
       </div>
 
       <div id="accountError" style="display:none;background:var(--red-bg);color:var(--red);font-size:13px;padding:10px 14px;border-radius:8px;margin-bottom:12px"></div>
@@ -1106,6 +1111,15 @@ document.getElementById('intakeForm').addEventListener('submit', async function(
     btn.textContent = 'Send project brief →';
   }
 });
+
+
+function togglePw(inputId, btn) {
+  const inp = document.getElementById(inputId);
+  if (!inp) return;
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  btn.textContent = show ? 'HIDE' : 'SHOW';
+}
 </script>
 </body>
 </html>
