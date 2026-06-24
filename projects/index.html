@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%235848e0'/%3E%3Ccircle cx='9' cy='23' r='2.5' fill='white'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='white'/%3E%3Ccircle cx='23' cy='9' r='2.5' fill='white'/%3E%3Cline x1='9' y1='23' x2='16' y2='16' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='16' y1='16' x2='23' y2='9' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3Cpolyline points='19,8 23,9 22,13' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="/logo.svg">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>Projects — New Trail Design</title>
@@ -89,6 +89,7 @@
   .status-completed { background:var(--accent-soft); color:var(--accent-deep); }
   .status-on-hold { background:var(--orange-bg); color:var(--orange); }
   .status-cancelled { background:#f3f4f6; color:#6b7280; }
+  .status-archived { background:#f3f4f6; color:#9ca3af; border:1px dashed #d1d5db; }
   .project-meta { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
   .meta-item { font-size:12.5px; }
   .meta-item .meta-label { color:var(--ink-faint); font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.04em; text-transform:uppercase; }
@@ -122,7 +123,7 @@
   .section-divider { grid-column:1/-1; font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); padding-top:8px; border-top:1px solid var(--line); margin-top:4px; }
   .modal-footer { display:flex; justify-content:space-between; align-items:center; margin-top:24px; gap:12px; }
 
-  .drawer-overlay { display:none; position:fixed; inset:0; background:rgba(19,24,43,0.45); z-index:300; align-items:flex-start; justify-content:center; padding:40px 20px; overflow-y:auto; }
+  .drawer-overlay { display:none; position:fixed; inset:0; background:rgba(19,24,43,0.45); z-index:300; align-items:flex-start; justify-content:center; padding:40px 20px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
   .drawer-overlay.open { display:flex; }
   .drawer { background:var(--surface); border-radius:var(--radius); width:100%; max-width:680px; padding:32px; position:relative; margin:auto; }
   .drawer-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px; gap:16px; }
@@ -196,12 +197,23 @@
     .wrap { padding:0 12px; }
     .stats-bar { grid-template-columns:1fr 1fr; }
   }
+
+  /* Mobile: filter bar scrolls horizontally instead of wrapping messily */
+  @media (max-width:560px) {
+    .filter-bar { flex-wrap:nowrap; overflow-x:auto; padding-bottom:6px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+    .filter-bar::-webkit-scrollbar { display:none; }
+    .filter-pill { flex-shrink:0; }
+    .drawer-actions { flex-direction:column; }
+    .drawer-actions .btn { width:100%; justify-content:center; }
+    .detail-grid { grid-template-columns:1fr; }
+    .check-item label { font-size:13px; }
+  }
 </style>
 </head>
 <body>
 <header>
   <div class="wrap header-inner">
-    <a href="/" class="logo" style="display:flex;align-items:center"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="flex-shrink:0;vertical-align:middle;margin-right:8px"><rect width="28" height="28" rx="7" fill="#5848e0"/><circle cx="9" cy="21" r="2.2" fill="white"/><circle cx="14" cy="14" r="2.2" fill="white"/><circle cx="20" cy="8" r="2.2" fill="white"/><line x1="9" y1="21" x2="14" y2="14" stroke="white" stroke-width="2.2" stroke-linecap="round"/><line x1="14" y1="14" x2="20" y2="8" stroke="white" stroke-width="2.2" stroke-linecap="round"/><polyline points="17,7 20,8 19,11.5" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>New Trail <span>Design</span></a>
+    <a href="/" class="logo" style="display:flex;align-items:center"><img src="/logo.svg" width="28" height="28" alt="New Trail Design" aria-hidden="true" style="flex-shrink:0;vertical-align:middle;margin-right:8px">New Trail <span>Design</span></a>
     <div style="display:flex;align-items:center;gap:12px">
       <span class="badge-private">Private</span>
       <button id="logoutBtn" style="display:none">Log out</button>
@@ -244,6 +256,7 @@
       <button class="filter-pill" data-filter="completed">Completed</button>
       <button class="filter-pill" data-filter="on-hold">On Hold</button>
       <button class="filter-pill" data-filter="cancelled">Cancelled</button>
+      <button class="filter-pill" data-filter="archived" style="color:var(--ink-faint);border-style:dashed">Archived</button>
       <input class="search-box" type="search" id="searchBox" placeholder="Search projects...">
     </div>
     <div id="loadingState" style="text-align:center;padding:60px 20px;color:var(--ink-faint)"><p style="font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:0.06em">Loading projects...</p></div>
@@ -269,6 +282,7 @@
         <select id="fStatus">
           <option value="active">Active</option>
           <option value="completed">Completed</option>
+          <option value="archived">Archived</option>
           <option value="on-hold">On Hold</option>
           <option value="cancelled">Cancelled</option>
         </select>
@@ -411,6 +425,7 @@
 
   <div class="drawer-actions" style="flex-wrap:wrap">
     <button class="btn btn-primary" id="drawerInvoice">Generate invoice</button>
+    <button class="btn btn-ghost" id="drawerArchive" style="color:var(--ink-faint);border-style:dashed">Archive project</button>
     <button class="btn btn-ghost" id="drawerDepositInvoice" style="color:var(--warm);border-color:var(--warm)">Bill deposit</button>
     <button class="btn btn-ghost" id="drawerMarkDepositPaid" style="color:var(--green);border-color:var(--green)">✓ Deposit paid</button>
     <button class="btn btn-ghost" id="drawerMarkPaid" style="color:var(--green);border-color:var(--green)">✓ Mark paid in full</button>
@@ -564,8 +579,8 @@ async function fbDelete(fbKey){
   await remove(ref(db,'projects/'+fbKey));
 }
 
-function sClass(s){return{active:'status-active',completed:'status-completed','on-hold':'status-on-hold',cancelled:'status-cancelled'}[s]||'';}
-function sLabel(s){return{active:'Active',completed:'Completed','on-hold':'On Hold',cancelled:'Cancelled'}[s]||s;}
+function sClass(s){return{active:'status-active',completed:'status-completed','on-hold':'status-on-hold',cancelled:'status-cancelled',archived:'status-archived'}[s]||'';}
+function sLabel(s){return{active:'Active',completed:'Completed','on-hold':'On Hold',cancelled:'Cancelled',archived:'Archived'}[s]||s;}
 function fmtDate(d){if(!d)return'&#8212;';const p=d.split('-');return p.length===3?p[1]+'/'+p[2]+'/'+p[0]:d;}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
@@ -575,11 +590,15 @@ function renderAll(){
   const projects=projectsCache;
   document.getElementById('statTotal').textContent=projects.length;
   document.getElementById('statActive').textContent=projects.filter(p=>p.status==='active').length;
+  const archivedCount = projects.filter(p=>p.status==='archived').length;
+  const archStatEl = document.getElementById('statArchived');
+  if (archStatEl) archStatEl.textContent = archivedCount;
   document.getElementById('statCompleted').textContent=projects.filter(p=>p.status==='completed').length;
   const mrr=projects.filter(p=>p.status==='active'&&p.hosting).reduce((s,p)=>s+parseInt(p.hosting||0),0);
   document.getElementById('statMRR').textContent='$'+mrr;
 
   let filtered=projects.filter(function(p){
+    if(activeFilter==='all'&&p.status==='archived')return false;
     if(activeFilter!=='all'&&p.status!==activeFilter)return false;
     if(searchTerm){const q=searchTerm.toLowerCase();const hay=[p.name,p.client,p.business,p.email,p.type,p.stack,(p.tags||[]).join(' '),p.notes,p.brief].join(' ').toLowerCase();if(!hay.includes(q))return false;}
     return true;
@@ -801,6 +820,16 @@ function openDrawer(id){
     : '<span class="deposit-unpaid">Not paid</span>';
 
   // Style deposit button as active/toggled when paid
+  // Update archive button label based on current status
+  const archiveBtn = document.getElementById('drawerArchive');
+  if (p.status === 'archived') {
+    archiveBtn.textContent = '↩ Unarchive project';
+    archiveBtn.style.color = 'var(--accent)';
+  } else {
+    archiveBtn.textContent = 'Archive project';
+    archiveBtn.style.color = 'var(--ink-faint)';
+  }
+
   const depBtn = document.getElementById('drawerMarkDepositPaid');
   if (depositPaid) {
     depBtn.textContent = '✓ Deposit paid';
@@ -1076,6 +1105,20 @@ document.getElementById('drawerDeleteBtn').addEventListener('click', function() 
   document.getElementById('confirmPass').value = '';
   document.getElementById('confirmError').style.display = 'none';
   document.getElementById('confirmDeleteOverlay').classList.add('open');
+});
+
+document.getElementById('drawerArchive').addEventListener('click', function() {
+  const p = projectsCache.find(x=>x._fbKey===drawerProjectId); if(!p) return;
+  const isArchived = p.status === 'archived';
+  const action = isArchived ? 'unarchive' : 'archive';
+  const msg = isArchived
+    ? 'Unarchive "' + p.name + '"? It will move back to Active.'
+    : 'Archive "' + p.name + '"? It will be hidden from the main view but not deleted.';
+  if (!confirm(msg)) return;
+  const newStatus = isArchived ? 'active' : 'archived';
+  fbSave(Object.assign({}, p, { status: newStatus }), p._fbKey)
+    .then(function() { closeDrawer(); })
+    .catch(function(err) { alert('Failed: ' + err.message); });
 });
 
 document.getElementById('drawerClose').addEventListener('click',closeDrawer);
