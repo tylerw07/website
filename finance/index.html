@@ -12,8 +12,8 @@
 <style>
   :root {
     --bg: #f5f6f9; --surface: #ffffff; --ink: #13182b; --ink-soft: #545b72;
-    --ink-faint: #8a90a6; --accent: #5848e0; --accent-deep: #4636c4;
-    --accent-soft: #edebfc; --warm: #e8923d; --warm-soft: #fcecd9;
+    --ink-faint: #8a90a6; --accent: #1d4ed8; --accent-deep: #1e40af;
+    --accent-soft: #eff6ff; --warm: #e8923d; --warm-soft: #fcecd9;
     --line: #e2e4ec; --green: #1a7f4e; --green-bg: #e7f6ee;
     --red: #b3441f; --red-bg: #fdf0ec; --orange: #92400e; --orange-bg: #fffbeb;
     --radius: 14px; --max: 1100px;
@@ -248,6 +248,7 @@
       <button class="tab-btn active" data-tab="income">Income & Expenses</button>
       <button class="tab-btn" data-tab="clients">Client Bills</button>
       <button class="tab-btn" data-tab="support">Support Queue <span id="openRequestsBadge" style="display:none;background:var(--red);color:#fff;font-size:10px;padding:1px 6px;border-radius:999px;margin-left:4px;font-family:'IBM Plex Mono',monospace">0</span></button>
+      <button class="tab-btn" data-tab="docs">📄 Tax Reference</button>
     </div>
 
     <!-- ══════════════════════ TAB 1: INCOME & EXPENSES ══════════════════════ -->
@@ -462,6 +463,34 @@
 
     </div><!-- /tab-support -->
 
+    <!-- ══════════════════════ TAB 4: TAX REFERENCE DOC ══════════════════════ -->
+    <div class="tab-panel" id="tab-docs">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap">
+        <div>
+          <p class="eyebrow">Reference</p>
+          <h2 style="font-family:'Fraunces',serif;font-size:22px;margin:6px 0 4px">Tax Reference Guide</h2>
+          <p style="color:var(--ink-soft);font-size:14px">Renders directly from your GitHub repo. Update the file there and it refreshes here automatically.</p>
+        </div>
+        <a id="docDownloadLink" href="#" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;flex-shrink:0">⬇ Download</a>
+      </div>
+
+      <!-- Viewer: Google Docs viewer renders the .docx from GitHub raw URL -->
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;min-height:800px">
+        <iframe
+          id="docViewer"
+          src=""
+          width="100%"
+          height="850"
+          style="border:none;display:block"
+          title="Tax Reference Guide">
+        </iframe>
+      </div>
+
+      <p style="font-size:12px;color:var(--ink-faint);margin-top:12px;text-align:center">
+        To update this document: replace <code style="font-family:'IBM Plex Mono',monospace;background:var(--bg);padding:2px 6px;border-radius:4px">finance/TaxReference.docx</code> in your GitHub repo. Changes appear here within a few minutes.
+      </p>
+    </div><!-- /tab-docs -->
+
   </div><!-- /wrap -->
 </div><!-- /dashboard -->
 
@@ -544,12 +573,27 @@ function setDefaultExpenseDate() {
 }
 
 // ── Tabs ───────────────────────────────────────────────────────────────────
+// GitHub raw URL for the tax reference doc — update path if you rename/move the file
+const TAX_DOC_GITHUB_RAW = 'https://raw.githubusercontent.com/tylerw07/website/main/finance/TaxReference.docx';
+const TAX_DOC_DOWNLOAD   = 'https://github.com/tylerw07/website/raw/main/finance/TaxReference.docx';
+let docViewerLoaded = false;
+
 document.querySelectorAll('.tab-btn').forEach(function(btn) {
   btn.addEventListener('click', function() {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     this.classList.add('active');
     document.getElementById('tab-' + this.dataset.tab).classList.add('active');
+
+    // Lazy-load the doc viewer only when the tab is first opened
+    if (this.dataset.tab === 'docs' && !docViewerLoaded) {
+      const viewer = document.getElementById('docViewer');
+      const dlLink = document.getElementById('docDownloadLink');
+      // Google Docs viewer can render any publicly accessible .docx URL
+      viewer.src = 'https://docs.google.com/gviewer?embedded=true&url=' + encodeURIComponent(TAX_DOC_GITHUB_RAW);
+      dlLink.href = TAX_DOC_DOWNLOAD;
+      docViewerLoaded = true;
+    }
   });
 });
 
