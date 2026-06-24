@@ -58,7 +58,7 @@
     color: var(--accent);
   }
 
-  /* ── Header ── */
+  
   header {
     background: var(--surface);
     border-bottom: 1px solid var(--line);
@@ -86,7 +86,7 @@
   }
   .back-link:hover { color: var(--ink); }
 
-  /* ── Page head ── */
+  
   .page-head {
     padding: 48px 0 36px;
     border-bottom: 1px solid var(--line);
@@ -99,7 +99,7 @@
   }
   .page-head p { color: var(--ink-soft); font-size: 16px; max-width: 50ch; }
 
-  /* ── Progress indicator ── */
+  
   .progress {
     display: flex;
     align-items: center;
@@ -135,7 +135,7 @@
   .progress-line { flex: 1; height: 2px; background: var(--line); margin: 0 8px; max-width: 40px; }
   .progress-line.done { background: var(--green); }
 
-  /* ── Form sections ── */
+  
   .form-section { display: none; }
   .form-section.active { display: block; }
 
@@ -151,7 +151,7 @@
     border-bottom: 1px solid var(--line);
   }
 
-  /* ── Fields ── */
+  
   .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 18px; }
   .field label { font-size: 13px; font-weight: 600; color: var(--ink-soft); }
   .field label .req { color: var(--accent); margin-left: 2px; }
@@ -183,7 +183,7 @@
   .field-hint { font-size: 12.5px; color: var(--ink-faint); margin-top: 4px; }
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
-  /* ── Service toggles ── */
+  
   .service-toggle-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px; }
   .service-toggle {
     display: flex;
@@ -220,7 +220,7 @@
     color: white;
   }
   .toggle-check::after { content: ''; }
-  .service-toggle.selected .toggle-check::after { content: '✓'; font-size: 13px; font-weight: 700; color: white; }
+  .service-toggle.selected .toggle-check::after { content: ''; font-size: 13px; font-weight: 700; color: white; }
   .toggle-body { flex: 1; }
   .toggle-title { font-weight: 600; font-size: 15px; color: var(--ink); margin-bottom: 3px; }
   .toggle-price {
@@ -232,7 +232,7 @@
   }
   .toggle-desc { font-size: 13px; color: var(--ink-soft); }
 
-  /* ── Timeline radio ── */
+  
   .timeline-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
   .timeline-option { position: relative; cursor: pointer; }
   .timeline-option input { position: absolute; opacity: 0; pointer-events: none; }
@@ -253,7 +253,7 @@
   }
   .timeline-option:hover .timeline-face { border-color: var(--ink-faint); }
 
-  /* ── Info box ── */
+  
   .info-box {
     background: var(--warm-soft);
     border-radius: 12px;
@@ -268,7 +268,7 @@
   .info-box-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
   .info-box strong { color: var(--ink); }
 
-  /* ── Navigation buttons ── */
+  
   .form-nav {
     display: flex;
     justify-content: space-between;
@@ -299,7 +299,7 @@
   .btn-ghost:hover { border-color: var(--ink); color: var(--ink); }
   .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 
-  /* ── Review section ── */
+  
   .review-grid { display: flex; flex-direction: column; gap: 20px; margin-bottom: 28px; }
   .review-card {
     background: var(--surface);
@@ -321,12 +321,12 @@
   .review-label { color: var(--ink-faint); min-width: 130px; flex-shrink: 0; }
   .review-value { color: var(--ink); font-weight: 500; }
 
-  /* ── Status messages ── */
+  
   .status-msg { display: none; padding: 14px 16px; border-radius: 10px; font-size: 14px; margin-top: 16px; }
   .status-msg.error { background: var(--red-bg); color: var(--red); display: block; }
   .status-msg.success { background: var(--green-bg); color: var(--green); display: block; }
 
-  /* ── Success screen ── */
+  
   #successScreen {
     display: none;
     text-align: center;
@@ -346,7 +346,7 @@
   #successScreen h2 { font-size: 30px; margin-bottom: 14px; }
   #successScreen p { color: var(--ink-soft); max-width: 38ch; margin: 0 auto 10px; }
 
-  /* ── Footer ── */
+  
   footer {
     border-top: 1px solid var(--line);
     padding: 28px 0;
@@ -355,7 +355,7 @@
   .footer-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
   footer p { font-size: 13px; color: var(--ink-faint); }
 
-  /* ── Mobile ── */
+  
   @media (max-width: 520px) {
     .wrap { padding: 0 14px; }
     .page-head { padding: 32px 0 24px; margin-bottom: 28px; }
@@ -385,14 +385,14 @@
 
 <div class="wrap">
 
-  <!-- Page head -->
+  
   <div class="page-head" id="formHead">
     <p class="eyebrow">Start a project</p>
     <h1>Tell us about your idea</h1>
     <p>Fill in the details below — the more you share, the better we can scope your project and get back to you quickly.</p>
   </div>
 
-  <!-- Progress -->
+  
   <div class="progress" id="progressBar">
     <div class="progress-step active" id="step-indicator-1">
       <div class="step-circle" id="step-circle-1">1</div>
@@ -420,13 +420,13 @@
     </div>
   </div>
 
-  <!-- FORM -->
+  
   <form id="intakeForm">
     <input type="hidden" name="access_key" value="c532615a-c40a-48f0-8ea4-174109630bac">
     <input type="hidden" name="subject" value="New project inquiry — New Trail Design">
     <input type="checkbox" name="botcheck" style="display:none" tabindex="-1" autocomplete="off">
 
-    <!-- ── STEP 1: About you ── -->
+    
     <div class="form-section active" id="section-1">
       <div class="section-label">Step 1 of 4 — About you</div>
 
@@ -496,7 +496,7 @@
       </div>
     </div>
 
-    <!-- ── STEP 2: Your project ── -->
+    
     <div class="form-section" id="section-2">
       <div class="section-label">Step 2 of 4 — Your project</div>
 
@@ -571,16 +571,16 @@
       </div>
     </div>
 
-    <!-- ── STEP 3: Services ── -->
+    
     <div class="form-section" id="section-3">
       <div class="section-label">Step 3 of 4 — Services</div>
 
       <div class="info-box">
-        <span class="info-box-icon">💡</span>
+        <span class="info-box-icon"></span>
         <div><strong>Not sure which you need?</strong> If your app stores data, needs logins, or lets users do anything — you need a backend. If you want it live on your own domain without managing a server — you need hosting. Both together is the most common choice.</div>
       </div>
 
-      <!-- Build fee -->
+      
       <div class="field">
         <div class="section-label" style="border:none;padding:0;margin-bottom:14px">App build</div>
         <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
@@ -592,7 +592,7 @@
         </div>
       </div>
 
-      <!-- Hosting -->
+      
       <div class="field">
         <div class="section-label" style="border:none;padding:0;margin-bottom:14px">Add-on services</div>
         <label style="margin-bottom:10px;display:block">Do you need hosting? <span class="field-hint" style="margin:0">(optional)</span></label>
@@ -609,7 +609,7 @@
         <input type="hidden" name="needs_hosting" id="needs_hosting" value="No">
       </div>
 
-      <!-- Backend -->
+      
       <div class="field">
         <label style="margin-bottom:10px;display:block">Do you need a backend database? <span class="field-hint" style="margin:0">(optional)</span></label>
         <div class="service-toggle-group">
@@ -624,11 +624,11 @@
         </div>
         <input type="hidden" name="needs_backend" id="needs_backend" value="No">
         <div id="bundleNote" style="display:none;margin-top:10px;font-size:13px;background:var(--warm-soft);border-radius:8px;padding:10px 13px;color:var(--ink-soft)">
-          💰 <strong>Bundle both for $50/mo</strong> — saves you $5 every month.
+           <strong>Bundle both for $50/mo</strong> — saves you $5 every month.
         </div>
       </div>
 
-      <!-- Timeline -->      <!-- Timeline -->
+            
       <div class="field">
         <label>How soon do you need this live?</label>
         <div class="timeline-grid">
@@ -671,8 +671,7 @@
       </div>
     </div>
 
-
-    <!-- ── STEP 4: Account setup ── -->
+    
     <div class="form-section" id="section-4">
       <div class="section-label">Step 4 of 5 — Create your client account</div>
       <h2 style="font-family:'Fraunces',serif;font-size:22px;margin-bottom:8px">Set up your portal access</h2>
@@ -702,14 +701,14 @@
       </div>
     </div>
 
-    <!-- ── STEP 5: Review ── -->
+    
     <div class="form-section" id="section-5">
       <div class="section-label">Step 5 of 5 — Review &amp; submit</div>
 
       <div class="review-grid" id="reviewContent"></div>
 
       <div class="info-box">
-        <span class="info-box-icon">📬</span>
+        <span class="info-box-icon"></span>
         <div>We'll review your submission and <strong>get back to you within one business day</strong> to talk through next steps.</div>
       </div>
 
@@ -722,9 +721,9 @@
     </div>
   </form>
 
-  <!-- Success -->
+  
   <div id="successScreen">
-    <div class="success-icon">✓</div>
+    <div class="success-icon"></div>
     <h2>Brief sent.</h2>
     <p>Thanks for reaching out. We'll be in touch within one business day to talk through your project.</p>
     <p style="margin-top:8px;color:var(--ink-faint);font-size:14px">In the meantime, feel free to email us directly at <a href="mailto:tyler@newtraildesign.com" style="color:var(--accent)">tyler@newtraildesign.com</a></p>
@@ -741,10 +740,9 @@
 </footer>
 
 <script type="module">
-// ── Step navigation ────────────────────────────────────────
+
 let currentStep = 1;
 const totalSteps = 5;
-
 
 function validateAccount() {
   const username = document.getElementById('portalUsername').value.trim();
@@ -778,14 +776,14 @@ function goToStep(step) {
   document.getElementById('section-' + currentStep).classList.remove('active');
   document.getElementById('section-' + step).classList.add('active');
 
-  // Update progress indicators
+  
   for (let i = 1; i <= totalSteps; i++) {
     const indicator = document.getElementById('step-indicator-' + i);
     const circle = document.getElementById('step-circle-' + i);
     indicator.classList.remove('active', 'done');
     if (i < step) {
       indicator.classList.add('done');
-      circle.textContent = '✓';
+      circle.textContent = '';
     } else if (i === step) {
       indicator.classList.add('active');
       circle.textContent = i;
@@ -803,7 +801,6 @@ function goToStep(step) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ── Validation ─────────────────────────────────────────────
 function validateStep(step) {
   if (step === 1) {
     const first = document.getElementById('firstName').value.trim();
@@ -820,8 +817,8 @@ function validateStep(step) {
     if (!type) { showStepError('Please select the type of app you need.'); return false; }
     if (!desc) { showStepError('Please describe your project — even a few sentences is fine.'); return false; }
   }
-  // Steps 3 and 4 have their own validation (services toggles, validateAccount)
-  // so we just pass them through here
+  
+  
   clearStepError();
   return true;
 }
@@ -843,7 +840,6 @@ function clearStepError() {
   if (err) err.remove();
 }
 
-// ── Service toggles ────────────────────────────────────────
 const serviceState = { hosting: false, backend: false };
 
 function toggleService(id) {
@@ -855,7 +851,6 @@ function toggleService(id) {
   bundleNote.style.display = (serviceState.hosting && serviceState.backend) ? 'block' : 'none';
 }
 
-// ── Timeline specific date ────────────────────────────────
 document.querySelectorAll('input[name="timeline"]').forEach(function(radio) {
   radio.addEventListener('change', function() {
     document.getElementById('specificDateField').style.display =
@@ -863,7 +858,6 @@ document.querySelectorAll('input[name="timeline"]').forEach(function(radio) {
   });
 });
 
-// ── Build review ──────────────────────────────────────────
 function val(id) { return document.getElementById(id).value.trim() || '—'; }
 function checked(name) {
   const el = document.querySelector('input[name="'+name+'"]:checked');
@@ -937,8 +931,6 @@ function buildReview() {
   });
 }
 
-// ── Submit ─────────────────────────────────────────────────
-// ── Firebase setup (writes new project on form submit) ─────
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getDatabase, ref, push, set }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
@@ -965,7 +957,7 @@ async function createProjectInFirebase(payload) {
   if (serviceState.hosting && serviceState.backend) services.push('→ Bundle: $50/mo total');
 
   const project = {
-    // Identity
+    
     name:          payload.project_name || 'Unnamed project',
     client:        ((payload.first_name || '') + ' ' + (payload.last_name || '')).trim(),
     business:      payload.business_name || '',
@@ -973,17 +965,17 @@ async function createProjectInFirebase(payload) {
     phone:         payload.phone || '',
     status:        'active',
 
-    // Project details
+    
     type:          payload.app_type || '',
     stack:         '',
     liveUrl:       '',
     repo:          '',
 
-    // Dates
+    
     startDate:     new Date().toISOString().split('T')[0],
     deadline:      payload.target_date || '',
 
-    // Billing
+    
     buildFee:      '350',
     paymentStatus: 'Unpaid',
     hosting:       serviceState.hosting && serviceState.backend ? '50'
@@ -992,7 +984,7 @@ async function createProjectInFirebase(payload) {
                  : '',
     nextBilling:   '',
 
-    // Notes — combine all intake details into the brief
+    
     brief: [
       payload.project_description ? 'PROJECT DESCRIPTION:\n' + payload.project_description : '',
       payload.target_users        ? '\nTARGET USERS:\n' + payload.target_users : '',
@@ -1025,7 +1017,7 @@ async function createProjectInFirebase(payload) {
   const newRef = push(ref(db, 'projects'));
   await set(newRef, project);
 
-  // Store portal credentials linked to this project
+  
   const portalUser = (document.getElementById('portalUsername')?.value || '').trim().toLowerCase();
   const portalPass = document.getElementById('portalPassword')?.value || '';
   if (portalUser && portalPass) {
@@ -1039,8 +1031,6 @@ async function createProjectInFirebase(payload) {
   }
 }
 
-// Expose functions called from HTML onclick attributes to global scope
-// (required because this script uses type="module" which is scoped)
 window.goToStep = goToStep;
 window.toggleService = toggleService;
 window.validateAccount = validateAccount;
@@ -1057,8 +1047,8 @@ document.getElementById('intakeForm').addEventListener('submit', async function(
   const formData = new FormData(this);
   const payload = Object.fromEntries(formData);
 
-  // Build a clean Web3Forms payload with correct field names
-  // exclude portal credentials and use Web3Forms expected field names
+  
+  
   const web3payload = {
     access_key:        payload.access_key || 'c532615a-c40a-48f0-8ea4-174109630bac',
     subject:           'New project inquiry — New Trail Design',
@@ -1084,7 +1074,7 @@ document.getElementById('intakeForm').addEventListener('submit', async function(
   };
 
   try {
-    // Build parallel requests — email notification + Firebase project creation
+    
     const requests = [
       fetch('https://api.web3forms.com/submit', {
         method: 'POST',
