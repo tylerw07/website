@@ -820,7 +820,8 @@ function validateStep(step) {
     if (!type) { showStepError('Please select the type of app you need.'); return false; }
     if (!desc) { showStepError('Please describe your project — even a few sentences is fine.'); return false; }
   }
-
+  // Steps 3 and 4 have their own validation (services toggles, validateAccount)
+  // so we just pass them through here
   clearStepError();
   return true;
 }
