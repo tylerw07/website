@@ -776,8 +776,6 @@
 
     </div>
 
-  </div
-
 <div class="modal-overlay" id="projectModal">
   <div class="modal">
     <div class="modal-header">
@@ -1052,6 +1050,8 @@ function showDashboard(){
         }
         showLoading(false);
         renderAll();
+        init();
+        initFinance();
       },
       function(error){
         
@@ -1067,6 +1067,8 @@ function showDashboard(){
   } else {
     showLoading(false);
     renderAll();
+    init();
+    initFinance();
   }
 }
 
