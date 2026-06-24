@@ -355,7 +355,7 @@ function showError(msg) {
 
 function buildPaySection(payUrl, payUrlReady, total) {
   if (!payUrlReady) {
-    return '<div class="inv-pay-section"><h3>Pay this invoice online</h3><p>Payment link coming soon  -  contact us at <a href="mailto:hello@newtraildesign.com" style="color:var(--accent)">hello@newtraildesign.com</a></p></div>';
+    return '<div class="inv-pay-section"><h3>Pay this invoice online</h3><p>Payment link coming soon  -  contact us at <a href="mailto:tyler@newtraildesign.com" style="color:var(--accent)">tyler@newtraildesign.com</a></p></div>';
   }
   return '<div class="inv-pay-section"><h3>Pay this invoice online</h3><p>Secure payment powered by Square. All major cards accepted.</p><a href="' + esc(payUrl) + '" target="_blank">Pay $' + total.toFixed(2) + ' now →</a></div>';
 }
@@ -438,7 +438,7 @@ async function buildInvoice(p, fbKey) {
       <div class="inv-header">
         <div>
           <div class="inv-brand">New Trail <span>Design</span></div>
-          <div class="inv-brand-sub">hello@newtraildesign.com<br>newtraildesign.com</div>
+          <div class="inv-brand-sub">tyler@newtraildesign.com<br>newtraildesign.com</div>
         </div>
         <div class="inv-number-block">
           <div class="inv-label">Invoice</div>
@@ -453,7 +453,7 @@ async function buildInvoice(p, fbKey) {
           <div>
             <div class="inv-party-label">From</div>
             <div class="inv-party-name">New Trail Design LLC</div>
-            <div class="inv-party-detail">hello@newtraildesign.com<br>newtraildesign.com</div>
+            <div class="inv-party-detail">tyler@newtraildesign.com<br>newtraildesign.com</div>
           </div>
           <div>
             <div class="inv-party-label">Bill to</div>
