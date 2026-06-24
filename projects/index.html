@@ -142,7 +142,7 @@
   .select-mode-bar.visible { display:flex; }
   .select-count { font-size:13.5px; font-weight:600; font-family:'IBM Plex Mono',monospace; }
   .project-card.selected { outline:2px solid var(--accent); outline-offset:2px; position:relative; }
-  .project-card.selected::after { content:'✓'; position:absolute; top:10px; right:10px; width:22px; height:22px; background:var(--accent); color:#fff; border-radius:50%; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; line-height:22px; text-align:center; }
+  .project-card.selected::after { content:''; position:absolute; top:10px; right:10px; width:22px; height:22px; background:var(--accent); color:#fff; border-radius:50%; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; line-height:22px; text-align:center; }
   .select-toggle-btn { font-family:'IBM Plex Sans',sans-serif; font-size:12.5px; font-weight:600; padding:6px 14px; border-radius:999px; border:1px solid var(--line); background:transparent; color:var(--ink-soft); cursor:pointer; }
   .select-toggle-btn:hover { border-color:var(--ink); color:var(--ink); }
   .select-toggle-btn.active { background:var(--accent-soft); border-color:var(--accent); color:var(--accent); }
@@ -206,7 +206,7 @@
     .stats-bar { grid-template-columns:1fr 1fr; }
   }
 
-  /* Mobile: filter bar scrolls horizontally instead of wrapping messily */
+  
   @media (max-width:560px) {
     .filter-bar { flex-wrap:nowrap; overflow-x:auto; padding-bottom:6px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
     .filter-bar::-webkit-scrollbar { display:none; }
@@ -249,7 +249,7 @@
       <div><h1>Projects</h1><p>All client work, tracked in one place.</p></div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
         <a href="/finance" class="btn btn-ghost" style="text-decoration:none">&#128202; Finance</a>
-        <button class="select-toggle-btn" id="selectModeBtn">☑ Select</button>
+        <button class="select-toggle-btn" id="selectModeBtn"> Select</button>
         <button class="btn btn-primary" id="newProjectBtn">+ New project</button>
       </div>
     </div>
@@ -260,7 +260,7 @@
       <div class="stat-card"><div class="stat-label">Archived</div><div class="stat-value" id="statArchived" style="color:var(--ink-faint)">0</div></div>
       <div class="stat-card"><div class="stat-label">Monthly MRR</div><div class="stat-value" id="statMRR" style="color:var(--warm)">$0</div></div>
     </div>
-    <!-- Multi-select action bar -->
+    
     <div class="select-mode-bar" id="selectModeBar">
       <span class="select-count" id="selectCount">0 selected</span>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -284,7 +284,6 @@
   </div>
 </div>
 
-<!-- MODAL -->
 <div class="modal-overlay" id="projectModal">
   <div class="modal">
     <div class="modal-header">
@@ -329,6 +328,10 @@
       <div class="field"><label>Deadline / target date</label><input type="date" id="fDeadline"></div>
       <div class="section-divider">Billing</div>
       <div class="field"><label>Build fee ($)</label><input type="number" id="fBuildFee" placeholder="350" min="0"></div>
+      <div class="field" style="flex-direction:row;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--line)">
+        <input type="checkbox" id="fSetupFee" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
+        <label for="fSetupFee" style="font-size:14px;font-weight:600;cursor:pointer;margin:0">$50 setup fee applies to this client</label>
+      </div>
       <div class="field"><label>Payment status</label>
         <select id="fPaymentStatus">
           <option value="">&#8212; Select &#8212;</option>
@@ -380,7 +383,6 @@
   </div>
 </div>
 
-<!-- DRAWER -->
 <div class="drawer-overlay" id="drawerOverlay">
 <div class="drawer" id="drawer">
   <div class="drawer-header">
@@ -420,6 +422,7 @@
     <h4>Billing</h4>
     <div class="detail-grid">
       <div class="detail-item"><div class="detail-label">Build fee</div><div class="detail-value" id="dBuildFee"></div></div>
+      <div class="detail-item"><div class="detail-label">Setup fee</div><div class="detail-value" id="dSetupFee"></div></div>
       <div class="detail-item"><div class="detail-label">Payment status</div><div class="detail-value" id="dPayment"></div></div>
       <div class="detail-item"><div class="detail-label">Invoice link</div><div class="detail-value" id="dInvoiceLink">—</div></div>
       <div class="detail-item"><div class="detail-label">Monthly plan</div><div class="detail-value" id="dHosting"></div></div>
@@ -431,13 +434,13 @@
   <div class="detail-section" id="dBriefSection"><h4>Project brief</h4><div class="notes-box" id="dBrief"></div></div>
   <div class="detail-section" id="dNotesSection"><h4>Internal notes</h4><div class="notes-box" id="dNotes"></div></div>
   <div class="detail-section" id="dTagsSection"><h4>Tags</h4><div class="project-tags" id="dTags"></div></div>
-  <!-- Onboarding Checklist -->
+  
   <div class="detail-section" id="drawerChecklist">
     <h4>Onboarding checklist</h4>
     <div id="checklistItems" style="display:flex;flex-direction:column;gap:8px"></div>
   </div>
 
-  <!-- Support Requests -->
+  
   <div class="detail-section" id="drawerSupport">
     <h4>Support requests</h4>
     <div id="supportItems" style="display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto"></div>
@@ -447,17 +450,16 @@
     <button class="btn btn-primary" id="drawerInvoice">Generate invoice</button>
     <button class="btn btn-ghost" id="drawerArchive" style="color:var(--ink-faint);border-style:dashed">Archive project</button>
     <button class="btn btn-ghost" id="drawerDepositInvoice" style="color:var(--warm);border-color:var(--warm)">Bill deposit</button>
-    <button class="btn btn-ghost" id="drawerMarkDepositPaid" style="color:var(--green);border-color:var(--green)">✓ Deposit paid</button>
-    <button class="btn btn-ghost" id="drawerMarkPaid" style="color:var(--green);border-color:var(--green)">✓ Mark paid in full</button>
-    <button class="btn btn-ghost" id="drawerActivateSub" style="display:none;color:var(--accent);border-color:var(--accent)">⟳ Activate annual invoice</button>
+    <button class="btn btn-ghost" id="drawerMarkDepositPaid" style="color:var(--green);border-color:var(--green)"> Deposit paid</button>
+    <button class="btn btn-ghost" id="drawerMarkPaid" style="color:var(--green);border-color:var(--green)"> Mark paid in full</button>
+    <button class="btn btn-ghost" id="drawerActivateSub" style="display:none;color:var(--accent);border-color:var(--accent)"> Activate annual invoice</button>
   </div>
   <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line)">
-    <button class="btn btn-danger" id="drawerDeleteBtn">🗑 Delete project</button>
+    <button class="btn btn-danger" id="drawerDeleteBtn"> Delete project</button>
   </div>
 </div>
 </div>
 
-<!-- DELETE CONFIRM MODAL -->
 <div class="confirm-overlay" id="confirmDeleteOverlay">
   <div class="confirm-box">
     <h3>Delete project</h3>
@@ -477,12 +479,6 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getDatabase, ref, push, set, remove, onValue, update, get }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
-// ╔══════════════════════════════════════════════════════════╗
-// ║  FIREBASE CONFIG  -  replace all PASTE_ values below      ║
-// ║  Find them at: console.firebase.google.com               ║
-// ║  → your project → Project settings → Your apps          ║
-// ║  → Firebase SDK snippet → Config                         ║
-// ╚══════════════════════════════════════════════════════════╝
 const firebaseConfig = {
   apiKey:            'AIzaSyDUGcWkaRXtM71HFkD0zm47pk8unztjQW4',
   authDomain:        'newtraildb.firebaseapp.com',
@@ -497,7 +493,6 @@ const fbApp = initializeApp(firebaseConfig);
 const db    = getDatabase(fbApp);
 const projectsRef = ref(db, 'projects');
 
-// Live cache  -  kept in sync by Firebase real-time listener
 let projectsCache = [];
 let listenerAttached = false;
 
@@ -527,7 +522,7 @@ function showDashboard(){
   if(!listenerAttached){
     listenerAttached=true;
 
-    // Timeout  -  if Firebase hasn't responded in 8 seconds, show a clear error
+    
     const timeoutId = setTimeout(function(){
       showLoading(false, 'Could not connect to database. Check your Firebase rules allow reads, then refresh.');
     }, 8000);
@@ -546,7 +541,7 @@ function showDashboard(){
         renderAll();
       },
       function(error){
-        // Firebase called the error callback  -  permission denied or config issue
+        
         clearTimeout(timeoutId);
         console.error('Firebase read error:', error);
         if(error.code === 'PERMISSION_DENIED'){
@@ -580,7 +575,6 @@ logoutBtn.addEventListener('click',function(){
   listenerAttached=false; projectsCache=[];
 });
 
-// Firebase write helpers
 async function fbSave(data, fbKey){
   const {_fbKey,...clean}=data;
   clean.updatedAt=Date.now();
@@ -606,7 +600,6 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 
 let activeFilter='all', searchTerm='', drawerProjectId=null;
 
-// Multi-select state — declared here so renderAll and all handlers can use them
 let selectMode = false;
 let selectedKeys = new Set();
 let deleteTargetKeys = [];
@@ -622,7 +615,7 @@ function updateSelectCount() {
 function enterSelectMode() {
   selectMode = true;
   const btn = document.getElementById('selectModeBtn');
-  if (btn) { btn.classList.add('active'); btn.textContent = '✕ Cancel'; }
+  if (btn) { btn.classList.add('active'); btn.textContent = ' Cancel'; }
   const bar = document.getElementById('selectModeBar');
   if (bar) bar.classList.add('visible');
   renderAll();
@@ -632,7 +625,7 @@ function exitSelectMode() {
   selectMode = false;
   selectedKeys.clear();
   const btn = document.getElementById('selectModeBtn');
-  if (btn) { btn.classList.remove('active'); btn.textContent = '☑ Select'; }
+  if (btn) { btn.classList.remove('active'); btn.textContent = ' Select'; }
   const bar = document.getElementById('selectModeBar');
   if (bar) bar.classList.remove('visible');
   updateSelectCount();
@@ -680,12 +673,12 @@ function renderAll(){
     const card=document.createElement('div');
     card.className='project-card'; card.dataset.id=p._fbKey;
     card.innerHTML=`<div class="project-card-top"><div><div class="project-name">${esc(p.name)}</div><div class="project-client">${esc(p.client)}${p.business?' &middot; '+esc(p.business):''}</div></div><span class="status-badge ${sClass(p.status)}">${sLabel(p.status)}</span></div><div class="project-meta"><div class="meta-item"><div class="meta-label">Type</div><div class="meta-value">${esc(p.type||'&#8212;')}</div></div><div class="meta-item"><div class="meta-label">Billing</div><div class="meta-value">${esc(p.paymentStatus||'&#8212;')}</div></div><div class="meta-item"><div class="meta-label">Started</div><div class="meta-value">${fmtDate(p.startDate)}</div></div><div class="meta-item"><div class="meta-label">Deadline</div><div class="meta-value">${fmtDate(p.deadline)}</div></div></div>${tags?'<div class="project-tags">'+tags+'</div>':''}<div class="project-card-footer"><div style="display:flex;gap:8px;align-items:center">${monthly}${payBadge}</div><div class="card-actions">${depositDot}${invoiceDot}<button class="btn btn-ghost btn-sm edit-btn" data-id="${p._fbKey}">Edit</button></div></div>`;
-    // Add selected class if in select mode
+    
     if (selectMode && selectedKeys.has(p._fbKey)) card.classList.add('selected');
 
     card.addEventListener('click', function(e) {
       if (selectMode) {
-        // In select mode: toggle selection, don't open drawer
+        
         if (selectedKeys.has(p._fbKey)) {
           selectedKeys.delete(p._fbKey);
           card.classList.remove('selected');
@@ -700,7 +693,7 @@ function renderAll(){
       openDrawer(p._fbKey);
     });
     card.querySelector('.edit-btn').addEventListener('click', function(e) {
-      if (selectMode) return; // disable edit in select mode
+      if (selectMode) return; 
       e.stopPropagation();
       openModal(p._fbKey);
     });
@@ -729,9 +722,10 @@ function openModal(projectId){
   document.getElementById('fPaymentStatus').value=p?p.paymentStatus||'':'';
   document.getElementById('fDepositStatus').value=p?p.depositStatus||'':'';
   document.getElementById('fHosting').value=p?p.hosting||'':'';
+  document.getElementById('fSetupFee').checked = p ? !!p.setupFee : false;
   document.getElementById('fTags').value=p?(p.tags||[]).join(', '):'';
 
-  // Load existing portal credentials if editing
+  
   document.getElementById('fPortalUser').value = '';
   document.getElementById('fPortalPass').value = '';
   const hintEl = document.getElementById('fPortalPassHint');
@@ -773,6 +767,7 @@ document.getElementById('modalSave').addEventListener('click', async function() 
     deadline:      document.getElementById('fDeadline').value,
     buildFee:      document.getElementById('fBuildFee').value,
     paymentStatus: document.getElementById('fPaymentStatus').value,
+    setupFee:      document.getElementById('fSetupFee').checked,
     depositStatus: document.getElementById('fDepositStatus').value,
     hosting:       document.getElementById('fHosting').value,
     nextBilling:   document.getElementById('fNextBilling').value,
@@ -782,7 +777,7 @@ document.getElementById('modalSave').addEventListener('click', async function() 
     updatedAt: Date.now(),
   };
 
-  // Read portal credentials NOW, in the same scope as the save
+  
   const portalUser = document.getElementById('fPortalUser').value.trim().toLowerCase();
   const portalPass = document.getElementById('fPortalPass').value;
 
@@ -793,7 +788,7 @@ document.getElementById('modalSave').addEventListener('click', async function() 
     const savedKey = await fbSave(data, editingId || null);
     const projectKey = editingId || savedKey;
 
-    // Save portal credentials if a username was provided
+    
     if (portalUser) {
       const accountData = {
         projectKey,
@@ -804,19 +799,19 @@ document.getElementById('modalSave').addEventListener('click', async function() 
       try {
         const existingSnap = await get(ref(db, 'portalAccounts/' + portalUser));
         if (existingSnap.exists() && !portalPass) {
-          // Keep existing password, update other fields
+          
           await set(ref(db, 'portalAccounts/' + portalUser),
             Object.assign({}, existingSnap.val(), accountData));
         } else if (portalPass) {
-          // New or updated password
+          
           await set(ref(db, 'portalAccounts/' + portalUser),
             Object.assign({}, accountData, { password: portalPass }));
         } else {
-          // No existing account and no password — save placeholder
+          
           await set(ref(db, 'portalAccounts/' + portalUser),
             Object.assign({}, accountData, { password: '' }));
         }
-        // Tag the project record with the portal username
+        
         await update(ref(db, 'projects/' + projectKey), { portalUsername: portalUser });
       } catch(portalErr) {
         console.error('Portal account save failed:', portalErr);
@@ -846,8 +841,6 @@ document.getElementById('confirmCancel').addEventListener('click',function(){
   document.getElementById('confirmDeleteOverlay').classList.remove('open');
 });
 
-// Dedicated variable for delete target — avoids dependency on editingId
-
 document.getElementById('confirmDelete').addEventListener('click', async function() {
   const u  = document.getElementById('confirmUser').value;
   const pw = document.getElementById('confirmPass').value;
@@ -875,7 +868,7 @@ document.getElementById('confirmDelete').addEventListener('click', async functio
 });
 
 function openDrawer(id){
-  if (selectMode) return; // don't open drawer in select mode
+  if (selectMode) return; 
   const p=projectsCache.find(x=>x._fbKey===id); if(!p)return;
   drawerProjectId=id;
   document.getElementById('drawerStatus').textContent=sLabel(p.status);
@@ -892,6 +885,11 @@ function openDrawer(id){
   document.getElementById('dStart').innerHTML=fmtDate(p.startDate);
   document.getElementById('dDeadline').innerHTML=fmtDate(p.deadline);
   document.getElementById('dBuildFee').textContent=p.buildFee?'$'+p.buildFee:' - ';
+  const setupFeeEl = document.getElementById('dSetupFee');
+  if (setupFeeEl) {
+    setupFeeEl.textContent = p.setupFee ? '$50 (applies)' : 'None';
+    setupFeeEl.style.color = p.setupFee ? 'var(--warm)' : 'var(--ink-faint)';
+  }
   const payStatus = p.paymentStatus || '';
   const payClass = payStatus === 'Paid in full' ? 'pay-paid' : payStatus === 'Overdue' ? 'pay-overdue' : payStatus === 'Deposit paid' ? 'pay-deposit' : payStatus ? 'pay-unpaid' : '';
   document.getElementById('dPayment').innerHTML = payClass ? '<span class="'+payClass+'">'+esc(payStatus)+'</span>' : ' - ';
@@ -907,8 +905,8 @@ function openDrawer(id){
     ? '<span class="deposit-paid">Paid</span>'
     : '<span class="deposit-unpaid">Not paid</span>';
 
-  // Style deposit button as active/toggled when paid
-  // Update archive button label based on current status
+  
+  
   const archiveBtn = document.getElementById('drawerArchive');
   if (p.status === 'archived') {
     archiveBtn.textContent = '↩ Unarchive project';
@@ -920,7 +918,7 @@ function openDrawer(id){
 
   const depBtn = document.getElementById('drawerMarkDepositPaid');
   if (depositPaid) {
-    depBtn.textContent = '✓ Deposit paid';
+    depBtn.textContent = ' Deposit paid';
     depBtn.style.background = 'var(--green-bg)';
     depBtn.style.color = 'var(--green)';
     depBtn.style.borderColor = 'var(--green)';
@@ -933,11 +931,11 @@ function openDrawer(id){
     depBtn.title = 'Click to mark deposit as paid';
   }
 
-  // Style "paid in full" button based on payment status
+  
   const paidBtn = document.getElementById('drawerMarkPaid');
   const isFullyPaid = p.paymentStatus === 'Paid in full';
   if (isFullyPaid) {
-    paidBtn.textContent = '✓ Paid in full';
+    paidBtn.textContent = ' Paid in full';
     paidBtn.style.background = 'var(--green-bg)';
     paidBtn.style.color = 'var(--green)';
     paidBtn.style.borderColor = 'var(--green)';
@@ -950,19 +948,19 @@ function openDrawer(id){
     paidBtn.title = 'Click to mark as paid in full';
   }
 
-  // Show activate subscription button only if project has a hosting plan
+  
   const activateBtn = document.getElementById('drawerActivateSub');
   if (p.hosting && parseFloat(p.hosting) > 0) {
     activateBtn.style.display = 'inline-flex';
-    // Update button label based on subscription status
+    
     if (p.squareInvoiceId) {
-      activateBtn.textContent = '✓ Monthly invoices active';
+      activateBtn.textContent = ' Monthly invoices active';
       activateBtn.disabled = true;
       activateBtn.style.opacity = '0.6';
       activateBtn.style.cursor = 'default';
       document.getElementById('dSubStatus').innerHTML = '<span style="color:var(--green);font-weight:600">Active</span>  -  Invoice ID: ' + esc(p.squareInvoiceId);
     } else {
-      activateBtn.textContent = '⟳ Activate annual invoice';
+      activateBtn.textContent = ' Activate annual invoice';
       activateBtn.disabled = false;
       activateBtn.style.opacity = '1';
       activateBtn.style.cursor = 'pointer';
@@ -980,18 +978,18 @@ function openDrawer(id){
   else{ts.style.display='none';}
   document.getElementById('drawerOverlay').classList.add('open');
 
-  // Load checklist
+  
   renderChecklist(p);
 
-  // Load support requests
+  
   loadSupportRequests(p._fbKey);
 }
-
 
 const CHECKLIST_ITEMS = [
   { id: 'intro_call',       label: 'Intro call completed' },
   { id: 'contract_signed',  label: 'Contract signed' },
   { id: 'deposit_received', label: 'Deposit received' },
+  { id: 'setup_fee',        label: 'Setup fee ($50) collected', setupFeeOnly: true },
   { id: 'access_granted',   label: 'Client access / accounts granted' },
   { id: 'scope_doc',        label: 'Scope document sent' },
   { id: 'design_approved',  label: 'Design approved' },
@@ -1009,6 +1007,7 @@ function renderChecklist(p) {
   const checked = p.checklist || {};
 
   CHECKLIST_ITEMS.forEach(function(item) {
+    if (item.setupFeeOnly && !p.setupFee) return;
     const isDone = !!checked[item.id];
     const div = document.createElement('div');
     div.className = 'check-item' + (isDone ? ' done' : '');
@@ -1072,7 +1071,6 @@ function loadSupportRequests(projectKey) {
   }, { onlyOnce: false });
 }
 
-// ── Multi-select event listeners ──────────────────────────────────────────
 document.getElementById('selectModeBtn').addEventListener('click', function() {
   selectMode ? exitSelectMode() : enterSelectMode();
 });
@@ -1146,12 +1144,12 @@ document.getElementById('drawerActivateSub').addEventListener('click', async fun
       openDrawer(drawerProjectId);
     } else {
       alert('Failed: ' + (json.error || 'Unknown error'));
-      btn.textContent = '⟳ Activate recurring invoice';
+      btn.textContent = ' Activate recurring invoice';
       btn.disabled = false;
     }
   } catch(err) {
     alert('Network error: ' + err.message);
-    btn.textContent = '⟳ Activate recurring invoice';
+    btn.textContent = ' Activate recurring invoice';
     btn.disabled = false;
   }
 });;
