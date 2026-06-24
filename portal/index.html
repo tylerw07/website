@@ -39,7 +39,7 @@
   .btn-sm{font-size:12.5px;padding:7px 14px;}
   .btn-full{width:100%;justify-content:center;}
 
-  /* Login */
+  
   #loginGate{min-height:80vh;display:flex;align-items:center;justify-content:center;padding:40px 20px;}
   .login-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:40px;width:100%;max-width:360px;}
   .login-card h1{font-size:22px;margin:10px 0 6px;}
@@ -50,13 +50,13 @@
   .field input:focus{outline:2px solid var(--accent);outline-offset:1px;background:var(--surface);}
   .login-error{display:none;background:var(--red-bg);color:var(--red);font-size:13px;padding:9px 12px;border-radius:8px;margin-bottom:12px;}
 
-  /* Dashboard */
+  
   #dashboard{display:none;padding-bottom:60px;}
   .page-top{padding:36px 0 28px;}
   .page-top h1{font-size:clamp(22px,3vw,30px);margin-top:6px;}
   .page-top p{color:var(--ink-soft);font-size:14.5px;margin-top:6px;}
 
-  /* Status card */
+  
   .status-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:24px 28px;margin-bottom:24px;}
   .status-card h3{font-size:16px;margin-bottom:16px;}
   .status-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
@@ -71,7 +71,7 @@
   .pill-grey{background:#f3f4f6;color:#6b7280;}
   .pill-purple{background:var(--accent-soft);color:var(--accent-deep);}
 
-  /* Progress tracker */
+  
   .progress-track{display:flex;align-items:center;gap:0;margin:20px 0 8px;}
   .track-step{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
   .track-circle{width:32px;height:32px;border-radius:50%;border:2px solid var(--line);background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--ink-faint);transition:all 0.2s;}
@@ -83,7 +83,7 @@
   .track-line{flex:1;height:2px;background:var(--line);margin-bottom:20px;}
   .track-line.done{background:var(--green);}
 
-  /* Invoice history */
+  
   .invoice-list{display:flex;flex-direction:column;gap:0;}
   .invoice-item{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--line);}
   .invoice-item:last-child{border-bottom:none;}
@@ -91,7 +91,7 @@
   .invoice-meta{font-size:12px;color:var(--ink-faint);font-family:'IBM Plex Mono',monospace;margin-top:2px;}
   .invoice-amount{font-family:'Fraunces',serif;font-size:16px;font-weight:600;}
 
-  /* Support requests */
+  
   .request-form{background:var(--bg);border-radius:10px;padding:18px;margin-bottom:20px;}
   .request-form textarea{width:100%;font-family:'IBM Plex Sans',sans-serif;font-size:14px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);resize:vertical;min-height:90px;}
   .request-form textarea:focus{outline:2px solid var(--accent);outline-offset:1px;}
@@ -125,7 +125,6 @@
   </div>
 </header>
 
-<!-- LOGIN -->
 <div id="loginGate">
   <div class="login-card">
     <p class="eyebrow">Client Portal</p>
@@ -139,7 +138,6 @@
   </div>
 </div>
 
-<!-- DASHBOARD -->
 <div id="dashboard">
   <div class="wrap">
     <div class="page-top">
@@ -148,7 +146,7 @@
       <p id="welcomeSub">Here's the current status of your project.</p>
     </div>
 
-    <!-- Project status card -->
+    
     <div class="status-card">
       <h3>Project overview</h3>
       <div class="status-grid">
@@ -179,7 +177,7 @@
       </div>
     </div>
 
-    <!-- Progress tracker -->
+    
     <div class="status-card">
       <h3>Project progress</h3>
       <div class="progress-track" id="progressTrack">
@@ -204,13 +202,13 @@
         </div>
         <div class="track-line" id="tline4"></div>
         <div class="track-step">
-          <div class="track-circle" id="tc5">✓</div>
+          <div class="track-circle" id="tc5"></div>
           <div class="track-label" id="tl5">Live</div>
         </div>
       </div>
     </div>
 
-    <!-- Billing -->
+    
     <div class="status-card">
       <h3>Billing</h3>
       <div class="status-grid" style="margin-bottom:20px">
@@ -239,16 +237,16 @@
       </div>
     </div>
 
-    <!-- Support requests -->
+    
     <div class="status-card">
       <h3>Support requests</h3>
       <div class="request-form">
         <select id="requestType">
-          <option value="Bug report">🐛 Bug report</option>
-          <option value="Feature request">✨ Feature request</option>
-          <option value="Question">❓ Question</option>
-          <option value="Change request">✏️ Change request</option>
-          <option value="Other">📋 Other</option>
+          <option value="Bug report"> Bug report</option>
+          <option value="Feature request"> Feature request</option>
+          <option value="Question"> Question</option>
+          <option value="Change request"> Change request</option>
+          <option value="Other"> Other</option>
         </select>
         <textarea id="requestMsg" placeholder="Describe the issue or request in as much detail as possible…"></textarea>
         <button class="btn btn-primary btn-sm" style="margin-top:10px" id="submitRequestBtn">Submit request</button>
@@ -283,7 +281,6 @@ const db = getDatabase(fbApp);
 let currentProjectKey = null;
 let currentUsername = null;
 
-// ── Auth ──────────────────────────────────────────────────────────────────
 const loginGate  = document.getElementById('loginGate');
 const dashboard  = document.getElementById('dashboard');
 const logoutBtn  = document.getElementById('logoutBtn');
@@ -298,7 +295,7 @@ async function tryLogin(username, password) {
     const account = snap.val();
     if (account.password !== password) return false;
 
-    // Success — store session
+    
     sessionStorage.setItem(SESSION_KEY, JSON.stringify({
       username,
       projectKey: account.projectKey,
@@ -320,7 +317,6 @@ function showDashboard(session) {
   loadProject();
 }
 
-// Check existing session
 const stored = sessionStorage.getItem(SESSION_KEY);
 if (stored) {
   try { showDashboard(JSON.parse(stored)); } catch(e) { sessionStorage.removeItem(SESSION_KEY); }
@@ -344,7 +340,6 @@ document.getElementById('loginBtn').addEventListener('click', async function() {
   }
 });
 
-// Enter key on login
 document.getElementById('loginPass').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') document.getElementById('loginBtn').click();
 });
@@ -354,7 +349,6 @@ logoutBtn.addEventListener('click', function() {
   location.reload();
 });
 
-// ── Load project ──────────────────────────────────────────────────────────
 function loadProject() {
   if (!currentProjectKey) return;
 
@@ -364,20 +358,20 @@ function loadProject() {
     renderProject(p);
   });
 
-  // Load support requests
+  
   onValue(ref(db, 'supportRequests/' + currentProjectKey), function(snap) {
     renderRequests(snap);
   });
 }
 
 function renderProject(p) {
-  // Welcome heading
+  
   const session = JSON.parse(sessionStorage.getItem(SESSION_KEY) || '{}');
   const name = session.name ? session.name.split(' ')[0] : 'there';
-  document.getElementById('welcomeHeading').textContent = 'Hey, ' + name + ' 👋';
+  document.getElementById('welcomeHeading').textContent = 'Hey, ' + name + ' ';
   document.getElementById('welcomeSub').textContent = 'Here\'s the current status of ' + (p.name || 'your project') + '.';
 
-  // Overview
+  
   document.getElementById('pName').textContent = p.name || '—';
   document.getElementById('pType').textContent = p.type || '—';
   document.getElementById('pStart').textContent = p.startDate ? new Date(p.startDate).toLocaleDateString('en-US', {month:'long',day:'numeric',year:'numeric'}) : '—';
@@ -394,14 +388,14 @@ function renderProject(p) {
     urlEl.textContent = 'Not live yet';
   }
 
-  // Progress tracker
+  
   const depositPaid = p.depositStatus === 'Paid';
   const isActive    = p.status === 'active';
   const isComplete  = p.status === 'completed';
   const hasUrl      = !!p.liveUrl;
 
   const steps = [
-    { done: true,                   active: false   }, // Brief always received
+    { done: true,                   active: false   }, 
     { done: depositPaid,            active: !depositPaid && isActive },
     { done: isActive || isComplete, active: isActive && depositPaid && !isComplete },
     { done: isComplete || hasUrl,   active: isActive && hasUrl && !isComplete },
@@ -420,7 +414,7 @@ function renderProject(p) {
     }
   });
 
-  // Billing
+  
   document.getElementById('pBuildFee').textContent = p.buildFee ? '$' + p.buildFee : '—';
   document.getElementById('pHosting').textContent = p.hosting ? '$' + p.hosting + '/mo' : 'No monthly plan';
 
@@ -430,7 +424,7 @@ function renderProject(p) {
     ? '<span class="pill pill-green">Paid</span>'
     : '<span class="pill pill-yellow">Not paid</span>';
 
-  // Invoice history from onboarding checklist
+  
   const invoiceList = document.getElementById('invoiceList');
   invoiceList.innerHTML = '';
   const payments = [];
@@ -458,7 +452,6 @@ function renderProject(p) {
   }
 }
 
-// ── Support requests ──────────────────────────────────────────────────────
 function renderRequests(snap) {
   const list  = document.getElementById('requestList');
   const empty = document.getElementById('requestEmpty');
