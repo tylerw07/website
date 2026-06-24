@@ -249,6 +249,7 @@
       <button class="tab-btn" data-tab="clients">Client Bills</button>
       <button class="tab-btn" data-tab="support">Support Queue <span id="openRequestsBadge" style="display:none;background:var(--red);color:#fff;font-size:10px;padding:1px 6px;border-radius:999px;margin-left:4px;font-family:'IBM Plex Mono',monospace">0</span></button>
       <button class="tab-btn" data-tab="docs">📄 Tax Reference</button>
+      <button class="tab-btn" data-tab="w9">📋 W-9</button>
     </div>
 
     <!-- ══════════════════════ TAB 1: INCOME & EXPENSES ══════════════════════ -->
@@ -491,6 +492,105 @@
       </p>
     </div><!-- /tab-docs -->
 
+    <!-- ══════════════════════ TAB 5: W-9 ══════════════════════ -->
+    <div class="tab-panel" id="tab-w9">
+
+      <!-- When to send callout -->
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:24px 28px;margin-bottom:24px">
+        <p class="eyebrow" style="margin-bottom:10px">When to send a W-9</p>
+        <h2 style="font-family:'Fraunces',serif;font-size:20px;margin-bottom:16px;color:var(--ink)">Send your W-9 to a client when:</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px" id="w9Rules">
+
+          <div style="display:flex;gap:12px;align-items:flex-start;background:var(--green-bg);border-radius:10px;padding:14px 16px">
+            <span style="font-size:20px;flex-shrink:0">✅</span>
+            <div>
+              <div style="font-size:13.5px;font-weight:700;color:var(--green);margin-bottom:3px">New client, first job</div>
+              <div style="font-size:13px;color:var(--ink-soft);line-height:1.55">Send it before or right when they pay you for the first time. They need it to set you up in their system.</div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;align-items:flex-start;background:var(--green-bg);border-radius:10px;padding:14px 16px">
+            <span style="font-size:20px;flex-shrink:0">✅</span>
+            <div>
+              <div style="font-size:13.5px;font-weight:700;color:var(--green);margin-bottom:3px">Client asks for it</div>
+              <div style="font-size:13px;color:var(--ink-soft);line-height:1.55">Any time a client requests one — send it same day. Holding it up delays their payment to you.</div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;align-items:flex-start;background:var(--green-bg);border-radius:10px;padding:14px 16px">
+            <span style="font-size:20px;flex-shrink:0">✅</span>
+            <div>
+              <div style="font-size:13.5px;font-weight:700;color:var(--green);margin-bottom:3px">You'll be paid $600 or more</div>
+              <div style="font-size:13px;color:var(--ink-soft);line-height:1.55">If total payments from one client will hit $600+ in a calendar year, they're required to file a 1099 — and they need your W-9 to do that.</div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;align-items:flex-start;background:var(--green-bg);border-radius:10px;padding:14px 16px">
+            <span style="font-size:20px;flex-shrink:0">✅</span>
+            <div>
+              <div style="font-size:13.5px;font-weight:700;color:var(--green);margin-bottom:3px">Your info changed</div>
+              <div style="font-size:13px;color:var(--ink-soft);line-height:1.55">New address, name change, or you got an EIN — send an updated W-9 to any active clients so their records are current.</div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;align-items:flex-start;background:var(--red-bg);border-radius:10px;padding:14px 16px">
+            <span style="font-size:20px;flex-shrink:0">❌</span>
+            <div>
+              <div style="font-size:13.5px;font-weight:700;color:var(--red);margin-bottom:3px">Don't send it to individuals paying you personally</div>
+              <div style="font-size:13px;color:var(--ink-soft);line-height:1.55">W-9s are for businesses paying contractors. If a friend or family member pays you, no W-9 needed.</div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;align-items:flex-start;background:var(--warm-soft);border-radius:10px;padding:14px 16px">
+            <span style="font-size:20px;flex-shrink:0">⚠️</span>
+            <div>
+              <div style="font-size:13.5px;font-weight:700;color:var(--warm);margin-bottom:3px">Never send it unsolicited to strangers</div>
+              <div style="font-size:13px;color:var(--ink-soft);line-height:1.55">Your W-9 has your SSN on it. Only send it to clients you've already agreed to work with.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Pro tip -->
+      <div style="background:var(--accent-soft);border:1px solid var(--accent);border-radius:10px;padding:16px 20px;margin-bottom:24px;display:flex;gap:14px;align-items:flex-start">
+        <span style="font-size:22px;flex-shrink:0">💡</span>
+        <div>
+          <div style="font-size:13.5px;font-weight:700;color:var(--accent-deep);margin-bottom:4px">Pro tip — send it proactively</div>
+          <div style="font-size:13.5px;color:var(--ink-soft);line-height:1.6">Don't wait for clients to ask. Include your W-9 in your onboarding email when a new project kicks off. It shows professionalism and prevents payment delays later.</div>
+        </div>
+      </div>
+
+      <!-- W-9 viewer -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px;flex-wrap:wrap">
+        <div>
+          <p class="eyebrow" style="margin-bottom:6px">Your W-9</p>
+          <h2 style="font-family:'Fraunces',serif;font-size:20px;margin-bottom:4px">IRS Form W-9</h2>
+          <p style="color:var(--ink-soft);font-size:13.5px">Upload your completed, signed W-9 to your GitHub repo at <code style="font-family:'IBM Plex Mono',monospace;background:var(--bg);padding:2px 6px;border-radius:4px;font-size:12px">finance/W9.pdf</code> and it will appear here.</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap">
+          <a href="https://www.irs.gov/pub/irs-pdf/fw9.pdf" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">⬇ Download blank W-9</a>
+          <a id="w9DownloadLink" href="https://github.com/tylerw07/website/raw/main/finance/W9.pdf" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">⬇ My W-9</a>
+        </div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;min-height:700px">
+        <iframe
+          id="w9Viewer"
+          src=""
+          width="100%"
+          height="700"
+          style="border:none;display:block"
+          title="W-9 Form">
+        </iframe>
+      </div>
+
+      <p style="font-size:12px;color:var(--ink-faint);margin-top:10px;text-align:center">
+        To update: replace <code style="font-family:'IBM Plex Mono',monospace;background:var(--bg);padding:2px 6px;border-radius:4px">finance/W9.pdf</code> in your GitHub repo. Changes appear here automatically.
+      </p>
+
+    </div><!-- /tab-w9 -->
+
   </div><!-- /wrap -->
 </div><!-- /dashboard -->
 
@@ -577,6 +677,7 @@ function setDefaultExpenseDate() {
 const TAX_DOC_GITHUB_RAW = 'https://raw.githubusercontent.com/tylerw07/website/main/finance/TaxReference.docx';
 const TAX_DOC_DOWNLOAD   = 'https://github.com/tylerw07/website/raw/main/finance/TaxReference.docx';
 let docViewerLoaded = false;
+let w9ViewerLoaded = false;
 
 document.querySelectorAll('.tab-btn').forEach(function(btn) {
   btn.addEventListener('click', function() {
@@ -593,6 +694,13 @@ document.querySelectorAll('.tab-btn').forEach(function(btn) {
       viewer.src = 'https://docs.google.com/gviewer?embedded=true&url=' + encodeURIComponent(TAX_DOC_GITHUB_RAW);
       dlLink.href = TAX_DOC_DOWNLOAD;
       docViewerLoaded = true;
+    }
+
+    // Lazy-load W-9 viewer
+    if (this.dataset.tab === 'w9' && !w9ViewerLoaded) {
+      const W9_RAW = 'https://raw.githubusercontent.com/tylerw07/website/main/finance/W9.pdf';
+      document.getElementById('w9Viewer').src = 'https://docs.google.com/gviewer?embedded=true&url=' + encodeURIComponent(W9_RAW);
+      w9ViewerLoaded = true;
     }
   });
 });
