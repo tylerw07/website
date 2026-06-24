@@ -34,7 +34,7 @@
   #logoutBtn { font-size:13px; font-weight:600; color:var(--ink-faint); background:none; border:none; cursor:pointer; padding:0; }
   #logoutBtn:hover { color:var(--red); }
 
-  /* Login */
+  
   #loginGate { min-height:80vh; display:flex; align-items:center; justify-content:center; padding:40px 20px; }
   .login-card { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:40px; width:100%; max-width:360px; }
   .login-card h1 { font-size:22px; margin:10px 0 6px; }
@@ -45,7 +45,7 @@
   .field input:focus, .field textarea:focus, .field select:focus { outline:2px solid var(--accent); outline-offset:1px; background:var(--surface); }
   .error-msg { display:none; background:var(--red-bg); color:var(--red); font-size:13px; padding:9px 12px; border-radius:8px; margin-bottom:12px; }
 
-  /* Buttons */
+  
   .btn { font-family:'IBM Plex Sans',sans-serif; font-size:14px; font-weight:600; padding:10px 20px; border-radius:999px; border:1px solid transparent; cursor:pointer; display:inline-flex; align-items:center; gap:7px; text-decoration:none; transition:background 0.15s, border-color 0.15s; white-space:nowrap; }
   .btn-primary { background:var(--accent); color:#fff; border-color:var(--accent); }
   .btn-primary:hover { background:var(--accent-deep); }
@@ -56,13 +56,13 @@
   .btn-full { width:100%; justify-content:center; }
   .btn-sm { font-size:12.5px; padding:6px 14px; }
 
-  /* Dashboard */
+  
   #dashboard { display:none; }
   .page-top { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; padding:36px 0 24px; flex-wrap:wrap; }
   .page-top h1 { font-size:clamp(24px,3vw,32px); }
   .page-top p { color:var(--ink-soft); font-size:14.5px; margin-top:4px; }
 
-  /* Tabs */
+  
   .tab-bar { display:flex; gap:4px; border-bottom:2px solid var(--line); margin-bottom:32px; }
   .tab-btn { font-family:'IBM Plex Sans',sans-serif; font-size:14px; font-weight:600; padding:10px 20px; border:none; background:none; cursor:pointer; color:var(--ink-soft); border-bottom:2px solid transparent; margin-bottom:-2px; transition:color 0.15s, border-color 0.15s; }
   .tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); }
@@ -70,7 +70,7 @@
   .tab-panel { display:none; }
   .tab-panel.active { display:block; }
 
-  /* Metrics bar */
+  
   .metrics-bar { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:28px; }
   .metric-card { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:18px 20px; }
   .metric-label { font-size:11px; font-weight:600; color:var(--ink-faint); letter-spacing:0.06em; text-transform:uppercase; font-family:'IBM Plex Mono',monospace; }
@@ -81,21 +81,21 @@
   .metric-warm { color:var(--warm); }
   .metric-accent { color:var(--accent); }
 
-  /* Period selector */
+  
   .period-bar { display:flex; align-items:center; gap:10px; margin-bottom:24px; flex-wrap:wrap; }
   .period-pill { font-size:13px; font-weight:600; padding:6px 14px; border-radius:999px; border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); cursor:pointer; transition:all 0.15s; }
   .period-pill.active { background:var(--accent-soft); border-color:var(--accent); color:var(--accent); }
   .period-pill:hover:not(.active) { border-color:var(--ink); color:var(--ink); }
   .period-label { font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-faint); margin-left:auto; }
 
-  /* Two-column layout */
+  
   .finance-columns { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:48px; }
   .panel { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:24px; }
   .panel-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
   .panel-header h3 { font-size:16px; }
   .panel-title-badge { font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px; }
 
-  /* Income list */
+  
   .income-list { display:flex; flex-direction:column; gap:0; }
   .income-item { display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid var(--line); }
   .income-item:last-child { border-bottom:none; }
@@ -112,7 +112,7 @@
   .income-tag-monthly { background:var(--accent-soft); color:var(--accent); }
   .income-tag-build { background:var(--green-bg); color:var(--green); }
 
-  /* Expense form */
+  
   .expense-form { background:var(--bg); border-radius:10px; padding:16px; margin-bottom:20px; }
   .expense-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .expense-form-grid .full { grid-column:1/-1; }
@@ -120,7 +120,7 @@
   .expense-form input:focus, .expense-form select:focus { outline:2px solid var(--accent); outline-offset:1px; }
   .expense-form label { font-size:12px; font-weight:600; color:var(--ink-soft); display:block; margin-bottom:4px; }
 
-  /* Expense list */
+  
   .expense-list { display:flex; flex-direction:column; gap:0; }
   .expense-item { display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid var(--line); }
   .expense-item:last-child { border-bottom:none; }
@@ -133,7 +133,7 @@
   .delete-expense-btn:hover { color:var(--red); background:var(--red-bg); }
   .freq-badge { font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:600; padding:2px 7px; border-radius:999px; background:var(--bg); border:1px solid var(--line); color:var(--ink-faint); }
 
-  /* Client bills table */
+  
   .clients-table { width:100%; border-collapse:collapse; margin-bottom:48px; }
   .clients-table th { font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-faint); text-align:left; padding:10px 14px; border-bottom:2px solid var(--line); white-space:nowrap; }
   .clients-table td { padding:13px 14px; border-bottom:1px solid var(--line); font-size:13.5px; vertical-align:middle; }
@@ -143,7 +143,7 @@
   .client-name { font-weight:600; color:var(--ink); font-size:14px; }
   .client-biz { font-size:12px; color:var(--ink-faint); margin-top:1px; }
 
-  /* Status pills */
+  
   .pill { font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; letter-spacing:0.04em; padding:3px 9px; border-radius:999px; display:inline-block; white-space:nowrap; }
   .pill-green { background:var(--green-bg); color:var(--green); }
   .pill-red { background:var(--red-bg); color:var(--red); }
@@ -156,14 +156,14 @@
   .empty-state p { font-size:14px; }
   .loading-text { font-family:'IBM Plex Mono',monospace; font-size:13px; letter-spacing:0.06em; color:var(--ink-faint); text-align:center; padding:40px; }
 
-  /* Profit bar */
+  
   .profit-bar-wrap { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:20px 24px; margin-bottom:24px; }
   .profit-bar-label { font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:10px; }
   .profit-bar-track { background:var(--bg); border-radius:999px; height:10px; overflow:hidden; }
   .profit-bar-fill { height:100%; border-radius:999px; background:var(--green); transition:width 0.5s ease; }
   .profit-bar-meta { display:flex; justify-content:space-between; margin-top:8px; font-size:12px; color:var(--ink-soft); }
 
-  /* Section full-width */
+  
   .full-panel { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:24px; margin-bottom:24px; }
   .full-panel-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
   .full-panel-header h3 { font-size:16px; }
@@ -217,7 +217,6 @@
   </div>
 </header>
 
-<!-- LOGIN -->
 <div id="loginGate">
   <div class="login-card">
     <p class="eyebrow">Internal</p>
@@ -232,7 +231,6 @@
   </div>
 </div>
 
-<!-- DASHBOARD -->
 <div id="dashboard">
   <div class="wrap">
     <div class="page-top">
@@ -243,19 +241,19 @@
       </div>
     </div>
 
-    <!-- TAB BAR -->
+    
     <div class="tab-bar">
       <button class="tab-btn active" data-tab="income">Income & Expenses</button>
       <button class="tab-btn" data-tab="clients">Client Bills</button>
       <button class="tab-btn" data-tab="support">Support Queue <span id="openRequestsBadge" style="display:none;background:var(--red);color:#fff;font-size:10px;padding:1px 6px;border-radius:999px;margin-left:4px;font-family:'IBM Plex Mono',monospace">0</span></button>
-      <button class="tab-btn" data-tab="docs">📄 Tax Reference</button>
-      <button class="tab-btn" data-tab="w9">📋 W-9</button>
+      <button class="tab-btn" data-tab="docs"> Tax Reference</button>
+      <button class="tab-btn" data-tab="w9"> W-9</button>
     </div>
 
-    <!-- ══════════════════════ TAB 1: INCOME & EXPENSES ══════════════════════ -->
+    
     <div class="tab-panel active" id="tab-income">
 
-      <!-- Period selector -->
+      
       <div class="period-bar">
         <button class="period-pill active" data-period="month">This month</button>
         <button class="period-pill" data-period="ytd">Year to date</button>
@@ -264,7 +262,7 @@
         <span class="period-label" id="periodLabel"></span>
       </div>
 
-      <!-- Metrics -->
+      
       <div class="metrics-bar">
         <div class="metric-card">
           <div class="metric-label">Total Income</div>
@@ -289,16 +287,16 @@
         </div>
       </div>
 
-      <!-- Profit bar -->
+      
       <div class="profit-bar-wrap">
         <div class="profit-bar-label">Profit margin</div>
         <div class="profit-bar-track"><div class="profit-bar-fill" id="profitBarFill" style="width:0%"></div></div>
         <div class="profit-bar-meta"><span id="profitBarLeft">$0 expenses</span><span id="profitBarRight">$0 profit</span></div>
       </div>
 
-      <!-- Income + Expenses columns -->
+      
       <div class="finance-columns">
-        <!-- Income -->
+        
         <div class="panel">
           <div class="panel-header">
             <h3>Income</h3>
@@ -309,14 +307,14 @@
           <div id="incomeEmpty" class="empty-state" style="display:none"><p>No income in this period.</p></div>
         </div>
 
-        <!-- Expenses -->
+        
         <div class="panel">
           <div class="panel-header">
             <h3>Expenses</h3>
             <span class="panel-title-badge" style="background:var(--red-bg);color:var(--red)" id="expenseCountBadge">0 items</span>
           </div>
 
-          <!-- Add expense form -->
+          
           <div class="expense-form">
             <div class="expense-form-grid">
               <div class="full">
@@ -359,7 +357,7 @@
         </div>
       </div>
 
-      <!-- Category breakdown -->
+      
       <div class="full-panel">
         <div class="full-panel-header">
           <h3>Expense breakdown by category</h3>
@@ -367,12 +365,12 @@
         <div id="categoryBreakdown" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px"></div>
       </div>
 
-    </div><!-- /tab-income -->
+    </div>
 
-    <!-- ══════════════════════ TAB 2: CLIENT BILLS ══════════════════════ -->
+    
     <div class="tab-panel" id="tab-clients">
 
-      <!-- Client metrics -->
+      
       <div class="metrics-bar" style="grid-template-columns:repeat(4,1fr);margin-bottom:28px">
         <div class="metric-card">
           <div class="metric-label">Total Clients</div>
@@ -394,7 +392,7 @@
         </div>
       </div>
 
-      <!-- Filter bar -->
+      
       <div class="period-bar" style="margin-bottom:20px">
         <button class="period-pill active" data-clientfilter="all">All clients</button>
         <button class="period-pill" data-clientfilter="unpaid">Unpaid</button>
@@ -420,12 +418,12 @@
       </table>
       <div id="clientsEmpty" class="empty-state" style="display:none"><p>No clients match this filter.</p></div>
 
-    </div><!-- /tab-clients -->
+    </div>
 
-    <!-- ══════════════════════ TAB 3: SUPPORT QUEUE ══════════════════════ -->
+    
     <div class="tab-panel" id="tab-support">
 
-      <!-- Support metrics -->
+      
       <div class="metrics-bar" style="grid-template-columns:repeat(4,1fr);margin-bottom:28px">
         <div class="metric-card">
           <div class="metric-label">Total requests</div>
@@ -445,7 +443,7 @@
         </div>
       </div>
 
-      <!-- Filter pills -->
+      
       <div class="period-bar" style="margin-bottom:20px">
         <button class="period-pill active" data-sqfilter="all">All</button>
         <button class="period-pill" data-sqfilter="Open">Open</button>
@@ -458,20 +456,20 @@
       <div id="sqList" style="display:flex;flex-direction:column;gap:12px"></div>
       <div id="sqEmpty" class="empty-state" style="display:none"><p>No requests match this filter.</p></div>
 
-    </div><!-- /tab-support -->
+    </div>
 
-    <!-- ══════════════════════ TAB 4: TAX REFERENCE DOC ══════════════════════ -->
+    
     <div class="tab-panel" id="tab-docs">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap">
         <div>
           <p class="eyebrow">Reference</p>
           <h2 style="font-family:'Fraunces',serif;font-size:22px;margin:6px 0 4px">Tax Reference Guide</h2>
-          <p style="color:var(--ink-soft);font-size:14px">Renders directly from your GitHub repo. Update the file there and it refreshes here automatically.</p>
+          <p style="color:var(--ink-soft);font-size:14px">PDF renders directly from your GitHub repo at <code style="font-family:'IBM Plex Mono',monospace;background:var(--bg);padding:2px 5px;border-radius:4px;font-size:12px">finance/TaxReference.pdf</code>. Replace the file in GitHub and it updates here automatically.</p>
         </div>
-        <a id="docDownloadLink" href="#" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;flex-shrink:0">⬇ Download</a>
+        <a id="docDownloadLink" href="#" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;flex-shrink:0"> Download</a>
       </div>
 
-      <!-- Viewer: Google Docs viewer renders the .docx from GitHub raw URL -->
+      
       <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;min-height:800px">
         <iframe
           id="docViewer"
@@ -484,21 +482,21 @@
       </div>
 
       <p style="font-size:12px;color:var(--ink-faint);margin-top:12px;text-align:center">
-        To update this document: replace <code style="font-family:'IBM Plex Mono',monospace;background:var(--bg);padding:2px 6px;border-radius:4px">finance/TaxReference.docx</code> in your GitHub repo. Changes appear here within a few minutes.
+        To update this document: replace <code style="font-family:'IBM Plex Mono',monospace;background:var(--bg);padding:2px 6px;border-radius:4px">finance/TaxReference.pdf</code> in your GitHub repo. Changes appear here within a few minutes.
       </p>
-    </div><!-- /tab-docs -->
+    </div>
 
-    <!-- ══════════════════════ TAB 5: W-9 ══════════════════════ -->
+    
     <div class="tab-panel" id="tab-w9">
 
-      <!-- When to send callout -->
+      
       <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:24px 28px;margin-bottom:24px">
         <p class="eyebrow" style="margin-bottom:10px">When to send a W-9</p>
         <h2 style="font-family:'Fraunces',serif;font-size:20px;margin-bottom:16px;color:var(--ink)">Send your W-9 to a client when:</h2>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px" id="w9Rules">
 
           <div style="display:flex;gap:12px;align-items:flex-start;background:var(--green-bg);border-radius:10px;padding:14px 16px">
-            <span style="font-size:20px;flex-shrink:0">✅</span>
+            <span style="font-size:20px;flex-shrink:0"></span>
             <div>
               <div style="font-size:13.5px;font-weight:700;color:var(--green);margin-bottom:3px">New client, first job</div>
               <div style="font-size:13px;color:var(--ink-soft);line-height:1.55">Send it before or right when they pay you for the first time. They need it to set you up in their system.</div>
@@ -506,7 +504,7 @@
           </div>
 
           <div style="display:flex;gap:12px;align-items:flex-start;background:var(--green-bg);border-radius:10px;padding:14px 16px">
-            <span style="font-size:20px;flex-shrink:0">✅</span>
+            <span style="font-size:20px;flex-shrink:0"></span>
             <div>
               <div style="font-size:13.5px;font-weight:700;color:var(--green);margin-bottom:3px">Client asks for it</div>
               <div style="font-size:13px;color:var(--ink-soft);line-height:1.55">Any time a client requests one — send it same day. Holding it up delays their payment to you.</div>
@@ -514,7 +512,7 @@
           </div>
 
           <div style="display:flex;gap:12px;align-items:flex-start;background:var(--green-bg);border-radius:10px;padding:14px 16px">
-            <span style="font-size:20px;flex-shrink:0">✅</span>
+            <span style="font-size:20px;flex-shrink:0"></span>
             <div>
               <div style="font-size:13.5px;font-weight:700;color:var(--green);margin-bottom:3px">You'll be paid $600 or more</div>
               <div style="font-size:13px;color:var(--ink-soft);line-height:1.55">If total payments from one client will hit $600+ in a calendar year, they're required to file a 1099 — and they need your W-9 to do that.</div>
@@ -522,7 +520,7 @@
           </div>
 
           <div style="display:flex;gap:12px;align-items:flex-start;background:var(--green-bg);border-radius:10px;padding:14px 16px">
-            <span style="font-size:20px;flex-shrink:0">✅</span>
+            <span style="font-size:20px;flex-shrink:0"></span>
             <div>
               <div style="font-size:13.5px;font-weight:700;color:var(--green);margin-bottom:3px">Your info changed</div>
               <div style="font-size:13px;color:var(--ink-soft);line-height:1.55">New address, name change, or you got an EIN — send an updated W-9 to any active clients so their records are current.</div>
@@ -530,7 +528,7 @@
           </div>
 
           <div style="display:flex;gap:12px;align-items:flex-start;background:var(--red-bg);border-radius:10px;padding:14px 16px">
-            <span style="font-size:20px;flex-shrink:0">❌</span>
+            <span style="font-size:20px;flex-shrink:0"></span>
             <div>
               <div style="font-size:13.5px;font-weight:700;color:var(--red);margin-bottom:3px">Don't send it to individuals paying you personally</div>
               <div style="font-size:13px;color:var(--ink-soft);line-height:1.55">W-9s are for businesses paying contractors. If a friend or family member pays you, no W-9 needed.</div>
@@ -538,7 +536,7 @@
           </div>
 
           <div style="display:flex;gap:12px;align-items:flex-start;background:var(--warm-soft);border-radius:10px;padding:14px 16px">
-            <span style="font-size:20px;flex-shrink:0">⚠️</span>
+            <span style="font-size:20px;flex-shrink:0"></span>
             <div>
               <div style="font-size:13.5px;font-weight:700;color:var(--warm);margin-bottom:3px">Never send it unsolicited to strangers</div>
               <div style="font-size:13px;color:var(--ink-soft);line-height:1.55">Your W-9 has your SSN on it. Only send it to clients you've already agreed to work with.</div>
@@ -548,16 +546,16 @@
         </div>
       </div>
 
-      <!-- Pro tip -->
+      
       <div style="background:var(--accent-soft);border:1px solid var(--accent);border-radius:10px;padding:16px 20px;margin-bottom:24px;display:flex;gap:14px;align-items:flex-start">
-        <span style="font-size:22px;flex-shrink:0">💡</span>
+        <span style="font-size:22px;flex-shrink:0"></span>
         <div>
           <div style="font-size:13.5px;font-weight:700;color:var(--accent-deep);margin-bottom:4px">Pro tip — send it proactively</div>
           <div style="font-size:13.5px;color:var(--ink-soft);line-height:1.6">Don't wait for clients to ask. Include your W-9 in your onboarding email when a new project kicks off. It shows professionalism and prevents payment delays later.</div>
         </div>
       </div>
 
-      <!-- W-9 viewer -->
+      
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px;flex-wrap:wrap">
         <div>
           <p class="eyebrow" style="margin-bottom:6px">Your W-9</p>
@@ -565,8 +563,8 @@
           <p style="color:var(--ink-soft);font-size:13.5px">Upload your completed, signed W-9 to your GitHub repo at <code style="font-family:'IBM Plex Mono',monospace;background:var(--bg);padding:2px 6px;border-radius:4px;font-size:12px">finance/W9.pdf</code> and it will appear here.</p>
         </div>
         <div style="display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap">
-          <a href="https://www.irs.gov/pub/irs-pdf/fw9.pdf" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">⬇ Download blank W-9</a>
-          <a id="w9DownloadLink" href="https://github.com/tylerw07/website/raw/main/finance/W9.pdf" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">⬇ My W-9</a>
+          <a href="https://www.irs.gov/pub/irs-pdf/fw9.pdf" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none"> Download blank W-9</a>
+          <a id="w9DownloadLink" href="https://github.com/tylerw07/website/raw/main/finance/W9.pdf" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none"> My W-9</a>
         </div>
       </div>
 
@@ -585,10 +583,10 @@
         To update: replace <code style="font-family:'IBM Plex Mono',monospace;background:var(--bg);padding:2px 6px;border-radius:4px">finance/W9.pdf</code> in your GitHub repo. Changes appear here automatically.
       </p>
 
-    </div><!-- /tab-w9 -->
+    </div>
 
-  </div><!-- /wrap -->
-</div><!-- /dashboard -->
+  </div>
+</div>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
@@ -611,17 +609,15 @@ const USERNAME = 'admin', PASSWORD = '817564Burg!@', SESSION_KEY = 'nt_auth';
 const fbApp = initializeApp(firebaseConfig);
 const db = getDatabase(fbApp);
 
-// ── State (declared first so all functions can access them) ───────────────
 let projects = [];
 let squarePayments = [];
 let expenses = [];
 let activePeriod = 'month';
 let activeClientFilter = 'all';
-let allSupportRequests = []; // flat list of { ...request, _projectKey, clientName, projectName }
+let allSupportRequests = []; 
 let sqFilter = 'all';
-let hiddenPaymentIds = new Set(); // payment IDs hidden by user
+let hiddenPaymentIds = new Set(); 
 
-// ── Auth ──────────────────────────────────────────────────────────────────
 const loginGate = document.getElementById('loginGate');
 const dashboard = document.getElementById('dashboard');
 const logoutBtn = document.getElementById('logoutBtn');
@@ -652,7 +648,6 @@ logoutBtn.addEventListener('click', function() {
   location.reload();
 });
 
-// ── Init ───────────────────────────────────────────────────────────────────
 function init() {
   setDefaultExpenseDate();
   loadExpenses();
@@ -668,10 +663,8 @@ function setDefaultExpenseDate() {
   document.getElementById('expDate').value = new Date().toISOString().split('T')[0];
 }
 
-// ── Tabs ───────────────────────────────────────────────────────────────────
-// GitHub raw URL for the tax reference doc — update path if you rename/move the file
-const TAX_DOC_GITHUB_RAW = 'https://raw.githubusercontent.com/tylerw07/website/main/finance/TaxReference.docx';
-const TAX_DOC_DOWNLOAD   = 'https://github.com/tylerw07/website/raw/main/finance/TaxReference.docx';
+const TAX_DOC_GITHUB_RAW = 'https://raw.githubusercontent.com/tylerw07/website/main/finance/TaxReference.pdf';
+const TAX_DOC_DOWNLOAD   = 'https://github.com/tylerw07/website/raw/main/finance/TaxReference.pdf';
 let docViewerLoaded = false;
 let w9ViewerLoaded = false;
 
@@ -682,26 +675,25 @@ document.querySelectorAll('.tab-btn').forEach(function(btn) {
     this.classList.add('active');
     document.getElementById('tab-' + this.dataset.tab).classList.add('active');
 
-    // Lazy-load the doc viewer only when the tab is first opened
+    
     if (this.dataset.tab === 'docs' && !docViewerLoaded) {
       const viewer = document.getElementById('docViewer');
       const dlLink = document.getElementById('docDownloadLink');
-      // Google Docs viewer can render any publicly accessible .docx URL
-      viewer.src = 'https://docs.google.com/gviewer?embedded=true&url=' + encodeURIComponent(TAX_DOC_GITHUB_RAW);
+      
+      viewer.src = TAX_DOC_GITHUB_RAW;
       dlLink.href = TAX_DOC_DOWNLOAD;
       docViewerLoaded = true;
     }
 
-    // Lazy-load W-9 viewer
+    
     if (this.dataset.tab === 'w9' && !w9ViewerLoaded) {
       const W9_RAW = 'https://raw.githubusercontent.com/tylerw07/website/main/finance/W9.pdf';
-      document.getElementById('w9Viewer').src = 'https://docs.google.com/gviewer?embedded=true&url=' + encodeURIComponent(W9_RAW);
+      document.getElementById('w9Viewer').src = W9_RAW;
       w9ViewerLoaded = true;
     }
   });
 });
 
-// ── Period pills ───────────────────────────────────────────────────────────
 document.querySelectorAll('[data-period]').forEach(function(pill) {
   pill.addEventListener('click', function() {
     document.querySelectorAll('[data-period]').forEach(p => p.classList.remove('active'));
@@ -723,7 +715,6 @@ function updatePeriodLabel() {
   document.getElementById('periodLabel').textContent = labels[activePeriod] || '';
 }
 
-// ── Client filter pills ────────────────────────────────────────────────────
 document.querySelectorAll('[data-clientfilter]').forEach(function(pill) {
   pill.addEventListener('click', function() {
     document.querySelectorAll('[data-clientfilter]').forEach(p => p.classList.remove('active'));
@@ -733,14 +724,12 @@ document.querySelectorAll('[data-clientfilter]').forEach(function(pill) {
   });
 });
 
-// ── Auto-poll Square payments every 30 seconds ────────────────────────────
 function startPolling() {
   setInterval(function() {
-    loadSquarePayments(true); // silent = true, no loading spinner
+    loadSquarePayments(true); 
   }, 30000);
 }
 
-// ── Firebase: projects ─────────────────────────────────────────────────────
 function loadProjects() {
   onValue(ref(db, 'projects'), function(snapshot) {
     projects = [];
@@ -750,12 +739,11 @@ function loadProjects() {
       });
     }
     renderClientTab();
-    renderIncomeTab(); // refresh client names after projects load
-    renderSupportQueue(); // refresh client names
+    renderIncomeTab(); 
+    renderSupportQueue(); 
   });
 }
 
-// ── Firebase: hidden income ───────────────────────────────────────────────
 function loadHiddenPayments() {
   onValue(ref(db, 'hiddenPayments'), function(snapshot) {
     hiddenPaymentIds = new Set();
@@ -768,7 +756,6 @@ function loadHiddenPayments() {
   });
 }
 
-// ── Firebase: expenses ─────────────────────────────────────────────────────
 function loadExpenses() {
   onValue(ref(db, 'expenses'), function(snapshot) {
     expenses = [];
@@ -781,7 +768,6 @@ function loadExpenses() {
   });
 }
 
-// ── Square payments ────────────────────────────────────────────────────────
 async function loadSquarePayments(silent = false) {
   if (!silent) {
     document.getElementById('incomeLoading').style.display = 'block';
@@ -807,7 +793,7 @@ async function loadSquarePayments(silent = false) {
     document.getElementById('incomeLoading').style.display = 'none';
   }
 
-  // Update last-updated timestamp
+  
   const now = new Date();
   const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit' });
   const el = document.getElementById('lastUpdated');
@@ -816,7 +802,6 @@ async function loadSquarePayments(silent = false) {
   renderIncomeTab();
 }
 
-// ── Period filtering ───────────────────────────────────────────────────────
 function getDateRange() {
   const now = new Date();
   const year = now.getFullYear();
@@ -841,7 +826,6 @@ function inRange(dateStr) {
   return d >= start && d <= end;
 }
 
-// ── Support queue pills ───────────────────────────────────────────────────
 document.querySelectorAll('[data-sqfilter]').forEach(function(pill) {
   pill.addEventListener('click', function() {
     document.querySelectorAll('[data-sqfilter]').forEach(p => p.classList.remove('active'));
@@ -851,17 +835,16 @@ document.querySelectorAll('[data-sqfilter]').forEach(function(pill) {
   });
 });
 
-// ── Load support requests (all projects) ──────────────────────────────────
 function loadSupportQueue() {
-  // We load per-project requests when projects load, so wire into project listener
-  // This function sets up the listener on the top-level supportRequests node
+  
+  
   onValue(ref(db, 'supportRequests'), function(snapshot) {
     allSupportRequests = [];
     if (!snapshot.exists()) { renderSupportQueue(); return; }
 
     snapshot.forEach(function(projectSnap) {
       const projectKey = projectSnap.key;
-      // Find matching project for client/project name
+      
       const project = projects.find(p => p._fbKey === projectKey);
       projectSnap.forEach(function(reqSnap) {
         allSupportRequests.push(Object.assign({}, reqSnap.val(), {
@@ -873,7 +856,7 @@ function loadSupportQueue() {
       });
     });
 
-    // Sort newest first
+    
     allSupportRequests.sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
     renderSupportQueue();
   });
@@ -882,7 +865,7 @@ function loadSupportQueue() {
 function renderSupportQueue() {
   document.getElementById('sqLoading').style.display = 'none';
 
-  // Metrics
+  
   const total      = allSupportRequests.length;
   const openCount  = allSupportRequests.filter(r => r.status === 'Open' || !r.status).length;
   const inProgress = allSupportRequests.filter(r => r.status === 'In progress').length;
@@ -893,12 +876,12 @@ function renderSupportQueue() {
   document.getElementById('sqInProgress').textContent = inProgress;
   document.getElementById('sqResolved').textContent  = resolved;
 
-  // Badge on tab
+  
   const badge = document.getElementById('openRequestsBadge');
   if (openCount > 0) { badge.textContent = openCount; badge.style.display = 'inline'; }
   else { badge.style.display = 'none'; }
 
-  // Filter
+  
   const filtered = sqFilter === 'all'
     ? allSupportRequests
     : allSupportRequests.filter(r => (r.status || 'Open') === sqFilter);
@@ -910,14 +893,14 @@ function renderSupportQueue() {
   if (filtered.length === 0) { empty.style.display = 'block'; return; }
   empty.style.display = 'none';
 
-  const typeIcons = { 'Bug report':'🐛', 'Feature request':'✨', 'Question':'❓', 'Change request':'✏️', 'Other':'📋' };
+  const typeIcons = { 'Bug report':'', 'Feature request':'', 'Question':'', 'Change request':'', 'Other':'' };
   const statusBg  = { 'Open':'var(--red-bg);color:var(--red)', 'In progress':'var(--warm-soft);color:var(--orange)', 'Resolved':'var(--green-bg);color:var(--green)', 'Closed':'#f3f4f6;color:#6b7280' };
 
   filtered.forEach(function(req) {
     const date = req.createdAt ? new Date(req.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
     const status = req.status || 'Open';
     const bg = statusBg[status] || statusBg['Open'];
-    const icon = typeIcons[req.type] || '📋';
+    const icon = typeIcons[req.type] || '';
     const card = document.createElement('div');
     card.className = 'sq-card';
     card.innerHTML = `
@@ -954,11 +937,10 @@ function renderSupportQueue() {
   });
 }
 
-// ── Render: Income tab ─────────────────────────────────────────────────────
 function renderIncomeTab() {
   const { start, end } = getDateRange();
 
-  // Filter Square payments by period
+  
   const filteredPayments = squarePayments.filter(function(p) {
     if (p.status !== 'COMPLETED') return false;
     if (hiddenPaymentIds.has(p.id)) return false;
@@ -966,16 +948,16 @@ function renderIncomeTab() {
     return created >= start && created <= end;
   });
 
-  // Total income from Square
+  
   const totalIncomeCents = filteredPayments.reduce((s, p) => s + (p.amount_money?.amount || 0), 0);
   const totalIncome = totalIncomeCents / 100;
 
-  // Expenses for period
+  
   const filteredExpenses = expenses.filter(function(e) {
     if (!e.date) return false;
     return inRange(e.date);
   });
-  // Monthly expenses also count for current month
+  
   const monthlyExpenses = expenses.filter(e => e.frequency === 'monthly');
   const periodExpenseItems = activePeriod === 'month' || activePeriod === 'last'
     ? [...filteredExpenses, ...monthlyExpenses.filter(e => !filteredExpenses.find(f => f._fbKey === e._fbKey))]
@@ -986,7 +968,7 @@ function renderIncomeTab() {
   const netProfit = totalIncome - totalExpenses;
   const margin = totalIncome > 0 ? Math.round((netProfit / totalIncome) * 100) : 0;
 
-  // Update metrics
+  
   document.getElementById('metricIncome').textContent = '$' + totalIncome.toFixed(2);
   document.getElementById('metricIncomeCount').textContent = filteredPayments.length + ' payment' + (filteredPayments.length !== 1 ? 's' : '');
   document.getElementById('metricExpenses').textContent = '$' + totalExpenses.toFixed(2);
@@ -997,14 +979,14 @@ function renderIncomeTab() {
   document.getElementById('metricProfitSub').textContent = 'Revenue minus expenses';
   document.getElementById('metricMargin').textContent = margin + '%';
 
-  // Profit bar
+  
   const barPct = totalIncome > 0 ? Math.max(0, Math.min(100, (netProfit / totalIncome) * 100)) : 0;
   document.getElementById('profitBarFill').style.width = barPct + '%';
   document.getElementById('profitBarFill').style.background = netProfit >= 0 ? 'var(--green)' : 'var(--red)';
   document.getElementById('profitBarLeft').textContent = '$' + totalExpenses.toFixed(2) + ' expenses';
   document.getElementById('profitBarRight').textContent = (netProfit >= 0 ? '+' : '') + '$' + netProfit.toFixed(2) + ' net income';
 
-  // Income list
+  
   const incomeList = document.getElementById('incomeList');
   const incomeEmpty = document.getElementById('incomeEmpty');
   document.getElementById('incomeCountBadge').textContent = filteredPayments.length + ' payment' + (filteredPayments.length !== 1 ? 's' : '');
@@ -1014,7 +996,7 @@ function renderIncomeTab() {
     incomeEmpty.style.display = 'block';
   } else {
     incomeEmpty.style.display = 'none';
-    // Sort newest first
+    
     const sorted = [...filteredPayments].sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
     sorted.forEach(function(p) {
       const amount = (p.amount_money?.amount || 0) / 100;
@@ -1042,7 +1024,7 @@ function renderIncomeTab() {
       incomeList.appendChild(item);
     });
 
-    // Wire delete buttons
+    
     incomeList.querySelectorAll('.delete-income-btn').forEach(function(btn) {
       btn.addEventListener('click', async function(e) {
         e.stopPropagation();
@@ -1057,10 +1039,10 @@ function renderIncomeTab() {
     });
   }
 
-  // Expense list
+  
   renderExpenseList(periodExpenseItems);
 
-  // Category breakdown
+  
   renderCategoryBreakdown(periodExpenseItems);
 }
 
@@ -1126,7 +1108,6 @@ function renderCategoryBreakdown(items) {
   });
 }
 
-// ── Add expense ────────────────────────────────────────────────────────────
 document.getElementById('addExpenseBtn').addEventListener('click', async function() {
   const desc = document.getElementById('expDesc').value.trim();
   const amount = document.getElementById('expAmount').value;
@@ -1161,7 +1142,6 @@ document.getElementById('addExpenseBtn').addEventListener('click', async functio
   }
 });
 
-// ── Render: Client bills tab ───────────────────────────────────────────────
 function renderClientTab() {
   document.getElementById('clientsLoading').style.display = 'none';
 
@@ -1175,7 +1155,7 @@ function renderClientTab() {
     }
   });
 
-  // Client metrics
+  
   document.getElementById('clientTotal').textContent = projects.length;
   document.getElementById('clientOutstanding').textContent = projects.filter(p => !p.paymentStatus || p.paymentStatus === 'Unpaid' || p.paymentStatus === 'Overdue').length;
   document.getElementById('clientPaid').textContent = projects.filter(p => p.paymentStatus === 'Paid in full').length;
@@ -1195,7 +1175,7 @@ function renderClientTab() {
   table.style.display = 'table';
   empty.style.display = 'none';
 
-  // Sort: active first, then by name
+  
   filtered.sort((a, b) => {
     if (a.status === 'active' && b.status !== 'active') return -1;
     if (b.status === 'active' && a.status !== 'active') return 1;
@@ -1205,27 +1185,27 @@ function renderClientTab() {
   filtered.forEach(function(p) {
     const tr = document.createElement('tr');
 
-    // Payment status pill
+    
     const payStatus = p.paymentStatus || 'Unpaid';
     const payPill = payStatus === 'Paid in full' ? 'pill-green' :
                     payStatus === 'Deposit paid' ? 'pill-warm' :
                     payStatus === 'Overdue'      ? 'pill-yellow' : 'pill-red';
 
-    // Deposit pill
+    
     const depPaid = p.depositStatus === 'Paid';
     const depPill = depPaid ? '<span class="pill pill-green">Paid</span>' : '<span class="pill pill-yellow">Not paid</span>';
 
-    // Subscription
+    
     const subHtml = p.hosting
       ? (p.squareInvoiceId
           ? '<span class="pill pill-green">Active</span>'
           : '<span class="pill pill-grey">Not set up</span>')
       : '<span style="color:var(--ink-faint);font-size:12px">—</span>';
 
-    // Monthly amount
+    
     const monthly = p.hosting ? '$' + p.hosting + '/mo' : '—';
 
-    // Updated date
+    
     const updated = p.updatedAt ? new Date(p.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
 
     tr.innerHTML = `
@@ -1244,7 +1224,6 @@ function renderClientTab() {
   });
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────
 function esc(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
