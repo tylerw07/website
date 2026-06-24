@@ -138,6 +138,14 @@
   .detail-item.full { grid-column:1/-1; }
   .notes-box { background:var(--bg); border-radius:10px; padding:14px; font-size:14px; color:var(--ink-soft); white-space:pre-wrap; line-height:1.7; }
   .drawer-actions { display:flex; gap:10px; margin-top:28px; flex-wrap:wrap; }
+  .select-mode-bar { display:none; background:var(--ink); color:#fff; padding:10px 20px; border-radius:10px; margin-bottom:16px; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .select-mode-bar.visible { display:flex; }
+  .select-count { font-size:13.5px; font-weight:600; font-family:'IBM Plex Mono',monospace; }
+  .project-card.selected { outline:2px solid var(--accent); outline-offset:2px; position:relative; }
+  .project-card.selected::after { content:'✓'; position:absolute; top:10px; right:10px; width:22px; height:22px; background:var(--accent); color:#fff; border-radius:50%; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; line-height:22px; text-align:center; }
+  .select-toggle-btn { font-family:'IBM Plex Sans',sans-serif; font-size:12.5px; font-weight:600; padding:6px 14px; border-radius:999px; border:1px solid var(--line); background:transparent; color:var(--ink-soft); cursor:pointer; }
+  .select-toggle-btn:hover { border-color:var(--ink); color:var(--ink); }
+  .select-toggle-btn.active { background:var(--accent-soft); border-color:var(--accent); color:var(--accent); }
   .check-item { display:flex; align-items:center; gap:10px; padding:8px 10px; background:var(--bg); border-radius:8px; cursor:pointer; user-select:none; }
   .check-item input[type=checkbox] { width:16px; height:16px; accent-color:var(--accent); cursor:pointer; flex-shrink:0; }
   .check-item label { font-size:13.5px; cursor:pointer; color:var(--ink); }
@@ -239,8 +247,9 @@
   <div class="wrap">
     <div class="page-top">
       <div><h1>Projects</h1><p>All client work, tracked in one place.</p></div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
         <a href="/finance" class="btn btn-ghost" style="text-decoration:none">&#128202; Finance</a>
+        <button class="select-toggle-btn" id="selectModeBtn">☑ Select</button>
         <button class="btn btn-primary" id="newProjectBtn">+ New project</button>
       </div>
     </div>
@@ -250,6 +259,16 @@
       <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value" id="statCompleted" style="color:var(--accent)">0</div></div>
       <div class="stat-card"><div class="stat-label">Monthly MRR</div><div class="stat-value" id="statMRR" style="color:var(--warm)">$0</div></div>
     </div>
+    <!-- Multi-select action bar -->
+    <div class="select-mode-bar" id="selectModeBar">
+      <span class="select-count" id="selectCount">0 selected</span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" id="selectAllBtn" style="color:#fff;border-color:rgba(255,255,255,0.3)">Select all</button>
+        <button class="btn btn-ghost btn-sm" id="deselectAllBtn" style="color:#fff;border-color:rgba(255,255,255,0.3)">Deselect all</button>
+        <button class="btn btn-danger btn-sm" id="deleteSelectedBtn">&#128465; Delete selected</button>
+      </div>
+    </div>
+
     <div class="filter-bar">
       <button class="filter-pill active" data-filter="all">All</button>
       <button class="filter-pill" data-filter="active">Active</button>
@@ -627,8 +646,30 @@ function renderAll(){
     const card=document.createElement('div');
     card.className='project-card'; card.dataset.id=p._fbKey;
     card.innerHTML=`<div class="project-card-top"><div><div class="project-name">${esc(p.name)}</div><div class="project-client">${esc(p.client)}${p.business?' &middot; '+esc(p.business):''}</div></div><span class="status-badge ${sClass(p.status)}">${sLabel(p.status)}</span></div><div class="project-meta"><div class="meta-item"><div class="meta-label">Type</div><div class="meta-value">${esc(p.type||'&#8212;')}</div></div><div class="meta-item"><div class="meta-label">Billing</div><div class="meta-value">${esc(p.paymentStatus||'&#8212;')}</div></div><div class="meta-item"><div class="meta-label">Started</div><div class="meta-value">${fmtDate(p.startDate)}</div></div><div class="meta-item"><div class="meta-label">Deadline</div><div class="meta-value">${fmtDate(p.deadline)}</div></div></div>${tags?'<div class="project-tags">'+tags+'</div>':''}<div class="project-card-footer"><div style="display:flex;gap:8px;align-items:center">${monthly}${payBadge}</div><div class="card-actions">${depositDot}${invoiceDot}<button class="btn btn-ghost btn-sm edit-btn" data-id="${p._fbKey}">Edit</button></div></div>`;
-    card.addEventListener('click',function(e){if(e.target.classList.contains('edit-btn')||e.target.closest('.edit-btn'))return;openDrawer(p._fbKey);});
-    card.querySelector('.edit-btn').addEventListener('click',function(e){e.stopPropagation();openModal(p._fbKey);});
+    // Add selected class if in select mode
+    if (selectMode && selectedKeys.has(p._fbKey)) card.classList.add('selected');
+
+    card.addEventListener('click', function(e) {
+      if (selectMode) {
+        // In select mode: toggle selection, don't open drawer
+        if (selectedKeys.has(p._fbKey)) {
+          selectedKeys.delete(p._fbKey);
+          card.classList.remove('selected');
+        } else {
+          selectedKeys.add(p._fbKey);
+          card.classList.add('selected');
+        }
+        updateSelectCount();
+        return;
+      }
+      if (e.target.classList.contains('edit-btn') || e.target.closest('.edit-btn')) return;
+      openDrawer(p._fbKey);
+    });
+    card.querySelector('.edit-btn').addEventListener('click', function(e) {
+      if (selectMode) return; // disable edit in select mode
+      e.stopPropagation();
+      openModal(p._fbKey);
+    });
     grid.appendChild(card);
   });
 }
@@ -758,11 +799,12 @@ document.getElementById('modalSave').addEventListener('click', async function() 
   }
 });
 
-document.getElementById('deleteProjectBtn').addEventListener('click',function(){
-  if(!editingId)return;
-  document.getElementById('confirmUser').value='';
-  document.getElementById('confirmPass').value='';
-  document.getElementById('confirmError').style.display='none';
+document.getElementById('deleteProjectBtn').addEventListener('click', function() {
+  if (!editingId) return;
+  deleteTargetKeys = [editingId];
+  document.getElementById('confirmUser').value = '';
+  document.getElementById('confirmPass').value = '';
+  document.getElementById('confirmError').style.display = 'none';
   document.getElementById('confirmDeleteOverlay').classList.add('open');
 });
 
@@ -770,21 +812,33 @@ document.getElementById('confirmCancel').addEventListener('click',function(){
   document.getElementById('confirmDeleteOverlay').classList.remove('open');
 });
 
-document.getElementById('confirmDelete').addEventListener('click',function(){
-  const u=document.getElementById('confirmUser').value;
-  const pw=document.getElementById('confirmPass').value;
-  if(u!==USERNAME||pw!==PASSWORD){
-    document.getElementById('confirmError').style.display='block';
+// Dedicated variable for delete target — avoids dependency on editingId
+let deleteTargetKeys = []; // array supports both single and bulk delete
+
+document.getElementById('confirmDelete').addEventListener('click', async function() {
+  const u  = document.getElementById('confirmUser').value;
+  const pw = document.getElementById('confirmPass').value;
+  if (u !== USERNAME || pw !== PASSWORD) {
+    document.getElementById('confirmError').style.display = 'block';
     return;
   }
   document.getElementById('confirmDeleteOverlay').classList.remove('open');
-  const keyToDelete=editingId;
-  fbDelete(keyToDelete)
-    .then(function() {
-      closeModal();
-      closeDrawer();
-    })
-    .catch(function(err) { alert('Delete failed: ' + err.message); });
+  this.disabled = true;
+  this.textContent = 'Deleting…';
+
+  try {
+    await Promise.all(deleteTargetKeys.map(key => fbDelete(key)));
+    deleteTargetKeys = [];
+    selectedKeys.clear();
+    closeModal();
+    closeDrawer();
+    exitSelectMode();
+  } catch(err) {
+    alert('Delete failed: ' + err.message);
+  } finally {
+    this.disabled = false;
+    this.textContent = 'Delete project';
+  }
 });
 
 function openDrawer(id){
@@ -984,6 +1038,66 @@ function loadSupportRequests(projectKey) {
   }, { onlyOnce: false });
 }
 
+// ── Multi-select ──────────────────────────────────────────────────────────
+let selectMode = false;
+let selectedKeys = new Set();
+
+function enterSelectMode() {
+  selectMode = true;
+  document.getElementById('selectModeBtn').classList.add('active');
+  document.getElementById('selectModeBtn').textContent = '✕ Cancel';
+  document.getElementById('selectModeBar').classList.add('visible');
+  renderAll();
+}
+
+function exitSelectMode() {
+  selectMode = false;
+  selectedKeys.clear();
+  document.getElementById('selectModeBtn').classList.remove('active');
+  document.getElementById('selectModeBtn').textContent = '☑ Select';
+  document.getElementById('selectModeBar').classList.remove('visible');
+  updateSelectCount();
+  renderAll();
+}
+
+function updateSelectCount() {
+  const n = selectedKeys.size;
+  document.getElementById('selectCount').textContent = n + ' selected';
+  document.getElementById('deleteSelectedBtn').disabled = n === 0;
+}
+
+document.getElementById('selectModeBtn').addEventListener('click', function() {
+  selectMode ? exitSelectMode() : enterSelectMode();
+});
+
+document.getElementById('selectAllBtn').addEventListener('click', function() {
+  projectsCache.forEach(p => {
+    if (activeFilter === 'all' && p.status !== 'archived') selectedKeys.add(p._fbKey);
+    else if (activeFilter !== 'all' && p.status === activeFilter) selectedKeys.add(p._fbKey);
+  });
+  updateSelectCount();
+  renderAll();
+});
+
+document.getElementById('deselectAllBtn').addEventListener('click', function() {
+  selectedKeys.clear();
+  updateSelectCount();
+  renderAll();
+});
+
+document.getElementById('deleteSelectedBtn').addEventListener('click', function() {
+  if (selectedKeys.size === 0) return;
+  const n = selectedKeys.size;
+  deleteTargetKeys = Array.from(selectedKeys);
+  document.getElementById('confirmUser').value = '';
+  document.getElementById('confirmPass').value = '';
+  document.getElementById('confirmError').style.display = 'none';
+  // Update confirm dialog title to show count
+  document.querySelector('.confirm-box h3').textContent = 'Delete ' + n + ' project' + (n > 1 ? 's' : '');
+  document.querySelector('.confirm-box p').textContent = 'This cannot be undone. Enter your admin credentials to delete ' + n + ' project' + (n > 1 ? 's' : '') + '.';
+  document.getElementById('confirmDeleteOverlay').classList.add('open');
+});
+
 function closeDrawer(){document.getElementById('drawerOverlay').classList.remove('open');drawerProjectId=null;}
 document.getElementById('drawerActivateSub').addEventListener('click', async function() {
   const p = projectsCache.find(x=>x._fbKey===drawerProjectId); if(!p) return;
@@ -1099,8 +1213,7 @@ document.getElementById('drawerMarkPaid').addEventListener('click',function(){
 
 document.getElementById('drawerDeleteBtn').addEventListener('click', function() {
   if (!drawerProjectId) return;
-  // Store the project key so confirmDelete knows what to delete
-  editingId = drawerProjectId;
+  deleteTargetKeys = [drawerProjectId];
   document.getElementById('confirmUser').value = '';
   document.getElementById('confirmPass').value = '';
   document.getElementById('confirmError').style.display = 'none';
