@@ -277,19 +277,15 @@
           <div class="metric-sub" id="metricExpenseCount"></div>
         </div>
         <div class="metric-card">
-          <div class="metric-label">Net Profit</div>
+          <div class="metric-label">Net Income</div>
           <div class="metric-value" id="metricProfit">—</div>
           <div class="metric-sub" id="metricProfitSub"></div>
         </div>
-        <div class="metric-card">
-          <div class="metric-label">MRR</div>
-          <div class="metric-value metric-warm" id="metricMRR">—</div>
-          <div class="metric-sub">Monthly recurring</div>
-        </div>
+
         <div class="metric-card">
           <div class="metric-label">Profit Margin</div>
           <div class="metric-value metric-accent" id="metricMargin">—</div>
-          <div class="metric-sub">Income after expenses</div>
+          <div class="metric-sub">Net income ÷ revenue</div>
         </div>
       </div>
 
@@ -754,7 +750,7 @@ function loadProjects() {
       });
     }
     renderClientTab();
-    renderIncomeTab(); // MRR comes from projects
+    renderIncomeTab(); // refresh client names after projects load
     renderSupportQueue(); // refresh client names
   });
 }
@@ -987,11 +983,6 @@ function renderIncomeTab() {
 
   const totalExpenses = periodExpenseItems.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
 
-  // MRR from projects
-  const mrr = projects
-    .filter(p => p.status === 'active' && p.hosting)
-    .reduce((s, p) => s + parseInt(p.hosting || 0), 0);
-
   const netProfit = totalIncome - totalExpenses;
   const margin = totalIncome > 0 ? Math.round((netProfit / totalIncome) * 100) : 0;
 
@@ -1003,8 +994,7 @@ function renderIncomeTab() {
   const profitEl = document.getElementById('metricProfit');
   profitEl.textContent = (netProfit >= 0 ? '+' : '') + '$' + netProfit.toFixed(2);
   profitEl.className = 'metric-value ' + (netProfit >= 0 ? 'metric-green' : 'metric-red');
-  document.getElementById('metricProfitSub').textContent = 'Income minus expenses';
-  document.getElementById('metricMRR').textContent = '$' + mrr;
+  document.getElementById('metricProfitSub').textContent = 'Revenue minus expenses';
   document.getElementById('metricMargin').textContent = margin + '%';
 
   // Profit bar
@@ -1012,7 +1002,7 @@ function renderIncomeTab() {
   document.getElementById('profitBarFill').style.width = barPct + '%';
   document.getElementById('profitBarFill').style.background = netProfit >= 0 ? 'var(--green)' : 'var(--red)';
   document.getElementById('profitBarLeft').textContent = '$' + totalExpenses.toFixed(2) + ' expenses';
-  document.getElementById('profitBarRight').textContent = (netProfit >= 0 ? '+' : '') + '$' + netProfit.toFixed(2) + ' profit';
+  document.getElementById('profitBarRight').textContent = (netProfit >= 0 ? '+' : '') + '$' + netProfit.toFixed(2) + ' net income';
 
   // Income list
   const incomeList = document.getElementById('incomeList');
