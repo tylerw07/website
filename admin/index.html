@@ -1144,6 +1144,21 @@ async function fbDelete(fbKey){
   await remove(ref(db,'projects/'+fbKey));
 }
 
+function calcTotalEarned(p) {
+  const build   = parseFloat(p.buildFee || 0);
+  const setup   = p.setupFee ? 50 : 0;
+  const monthly = parseFloat(p.hosting || 0);
+  const annual  = monthly * 12;
+  let hosting = 0;
+  if (annual > 0 && p.startDate) {
+    const start   = new Date(p.startDate);
+    const now     = new Date();
+    const years   = Math.max(0, Math.floor((now - start) / (1000 * 60 * 60 * 24 * 365)));
+    hosting = annual * Math.max(1, years);
+  }
+  return build + setup + hosting;
+}
+
 function sClass(s){return{active:'status-active','in-development':'status-active',completed:'status-completed','on-hold':'status-on-hold',cancelled:'status-cancelled',archived:'status-archived'}[s]||'';}
 function sLabel(s){return{active:'Active','in-development':'In Development',completed:'Completed','on-hold':'On Hold',cancelled:'Cancelled',archived:'Archived'}[s]||s;}
 function fmtDate(d){if(!d)return'N/A';const p=d.split('-');return p.length===3?p[1]+'/'+p[2]+'/'+p[0]:d;}
@@ -1222,7 +1237,7 @@ function renderAll(){
     const depositDot = (!p.depositStatus || p.depositStatus === 'Not paid') ? '<span class="deposit-dot" title="Deposit not paid"></span>' : '';
     const card=document.createElement('div');
     card.className='project-card'; card.dataset.id=p._fbKey;
-    card.innerHTML=`<div class="project-card-top"><div><div class="project-name">${esc(p.name)}</div><div class="project-client">${esc(p.client)}${p.business?' &middot; '+esc(p.business):''}</div></div><span class="status-badge ${sClass(p.status)}">${sLabel(p.status)}</span></div><div class="project-meta"><div class="meta-item"><div class="meta-label">Type</div><div class="meta-value">${esc(p.type||'N/A')}</div></div><div class="meta-item"><div class="meta-label">Billing</div><div class="meta-value">${esc(p.paymentStatus||'N/A')}</div></div><div class="meta-item"><div class="meta-label">Started</div><div class="meta-value">${ p.depositStatus === "Paid" && p.startDate ? fmtDate(p.startDate) : "Awaiting deposit" }</div></div><div class="meta-item"><div class="meta-label">Deadline</div><div class="meta-value">${fmtDate(p.deadline)}</div></div></div>${tags?'<div class="project-tags">'+tags+'</div>':''}<div class="project-card-footer"><div style="display:flex;gap:8px;align-items:center">${monthly}${payBadge}</div><div class="card-actions">${depositDot}${invoiceDot}<button class="btn btn-ghost btn-sm edit-btn" data-id="${p._fbKey}">Edit</button></div></div>`;
+    card.innerHTML=`<div class="project-card-top"><div><div class="project-name">${esc(p.name)}</div><div class="project-client">${esc(p.client)}${p.business?' &middot; '+esc(p.business):''}</div></div><span class="status-badge ${sClass(p.status)}">${sLabel(p.status)}</span></div><div class="project-meta"><div class="meta-item"><div class="meta-label">Type</div><div class="meta-value">${esc(p.type||'N/A')}</div></div><div class="meta-item"><div class="meta-label">Billing</div><div class="meta-value">${esc(p.paymentStatus||'N/A')}</div></div><div class="meta-item"><div class="meta-label">Started</div><div class="meta-value">${ p.depositStatus === "Paid" && p.startDate ? fmtDate(p.startDate) : "Awaiting deposit" }</div></div><div class="meta-item"><div class="meta-label">Total earned</div><div class="meta-value" style="color:var(--green);font-weight:700">$${calcTotalEarned(p).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</div></div></div>${tags?'<div class="project-tags">'+tags+'</div>':''}<div class="project-card-footer"><div style="display:flex;gap:8px;align-items:center">${monthly}${payBadge}</div><div class="card-actions">${depositDot}${invoiceDot}<button class="btn btn-ghost btn-sm edit-btn" data-id="${p._fbKey}">Edit</button></div></div>`;
     
     if (selectMode && selectedKeys.has(p._fbKey)) card.classList.add('selected');
 
@@ -1278,7 +1293,7 @@ function openModal(projectId){
   document.getElementById('fDepositStatus').value=p?p.depositStatus||'':'';
   document.getElementById('fHosting').value=p?p.hosting||'':'';
   document.getElementById('fSetupFee').checked = p ? !!p.setupFee : false;
-  document.getElementById('fPassProcessing').checked = p ? !!p.passProcessing : false;
+  document.getElementById('fPassProcessing').checked = p ? !!p.passProcessing : true;
   document.getElementById('fTags').value=p?(p.tags||[]).join(', '):'';
 
   
