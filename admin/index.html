@@ -1022,6 +1022,13 @@ const projectsRef = ref(db, 'projects');
 
 let projectsCache = [];
 let projects = [];
+let activeClientFilter = 'all';
+let activePeriod       = 'month';
+let sqFilter           = 'all';
+let allSupportRequests = [];
+let squarePayments     = [];
+let hiddenPaymentIds   = new Set();
+let expenses           = [];
 let listenerAttached = false;
 
 const USERNAME='admin', PASSWORD='817564Burg!@', SESSION_KEY='nt_auth';
