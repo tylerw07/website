@@ -385,10 +385,11 @@ async function buildInvoice(p, fbKey) {
   const dueDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
   const dueDateStr = fmtDate(dueDate.toISOString().split('T')[0]);
 
-  const buildFee = parseFloat(p.buildFee || 350);
+  const buildFee   = parseFloat(p.buildFee || 350);
   const monthlyFee = parseFloat(p.hosting || 0);
-  const setupFee = p.setupFee ? 50 : 0;
-  const total = buildFee + monthlyFee + setupFee;
+  const annualFee  = monthlyFee > 0 ? monthlyFee * 12 : 0;
+  const setupFee   = p.setupFee ? 50 : 0;
+  const total      = buildFee + annualFee + setupFee;
 
   
   const payStatus = p.paymentStatus || 'Unpaid';
@@ -419,7 +420,7 @@ async function buildInvoice(p, fbKey) {
 
     const linkTitle = 'New Trail Design  -  ' + esc(p.name || 'App build');
     const linkDesc  = hostingLabel
-      ? 'App build fee + first month ' + hostingLabel
+      ? 'App build fee + first year ' + hostingLabel + ' ($' + monthlyFee.toFixed(2) + '/mo x 12)'
       : 'App build fee';
 
     const linkRes = await fetch(WORKER_URL, {
@@ -449,7 +450,7 @@ async function buildInvoice(p, fbKey) {
   const lineItems = [
     { name: 'Custom app build', desc: esc(p.name || 'Custom application') + '  -  designed and built from scratch', amount: buildFee },
     ...(setupFee > 0 ? [{ name: 'Assisted onboarding setup fee', desc: 'One-time setup fee for account configuration, domain, and hosting onboarding.', amount: 50 }] : []),
-    ...(hostingLabel && monthlyFee > 0 ? [{ name: hostingLabel + ' (first month)', desc: 'Monthly service  -  renews each month. Cancel any time with 30 days notice.', amount: monthlyFee }] : []),
+    ...(hostingLabel && annualFee > 0 ? [{ name: hostingLabel + ' — Annual plan', desc: '$' + monthlyFee.toFixed(2) + '/mo × 12 months  —  billed once per year, renews ' + nextBillingDate + '.', amount: annualFee }] : []),
   ];
 
   const wrap = document.getElementById('invoiceWrap');
@@ -512,10 +513,9 @@ async function buildInvoice(p, fbKey) {
 
         ${buildPaySection(payUrl, payUrlReady, total, isPaid)}
 
-        ${monthlyFee > 0 && !isPaid ? `
+        ${annualFee > 0 && !isPaid ? `
         <p style="font-size:13px;color:var(--ink-faint);margin-bottom:28px;padding:12px 16px;background:var(--bg);border-radius:8px;">
-          After today's payment, your ${esc(hostingLabel||'')} service renews at <strong>$${monthlyFee.toFixed(2)}/month</strong>.
-          You'll receive a monthly invoice by email. Cancel with 30 days notice.
+          After today's payment, your ${esc(hostingLabel||'')} plan renews annually at <strong>$${annualFee.toFixed(2)}/year</strong> ($${monthlyFee.toFixed(2)}/mo &times; 12). You will receive one invoice per year. Next renewal: ${esc(nextBillingDate)}.
         </p>` : ''}
 
         ${p.notes ? `<div style="font-size:13px;color:var(--ink-soft);padding-top:20px;border-top:1px solid var(--line)"><strong style="color:var(--ink)">Project notes:</strong><br>${esc(p.notes)}</div>` : ''}
