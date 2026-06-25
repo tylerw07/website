@@ -408,19 +408,22 @@ async function buildInvoice(p, fbKey) {
   
   
   const WORKER_URL = 'https://create-subscription.tylerreedwilliams.workers.dev/payment-link';
+  const nextBillingDate = p.nextBilling
+    ? new Date(p.nextBilling).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    : 'renewal date TBD';
 
   let payUrl = null;
   let payUrlReady = false;
 
   try {
-    const hostingLabel = monthlyFee === 50 ? 'Hosting + Backend'
+    const linkHostingLabel = monthlyFee === 50 ? 'Hosting + Backend'
       : monthlyFee === 35 ? 'Backend'
       : monthlyFee === 20 ? 'Hosting'
       : null;
 
     const linkTitle = 'New Trail Design  -  ' + esc(p.name || 'App build');
-    const linkDesc  = hostingLabel
-      ? 'App build fee + first year ' + hostingLabel + ' ($' + monthlyFee.toFixed(2) + '/mo x 12)'
+    const linkDesc  = linkHostingLabel
+      ? 'App build fee + first year ' + linkHostingLabel + ' ($' + monthlyFee.toFixed(2) + '/mo x 12)'
       : 'App build fee';
 
     const linkRes = await fetch(WORKER_URL, {
@@ -446,9 +449,6 @@ async function buildInvoice(p, fbKey) {
     : monthlyFee === 35 ? 'Backend & database'
     : monthlyFee === 20 ? 'Hosting'
     : null;
-  const nextBillingDate = p.nextBilling
-    ? new Date(p.nextBilling).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-    : 'renewal date TBD';
 
   const lineItems = [
     { name: 'Custom app build', desc: esc(p.name || 'Custom application') + '  -  designed and built from scratch', amount: buildFee },
