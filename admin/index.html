@@ -832,6 +832,10 @@
         <input type="checkbox" id="fSetupFee" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
         <label for="fSetupFee" style="font-size:14px;font-weight:600;cursor:pointer;margin:0">$50 setup fee applies to this client</label>
       </div>
+      <div class="field" style="flex-direction:row;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--line)">
+        <input type="checkbox" id="fPassProcessing" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
+        <label for="fPassProcessing" style="font-size:14px;font-weight:600;cursor:pointer;margin:0">Pass Square processing fee to client (3.3% + $0.30)</label>
+      </div>
       <div class="field"><label>Payment status</label>
         <select id="fPaymentStatus">
           <option value="">&#8212; Select &#8212;</option>
@@ -937,6 +941,7 @@
     <div class="detail-grid">
       <div class="detail-item"><div class="detail-label">Build fee</div><div class="detail-value" id="dBuildFee"></div></div>
       <div class="detail-item"><div class="detail-label">Setup fee</div><div class="detail-value" id="dSetupFee"></div></div>
+      <div class="detail-item"><div class="detail-label">Processing fee</div><div class="detail-value" id="dPassProcessing"></div></div>
       <div class="detail-item"><div class="detail-label">Payment status</div><div class="detail-value" id="dPayment"></div></div>
       <div class="detail-item"><div class="detail-label">Invoice link</div><div class="detail-value" id="dInvoiceLink">—</div></div>
       <div class="detail-item"><div class="detail-label">Monthly plan</div><div class="detail-value" id="dHosting"></div></div>
@@ -1273,6 +1278,7 @@ function openModal(projectId){
   document.getElementById('fDepositStatus').value=p?p.depositStatus||'':'';
   document.getElementById('fHosting').value=p?p.hosting||'':'';
   document.getElementById('fSetupFee').checked = p ? !!p.setupFee : false;
+  document.getElementById('fPassProcessing').checked = p ? !!p.passProcessing : false;
   document.getElementById('fTags').value=p?(p.tags||[]).join(', '):'';
 
   
@@ -1319,6 +1325,7 @@ document.getElementById('modalSave').addEventListener('click', async function() 
     buildFee:      document.getElementById('fBuildFee').value,
     paymentStatus: document.getElementById('fPaymentStatus').value,
     setupFee:      document.getElementById('fSetupFee').checked,
+    passProcessing: document.getElementById('fPassProcessing').checked,
     depositStatus: document.getElementById('fDepositStatus').value,
     hosting:       document.getElementById('fHosting').value,
     nextBilling:   document.getElementById('fNextBilling').value,
@@ -1483,6 +1490,11 @@ function openDrawer(id){
   if (setupFeeEl) {
     setupFeeEl.textContent = p.setupFee ? '$50 (applies)' : 'None';
     setupFeeEl.style.color = p.setupFee ? 'var(--warm)' : 'var(--ink-faint)';
+  }
+  const procFeeEl = document.getElementById('dPassProcessing');
+  if (procFeeEl) {
+    procFeeEl.textContent = p.passProcessing ? 'Yes — passed to client' : 'No — absorbed';
+    procFeeEl.style.color = p.passProcessing ? 'var(--accent)' : 'var(--ink-faint)';
   }
   const payStatus = p.paymentStatus || '';
   const payClass = payStatus === 'Paid in full' ? 'pay-paid' : payStatus === 'Overdue' ? 'pay-overdue' : payStatus === 'Deposit paid' ? 'pay-deposit' : payStatus ? 'pay-unpaid' : '';
