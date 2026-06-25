@@ -558,6 +558,7 @@ async function renderProject(p) {
           amountCents: 10000,
           note:        'Deposit payment — ' + (p.name || 'Project'),
           fbKey:       currentProjectKey,
+          paymentType: 'deposit',
         })
       });
       const data = await res.json();
@@ -589,6 +590,7 @@ async function renderProject(p) {
           amountCents: Math.round(balance * 100),
           note:        'Build fee balance — ' + (p.name || 'Project'),
           fbKey:       currentProjectKey,
+          paymentType: 'balance',
         })
       });
       const data = await res.json();
@@ -620,6 +622,7 @@ async function renderProject(p) {
           amountCents: Math.round(parseFloat(annualAmt) * 100),
           note:        'Annual subscription — ' + (p.name || 'Project') + ' ($' + p.hosting + '/mo x 12)',
           fbKey:       currentProjectKey,
+          paymentType: 'subscription',
         })
       });
       const data = await res.json();
