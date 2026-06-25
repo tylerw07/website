@@ -229,6 +229,8 @@
   .tab-btn:hover:not(.active) { color:var(--ink); }
   .tab-panel { display:none; }
   .tab-panel.active { display:block; }
+  .tab-inner { max-width:800px; margin:0 auto; }
+  .tab-inner-wide { max-width:900px; margin:0 auto; }
   .metrics-bar { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:28px; }
   .metric-card { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:18px 20px; }
   .metric-label { font-size:11px; font-weight:600; color:var(--ink-faint); letter-spacing:0.06em; text-transform:uppercase; font-family:'IBM Plex Mono',monospace; }
@@ -409,6 +411,7 @@
 
 
     <div class="tab-panel" id="tab-clients-db">
+    <div class="tab-inner">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap">
         <div>
           <p class="eyebrow">Database</p>
@@ -422,6 +425,7 @@
       <div class="empty-state" id="cdbEmpty" style="display:none"><p>No clients match your search.</p></div>
     </div>
 
+    </div>
     <div class="cdb-modal-overlay" id="cdbOverlay">
       <div class="cdb-modal" id="cdbModal">
         <div class="cdb-modal-header">
@@ -443,8 +447,7 @@
     </div>
 
 <div class="tab-panel" id="tab-income">
-
-      
+    <div class="tab-inner-wide">
       <div class="period-bar">
         <button class="period-pill active" data-period="month">This month</button>
         <button class="period-pill" data-period="ytd">Year to date</button>
@@ -557,11 +560,11 @@
       </div>
 
     </div>
+    </div>
 
     
     <div class="tab-panel" id="tab-clients">
-
-      
+    <div class="tab-inner-wide">
       <div class="metrics-bar" style="grid-template-columns:repeat(4,1fr);margin-bottom:28px">
         <div class="metric-card">
           <div class="metric-label">Total Clients</div>
@@ -610,11 +613,11 @@
       <div id="clientsEmpty" class="empty-state" style="display:none"><p>No clients match this filter.</p></div>
 
     </div>
+    </div>
 
     
     <div class="tab-panel" id="tab-support">
-
-      
+    <div class="tab-inner-wide">
       <div class="metrics-bar" style="grid-template-columns:repeat(4,1fr);margin-bottom:28px">
         <div class="metric-card">
           <div class="metric-label">Total requests</div>
@@ -648,9 +651,11 @@
       <div id="sqEmpty" class="empty-state" style="display:none"><p>No requests match this filter.</p></div>
 
     </div>
+    </div>
 
     
     <div class="tab-panel" id="tab-docs">
+    <div class="tab-inner">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap">
         <div>
           <p class="eyebrow">Reference</p>
@@ -676,11 +681,11 @@
         To update this document: replace <code style="font-family:'IBM Plex Mono',monospace;background:var(--bg);padding:2px 6px;border-radius:4px">finance/TaxReference.pdf</code> in your GitHub repo. Changes appear here within a few minutes.
       </p>
     </div>
+    </div>
 
     
     <div class="tab-panel" id="tab-w9">
-
-      
+    <div class="tab-inner">
       <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:24px 28px;margin-bottom:24px">
         <p class="eyebrow" style="margin-bottom:10px">When to send a W-9</p>
         <h2 style="font-family:'Fraunces',serif;font-size:20px;margin-bottom:16px;color:var(--ink)">Send your W-9 to a client when:</h2>
@@ -774,6 +779,7 @@
         To update: replace <code style="font-family:'IBM Plex Mono',monospace;background:var(--bg);padding:2px 6px;border-radius:4px">finance/W9.pdf</code> in your GitHub repo. Changes appear here automatically.
       </p>
 
+    </div>
     </div>
 
 <div class="modal-overlay" id="projectModal">
