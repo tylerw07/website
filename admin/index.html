@@ -932,6 +932,16 @@
       <div class="detail-item"><div class="detail-label">Invoice link</div><div class="detail-value" id="dInvoiceLink">—</div></div>
       <div class="detail-item"><div class="detail-label">Monthly plan</div><div class="detail-value" id="dHosting"></div></div>
       <div class="detail-item"><div class="detail-label">Next billing</div><div class="detail-value" id="dNextBilling"></div></div>
+      <div class="detail-item" id="dNextBillingDueWrap" style="display:none;grid-column:1/-1">
+        <div style="background:var(--accent-soft);border:1px solid var(--accent);border-radius:10px;padding:14px 16px;width:100%">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;color:var(--accent);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px">Next subscription payment due</div>
+          <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+            <span style="font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:var(--ink)" id="dNextBillingDueDate">—</span>
+            <span style="font-size:12.5px;color:var(--ink-soft)" id="dNextBillingDueAmt"></span>
+          </div>
+          <div style="font-size:12px;margin-top:4px" id="dNextBillingDueNote"></div>
+        </div>
+      </div>
       <div class="detail-item full"><div class="detail-label">Subscription</div><div class="detail-value" id="dSubStatus">—</div></div>
       <div class="detail-item"><div class="detail-label">Deposit ($100)</div><div class="detail-value" id="dDepositStatus">—</div></div>
     </div>
@@ -1537,6 +1547,37 @@ function openDrawer(id){
     document.getElementById('dSubStatus').textContent = 'No subscription plan';
   }
   document.getElementById('dNextBilling').innerHTML=fmtDate(p.nextBilling);
+
+  const dueWrap     = document.getElementById('dNextBillingDueWrap');
+  const dueDateEl   = document.getElementById('dNextBillingDueDate');
+  const dueAmtEl    = document.getElementById('dNextBillingDueAmt');
+  const dueNoteEl   = document.getElementById('dNextBillingDueNote');
+  if (p.hosting && p.nextBilling) {
+    const dueDate   = new Date(p.nextBilling);
+    const today     = new Date();
+    const diffDays  = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+    const annualAmt = (parseFloat(p.hosting) * 12).toFixed(0);
+    const fmtDue    = dueDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    dueDateEl.textContent = fmtDue;
+    dueAmtEl.textContent  = '$' + annualAmt + ' annual  ($' + p.hosting + '/mo × 12)';
+    if (diffDays < 0) {
+      dueNoteEl.textContent   = 'OVERDUE by ' + Math.abs(diffDays) + ' day' + (Math.abs(diffDays) !== 1 ? 's' : '');
+      dueNoteEl.style.color   = 'var(--red)';
+      dueWrap.style.background = 'var(--red-bg, #fef2f2)';
+      dueWrap.querySelector('div').style.borderColor = 'var(--red)';
+      dueWrap.querySelector('div').style.background  = 'var(--red-bg, #fef2f2)';
+      dueNoteEl.closest('div').querySelector('[style*="color:var(--accent)"]')?.style && (dueWrap.querySelector('[style*="color:var(--accent)"]').style.color = 'var(--red)');
+    } else if (diffDays <= 14) {
+      dueNoteEl.textContent = 'Due in ' + diffDays + ' day' + (diffDays !== 1 ? 's' : '') + ' — send invoice soon.';
+      dueNoteEl.style.color = 'var(--warm)';
+    } else {
+      dueNoteEl.textContent = diffDays + ' days away.';
+      dueNoteEl.style.color = 'var(--ink-soft)';
+    }
+    dueWrap.style.display = 'block';
+  } else {
+    if (dueWrap) dueWrap.style.display = 'none';
+  }
   const bs=document.getElementById('dBriefSection'); bs.style.display=p.brief?'block':'none'; document.getElementById('dBrief').textContent=p.brief||'';
   const ns=document.getElementById('dNotesSection'); ns.style.display=p.notes?'block':'none'; document.getElementById('dNotes').textContent=p.notes||'';
   const ts=document.getElementById('dTagsSection');
