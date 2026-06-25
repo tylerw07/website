@@ -1075,7 +1075,6 @@ function showDashboard(){
         showLoading(false);
         renderAll();
         init();
-        initFinance();
       },
       function(error){
         
@@ -1092,7 +1091,6 @@ function showDashboard(){
     showLoading(false);
     renderAll();
     init();
-    initFinance();
   }
 }
 
@@ -1613,6 +1611,8 @@ const CHECKLIST_ITEMS = [
   { id: 'launched',         label: 'Site / app launched' },
   { id: 'final_payment',    label: 'Final payment received' },
   { id: 'handoff_complete', label: 'Handoff & docs complete' },
+  { id: 'ntd_footer',       label: 'Add New Trail Design LLC footnote, copyright & client license number to website' },
+  { id: 'secret_comments',  label: 'Add secret code comments (Customer #, Date worked on, 06212026)' },
 ];
 
 function renderChecklist(p) {
@@ -1876,14 +1876,7 @@ function togglePw(inputId, btn) {
 window.togglePw = togglePw;
 
 
-function initFinance() {
-  setDefaultExpenseDate();
-  loadExpenses();
-  loadHiddenPayments();
-  loadSupportQueue();
-  startPolling();
-  updatePeriodLabel();
-}
+
 
 
 const WORKER = 'https://create-subscription.tylerreedwilliams.workers.dev';
@@ -1964,7 +1957,6 @@ document.querySelectorAll('[data-sqfilter]').forEach(function(pill) {
 function init() {
   setDefaultExpenseDate();
   loadExpenses();
-  loadProjects();
   loadHiddenPayments();
   loadSquarePayments();
   loadSupportQueue();
