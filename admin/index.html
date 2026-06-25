@@ -760,7 +760,7 @@
         </div>
         <div style="display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap">
           <a href="https://www.irs.gov/pub/irs-pdf/fw9.pdf" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none"> Download blank W-9</a>
-          <a id="w9DownloadLink" href="https://github.com/tylerw07/website/raw/main/finance/W9.pdf" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none"> My W-9</a>
+          <a id="w9DownloadLink" href="https://newtraildesign.com/finance/W9.pdf" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none"> My W-9</a>
         </div>
       </div>
 
@@ -905,7 +905,14 @@
       <div class="detail-item"><div class="detail-label">Email</div><div class="detail-value" id="dEmail"></div></div>
       <div class="detail-item"><div class="detail-label">Phone</div><div class="detail-value" id="dPhone"></div></div>
       <div class="detail-item"><div class="detail-label">Project type</div><div class="detail-value" id="dType"></div></div>
-      <div class="detail-item"><div class="detail-label">Portal username</div><div class="detail-value" id="dPortalUser">—</div></div>
+      <div class="detail-item"><div class="detail-label">Portal username</div><div class="detail-value" id="dPortalUser" style="font-family:'IBM Plex Mono',monospace;font-size:13px">—</div></div>
+      <div class="detail-item">
+        <div class="detail-label">Portal password</div>
+        <div class="detail-value" style="display:flex;align-items:center;gap:8px">
+          <span id="dPortalPass" style="font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:0.1em">—</span>
+          <button onclick="toggleDrawerPass()" id="dPortalPassToggle" style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;background:none;border:1px solid var(--line);border-radius:4px;padding:2px 7px;cursor:pointer;color:var(--ink-faint)">SHOW</button>
+        </div>
+      </div>
     </div>
   </div>
   <div class="detail-section">
@@ -1588,6 +1595,26 @@ function openDrawer(id){
   const ts=document.getElementById('dTagsSection');
   if(p.tags&&p.tags.length){ts.style.display='block';document.getElementById('dTags').innerHTML=p.tags.map(t=>'<span class="tag">'+esc(t)+'</span>').join('');}
   else{ts.style.display='none';}
+  const dPortalUserEl = document.getElementById('dPortalUser');
+  if (dPortalUserEl) dPortalUserEl.textContent = p.portalUsername || '—';
+  const passEl2     = document.getElementById('dPortalPass');
+  const passToggle2 = document.getElementById('dPortalPassToggle');
+  if (passEl2) { passEl2.textContent = '—'; passEl2.dataset.pass = ''; passEl2.dataset.shown = 'false'; }
+  if (passToggle2) passToggle2.style.display = 'none';
+  if (p.portalUsername) {
+    get(ref(db, 'portalAccounts/' + p.portalUsername)).then(function(snap) {
+      if (snap.exists()) {
+        const pw = snap.val().password || '';
+        if (passEl2) {
+          passEl2.dataset.pass = pw;
+          passEl2.textContent = '••••••••';
+          passEl2.dataset.shown = 'false';
+        }
+        if (passToggle2) passToggle2.style.display = 'inline';
+      }
+    });
+  }
+
   document.getElementById('drawerOverlay').classList.add('open');
 
   
@@ -1866,6 +1893,17 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeModal(
 renderAll();
 
 
+function toggleDrawerPass() {
+  const el  = document.getElementById('dPortalPass');
+  const btn = document.getElementById('dPortalPassToggle');
+  if (!el || !el.dataset.pass) return;
+  const shown = el.dataset.shown === 'true';
+  el.textContent   = shown ? '••••••••' : el.dataset.pass;
+  el.dataset.shown = shown ? 'false' : 'true';
+  if (btn) btn.textContent = shown ? 'SHOW' : 'HIDE';
+}
+window.toggleDrawerPass = toggleDrawerPass;
+
 function togglePw(inputId, btn) {
   const inp = document.getElementById(inputId);
   if (!inp) return;
@@ -1893,13 +1931,13 @@ document.querySelectorAll('.tab-btn').forEach(function(btn) {
     if (this.dataset.tab === 'docs' && !docViewerLoaded) {
       const v = document.getElementById('docViewer');
       const dl = document.getElementById('docDownloadLink');
-      if (v) v.src = 'https://raw.githubusercontent.com/tylerw07/website/main/finance/TaxReference.pdf';
-      if (dl) dl.href = 'https://github.com/tylerw07/website/raw/main/finance/TaxReference.pdf';
+      if (v) v.src = 'https://docs.google.com/viewer?embedded=true&url=https://newtraildesign.com/finance/TaxReference.pdf';
+      if (dl) dl.href = 'https://newtraildesign.com/finance/TaxReference.pdf';
       docViewerLoaded = true;
     }
     if (this.dataset.tab === 'w9' && !w9ViewerLoaded) {
       const v = document.getElementById('w9Viewer');
-      if (v) v.src = 'https://raw.githubusercontent.com/tylerw07/website/main/finance/W9.pdf';
+      if (v) v.src = 'https://docs.google.com/viewer?embedded=true&url=https://newtraildesign.com/finance/W9.pdf';
       w9ViewerLoaded = true;
     }
     if (this.dataset.tab === 'clients') {
@@ -1968,8 +2006,8 @@ function setDefaultExpenseDate() {
   document.getElementById('expDate').value = new Date().toISOString().split('T')[0];
 }
 
-const TAX_DOC_GITHUB_RAW = 'https://raw.githubusercontent.com/tylerw07/website/main/finance/TaxReference.pdf';
-const TAX_DOC_DOWNLOAD   = 'https://github.com/tylerw07/website/raw/main/finance/TaxReference.pdf';
+const TAX_DOC_GITHUB_RAW = 'https://docs.google.com/viewer?embedded=true&url=https://newtraildesign.com/finance/TaxReference.pdf';
+const TAX_DOC_DOWNLOAD   = 'https://newtraildesign.com/finance/TaxReference.pdf';
 
 document.querySelectorAll('.tab-btn').forEach(function(btn) {
   btn.addEventListener('click', function() {
@@ -1983,14 +2021,14 @@ document.querySelectorAll('.tab-btn').forEach(function(btn) {
       const viewer = document.getElementById('docViewer');
       const dlLink = document.getElementById('docDownloadLink');
       
-      viewer.src = TAX_DOC_GITHUB_RAW;
+      viewer.src = 'https://docs.google.com/viewer?embedded=true&url=https://newtraildesign.com/finance/TaxReference.pdf';
       dlLink.href = TAX_DOC_DOWNLOAD;
       docViewerLoaded = true;
     }
 
     
     if (this.dataset.tab === 'w9' && !w9ViewerLoaded) {
-      const W9_RAW = 'https://raw.githubusercontent.com/tylerw07/website/main/finance/W9.pdf';
+      const W9_RAW = 'https://docs.google.com/viewer?embedded=true&url=https://newtraildesign.com/finance/W9.pdf';
       document.getElementById('w9Viewer').src = W9_RAW;
       w9ViewerLoaded = true;
     }
