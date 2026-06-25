@@ -685,8 +685,8 @@
 
       <div class="field">
         <label>Choose a username <span style="color:#dc2626">*</span></label>
-        <input type="text" name="portal_username" id="portalUsername" placeholder="e.g. janedoe or mybusiness" autocomplete="off" autocapitalize="off" required>
-        <div style="font-size:12px;color:var(--ink-faint);margin-top:4px">Lowercase letters, numbers, and underscores only. No spaces.</div>
+        <input type="text" name="portal_username" id="portalUsername" placeholder="e.g. janedoe or mybusiness" autocomplete="off" required>
+        <div style="font-size:12px;color:var(--ink-faint);margin-top:4px">Letters, numbers, and underscores only. No spaces. Not case-sensitive.</div>
       </div>
 
       <div class="field">
@@ -751,7 +751,7 @@ let currentStep = 1;
 const totalSteps = 5;
 
 function validateAccount() {
-  const username = document.getElementById('portalUsername').value.trim();
+  const username = document.getElementById('portalUsername').value.trim().toLowerCase();
   const password = document.getElementById('portalPassword').value;
   const confirm  = document.getElementById('portalPasswordConfirm').value;
   const errEl    = document.getElementById('accountError');
@@ -762,8 +762,8 @@ function validateAccount() {
     document.getElementById('portalUsername').focus();
     return;
   }
-  if (!/^[a-z0-9_]+$/.test(username)) {
-    errEl.textContent = 'Username can only contain lowercase letters, numbers, and underscores.';
+  if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+    errEl.textContent = 'Username can only contain letters, numbers, and underscores. No spaces.';
     errEl.style.display = 'block'; return;
   }
   if (!password || password.length < 8) {
