@@ -150,9 +150,20 @@
 <div id="dashboard">
   <div class="wrap">
     <div class="page-top">
-      <p class="eyebrow">Client Portal</p>
-      <h1 id="welcomeHeading">Welcome</h1>
-      <p id="welcomeSub">Here's the current status of your project.</p>
+      <div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
+          <p class="eyebrow" style="margin:0">Client Portal</p>
+          <span id="clientNumBadge" style="display:none;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;background:var(--accent-soft);color:var(--accent);padding:3px 10px;border-radius:999px;letter-spacing:0.06em"></span>
+        </div>
+        <h1 id="welcomeHeading">Welcome</h1>
+        <p id="welcomeSub">Here's the current status of your project.</p>
+      </div>
+      <button class="btn btn-primary" id="newProjectBtn" style="flex-shrink:0">+ New project</button>
+    </div>
+
+    <div id="projectSwitcherWrap" style="display:none;margin-bottom:24px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--ink-faint);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px">Your projects</div>
+      <div id="projectSwitcher" style="display:flex;gap:8px;flex-wrap:wrap"></div>
     </div>
 
     
@@ -192,6 +203,9 @@
     
     <div class="status-card">
       <h3>Project progress</h3>
+      <div id="pDepositBanner" style="display:none;background:#fef3c7;border:1px solid #f59e0b;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13.5px;color:#92400e">
+        <strong>Deposit required to begin.</strong> Once your $100 deposit is received, work begins and this progress tracker will update.
+      </div>
       <div class="progress-track" id="progressTrack">
         <div class="track-step">
           <div class="track-circle" id="tc1">1</div>
@@ -308,7 +322,6 @@ const fbApp = initializeApp(firebaseConfig);
 const db = getDatabase(fbApp);
 
 let currentProjectKey = null;
-let currentUsername = null;
 
 const loginGate  = document.getElementById('loginGate');
 const dashboard  = document.getElementById('dashboard');
@@ -335,15 +348,6 @@ async function tryLogin(username, password) {
     console.error('Login error:', err);
     return false;
   }
-}
-
-function showDashboard(session) {
-  currentProjectKey = session.projectKey;
-  currentUsername   = session.username;
-  loginGate.style.display = 'none';
-  dashboard.style.display = 'block';
-  logoutBtn.style.display = 'block';
-  loadProject();
 }
 
 const stored = sessionStorage.getItem(SESSION_KEY);
@@ -434,11 +438,16 @@ async function renderProject(p) {
   
   document.getElementById('pName').textContent = p.name || '—';
   document.getElementById('pType').textContent = p.type || '—';
-  document.getElementById('pStart').textContent = p.startDate ? new Date(p.startDate).toLocaleDateString('en-US', {month:'long',day:'numeric',year:'numeric'}) : '—';
+  if (p.depositStatus === 'Paid' && p.startDate) {
+    document.getElementById('pStart').textContent = new Date(p.startDate).toLocaleDateString('en-US', {month:'long',day:'numeric',year:'numeric'});
+  } else {
+    document.getElementById('pStart').innerHTML = '<span style="color:var(--ink-faint);font-style:italic">Awaiting deposit</span>';
+  }
   document.getElementById('pDeadline').textContent = p.deadline ? new Date(p.deadline).toLocaleDateString('en-US', {month:'long',day:'numeric',year:'numeric'}) : 'TBD';
 
-  const statusMap = { active: 'In progress', completed: 'Completed', paused: 'Paused', cancelled: 'Cancelled' };
-  const statusPill = { active: 'pill-purple', completed: 'pill-green', paused: 'pill-yellow', cancelled: 'pill-grey' };
+  const depositPaidForStatus = p.depositStatus === 'Paid';
+  const statusMap  = { active: depositPaidForStatus ? 'In progress' : 'Awaiting deposit', completed: 'Completed', paused: 'Paused', cancelled: 'Cancelled' };
+  const statusPill = { active: depositPaidForStatus ? 'pill-purple' : 'pill-yellow', completed: 'pill-green', paused: 'pill-yellow', cancelled: 'pill-grey' };
   document.getElementById('pStatus').innerHTML = `<span class="pill ${statusPill[p.status] || 'pill-grey'}">${statusMap[p.status] || p.status || '—'}</span>`;
 
   const urlEl = document.getElementById('pUrl');
@@ -454,12 +463,13 @@ async function renderProject(p) {
   const isComplete  = p.status === 'completed';
   const hasUrl      = !!p.liveUrl;
 
+  const inDev = depositPaid && (isActive || isComplete);
   const steps = [
-    { done: true,                   active: false   }, 
-    { done: depositPaid,            active: !depositPaid && isActive },
-    { done: isActive || isComplete, active: isActive && depositPaid && !isComplete },
-    { done: isComplete || hasUrl,   active: isActive && hasUrl && !isComplete },
-    { done: isComplete,             active: false   },
+    { done: true,                       active: false                            },
+    { done: depositPaid,                active: !depositPaid && isActive         },
+    { done: inDev && isComplete,        active: inDev && !isComplete             },
+    { done: isComplete || hasUrl,       active: inDev && hasUrl && !isComplete   },
+    { done: isComplete,                 active: false                            },
   ];
 
   steps.forEach(function(s, i) {
@@ -475,11 +485,15 @@ async function renderProject(p) {
   });
 
   
+  const depositBanner = document.getElementById('pDepositBanner');
+  if (depositBanner) {
+    depositBanner.style.display = p.depositStatus === 'Paid' ? 'none' : 'block';
+  }
+
   document.getElementById('pBuildFee').textContent = p.buildFee ? '$' + p.buildFee : '—';
   document.getElementById('pHosting').textContent = p.hosting ? '$' + p.hosting + '/mo (billed annually)' : 'No subscription plan';
 
-  const WORKER = 'https://create-subscription.tylerreedwilliams.workers.dev';
-  const depositPaidAlready = p.depositStatus === 'Paid';
+    const depositPaidAlready = p.depositStatus === 'Paid';
   const fullyPaid = p.paymentStatus === 'Paid in full';
   const depositPaidStatus = p.depositStatus === 'Paid';
   const actionsWrap      = document.getElementById('pPaymentActions');
@@ -765,6 +779,246 @@ function togglePw(inputId, btn) {
   btn.textContent = show ? 'HIDE' : 'SHOW';
 }
 window.togglePw = togglePw;
+
+
+let allClientProjects = [];
+let currentUsername = '';
+const WORKER = 'https://create-subscription.tylerreedwilliams.workers.dev';
+const WEB3_KEY = 'c532615a-c40a-48f0-8ea4-174109630bac';
+
+function renderProjectSwitcher(projects, activeKey) {
+  const wrap = document.getElementById('projectSwitcherWrap');
+  const container = document.getElementById('projectSwitcher');
+  if (!container) return;
+  if (projects.length <= 1) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  container.innerHTML = '';
+  projects.forEach(function(proj) {
+    const btn = document.createElement('button');
+    btn.textContent = proj.name || 'Unnamed project';
+    btn.style.cssText = 'font-family:inherit;font-size:13px;font-weight:600;padding:7px 16px;border-radius:999px;border:1.5px solid;cursor:pointer;transition:all 0.15s;';
+    if (proj._fbKey === activeKey) {
+      btn.style.background = 'var(--accent)';
+      btn.style.color = '#fff';
+      btn.style.borderColor = 'var(--accent)';
+    } else {
+      btn.style.background = 'transparent';
+      btn.style.color = 'var(--ink-soft)';
+      btn.style.borderColor = 'var(--line)';
+    }
+    btn.addEventListener('click', function() {
+      currentProjectKey = proj._fbKey;
+      const session = JSON.parse(sessionStorage.getItem(SESSION_KEY) || '{}');
+      session.projectKey = proj._fbKey;
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      loadProject();
+      renderProjectSwitcher(allClientProjects, currentProjectKey);
+    });
+    container.appendChild(btn);
+  });
+}
+
+async function loadAllClientProjects(username) {
+  try {
+    const snap = await get(ref(db, 'projects'));
+    if (!snap.exists()) return [];
+    const projects = [];
+    snap.forEach(function(child) {
+      const p = child.val();
+      if (p.portalUsername && p.portalUsername.toLowerCase() === username.toLowerCase()) {
+        projects.push(Object.assign({ _fbKey: child.key }, p));
+      }
+    });
+    return projects;
+  } catch(e) { return []; }
+}
+
+const origShowDashboard = showDashboard;
+async function showDashboard(session) {
+  currentUsername = session.username || '';
+  loginGate.style.display = 'none';
+  dashboard.style.display = 'block';
+  logoutBtn.style.display = 'block';
+  allClientProjects = await loadAllClientProjects(currentUsername);
+  if (allClientProjects.length > 0 && !session.projectKey) {
+    currentProjectKey = allClientProjects[0]._fbKey;
+    session.projectKey = currentProjectKey;
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  } else {
+    currentProjectKey = session.projectKey;
+  }
+  renderProjectSwitcher(allClientProjects, currentProjectKey);
+  loadProject();
+}
+
+document.getElementById('newProjectBtn').addEventListener('click', function() {
+  document.getElementById('newProjectOverlay').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+});
+
+window.submitNewProject = async function() {
+  const name     = document.getElementById('npName').value.trim();
+  const type     = document.getElementById('npType').value;
+  const desc     = document.getElementById('npDesc').value.trim();
+  const users    = document.getElementById('npUsers').value.trim();
+  const features = document.getElementById('npFeatures').value.trim();
+  const timeline = document.getElementById('npTimeline').value;
+  const notes    = document.getElementById('npNotes').value.trim();
+  const hosting  = document.getElementById('npHosting').checked;
+  const backend  = document.getElementById('npBackend').checked;
+  const errEl    = document.getElementById('npError');
+  const submitBtn = document.getElementById('npSubmitBtn');
+
+  errEl.style.display = 'none';
+  if (!name) { errEl.textContent = 'Please enter a project name.'; errEl.style.display = 'block'; return; }
+  if (!type) { errEl.textContent = 'Please select the type of app.'; errEl.style.display = 'block'; return; }
+  if (!desc) { errEl.textContent = 'Please describe your project.'; errEl.style.display = 'block'; return; }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Submitting...';
+
+  try {
+    const session = JSON.parse(sessionStorage.getItem(SESSION_KEY) || '{}');
+    const accountSnap = await get(ref(db, 'portalAccounts/' + currentUsername));
+    const account = accountSnap.exists() ? accountSnap.val() : {};
+
+    const hostingAmt = hosting && backend ? '50' : hosting ? '20' : backend ? '35' : '';
+    const services = [];
+    if (hosting) services.push('Hosting ($20/mo)');
+    if (backend) services.push('Database & backend ($35/mo)');
+    if (hosting && backend) services.push('Bundle: $50/mo total');
+
+    const project = {
+      name:          name,
+      client:        account.name || currentUsername,
+      business:      account.business || '',
+      email:         account.email || '',
+      phone:         account.phone || '',
+      address:       account.address || '',
+      status:        'active',
+      type:          type,
+      stack:         '',
+      liveUrl:       '',
+      repo:          '',
+      startDate:     '',
+      deadline:      '',
+      buildFee:      '350',
+      paymentStatus: 'Unpaid',
+      depositStatus: 'Not paid',
+      hosting:       hostingAmt,
+      nextBilling:   '',
+      brief: [
+        desc ? 'PROJECT DESCRIPTION:\n' + desc : '',
+        users ? '\nTARGET USERS:\n' + users : '',
+        features ? '\nKEY FEATURES:\n' + features : '',
+      ].filter(Boolean).join('\n'),
+      notes: [
+        services.length ? 'SERVICES REQUESTED: ' + services.join(', ') : '',
+        timeline ? 'TIMELINE: ' + timeline : '',
+        notes ? '\nADDITIONAL NOTES:\n' + notes : '',
+        '\nSOURCE: Submitted via client portal (returning client)',
+      ].filter(Boolean).join('\n'),
+      tags: [type, hosting ? 'hosting' : '', backend ? 'backend' : ''].filter(Boolean),
+      portalUsername: currentUsername,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+
+    const newRef = push(ref(db, 'projects'));
+    await set(newRef, project);
+
+    await fetch('https://api.anthropic.com/v1/messages', { method: 'POST' }).catch(() => {});
+    await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        access_key: WEB3_KEY,
+        subject: 'New project request (returning client) — ' + name,
+        from_name: account.name || currentUsername,
+        email: account.email || 'noreply@newtraildesign.com',
+        botcheck: '',
+        client: account.name || currentUsername,
+        project_name: name,
+        project_type: type,
+        description: desc,
+        target_users: users,
+        key_features: features,
+        services: services.join(', '),
+        timeline: timeline,
+        notes: notes,
+      })
+    });
+
+    document.getElementById('newProjectOverlay').style.display = 'none';
+    document.body.style.overflow = '';
+    allClientProjects = await loadAllClientProjects(currentUsername);
+    currentProjectKey = newRef.key;
+    renderProjectSwitcher(allClientProjects, currentProjectKey);
+    loadProject();
+
+    [
+      'npName','npType','npDesc','npUsers','npFeatures','npTimeline','npNotes'
+    ].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+    document.getElementById('npHosting').checked = false;
+    document.getElementById('npBackend').checked  = false;
+
+    alert('Your project request has been submitted! We will be in touch soon.');
+  } catch(err) {
+    errEl.textContent = 'Something went wrong: ' + err.message;
+    errEl.style.display = 'block';
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit project request';
+  }
+};
+
+window.addEventListener('click', function(e) {
+  const overlay = document.getElementById('newProjectOverlay');
+  if (e.target === overlay) {
+    overlay.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+});
+
 </script>
+
+<div id="newProjectOverlay" style="display:none;position:fixed;inset:0;background:rgba(19,24,43,0.5);z-index:500;overflow-y:auto;padding:40px 20px">
+  <div style="background:#fff;border-radius:16px;max-width:600px;margin:0 auto;padding:36px 32px;position:relative">
+    <button onclick="document.getElementById('newProjectOverlay').style.display='none';document.body.style.overflow=''" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:24px;cursor:pointer;color:#8a90a6">&#215;</button>
+    <p style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px">Returning client</p>
+    <h2 style="font-family:'Fraunces',serif;font-size:24px;margin-bottom:6px">Tell us about your new project</h2>
+    <p style="color:#545b72;font-size:14px;margin-bottom:28px">We already have your contact info — just tell us about what you want to build.</p>
+    <div id="npError" style="display:none;background:#fef2f2;color:#dc2626;padding:10px 14px;border-radius:8px;font-size:13.5px;margin-bottom:16px"></div>
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Project name <span style="color:#dc2626">*</span></label><input id="npName" type="text" placeholder="Staff scheduling app" style="width:100%;padding:10px 14px;border:1px solid #e2e4ec;border-radius:8px;font-size:14px;font-family:inherit;box-sizing:border-box"></div>
+      <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Type of app <span style="color:#dc2626">*</span></label>
+        <select id="npType" style="width:100%;padding:10px 14px;border:1px solid #e2e4ec;border-radius:8px;font-size:14px;font-family:inherit;background:#fff">
+          <option value="">— Select —</option><option>Customer / client portal</option><option>Booking &amp; scheduling</option><option>Inventory management</option><option>Internal dashboard</option><option>E-commerce / online store</option><option>Directory or listing app</option><option>CRM / contact management</option><option>Reporting &amp; analytics</option><option>Forms &amp; data collection</option><option>Mobile-first web app</option><option>Other / not sure yet</option>
+        </select>
+      </div>
+      <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Describe what you want to build <span style="color:#dc2626">*</span></label><textarea id="npDesc" rows="4" placeholder="Tell us what problem this solves..." style="width:100%;padding:10px 14px;border:1px solid #e2e4ec;border-radius:8px;font-size:14px;font-family:inherit;resize:vertical;box-sizing:border-box"></textarea></div>
+      <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Who will use this?</label><input id="npUsers" type="text" placeholder="My staff, my customers, just me..." style="width:100%;padding:10px 14px;border:1px solid #e2e4ec;border-radius:8px;font-size:14px;font-family:inherit;box-sizing:border-box"></div>
+      <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Key features needed</label><textarea id="npFeatures" rows="2" placeholder="Login system, notifications, calendar..." style="width:100%;padding:10px 14px;border:1px solid #e2e4ec;border-radius:8px;font-size:14px;font-family:inherit;resize:vertical;box-sizing:border-box"></textarea></div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Services</label>
+          <div style="padding:12px;background:#f5f6f9;border-radius:8px;display:flex;flex-direction:column;gap:8px">
+            <label style="display:flex;align-items:center;gap:8px;font-size:13.5px;cursor:pointer"><input type="checkbox" id="npHosting"> Hosting ($20/mo)</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13.5px;cursor:pointer"><input type="checkbox" id="npBackend"> Database &amp; backend ($35/mo)</label>
+          </div>
+        </div>
+        <div style="flex:1;min-width:160px"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Timeline</label>
+          <select id="npTimeline" style="width:100%;padding:10px 14px;border:1px solid #e2e4ec;border-radius:8px;font-size:14px;font-family:inherit;background:#fff">
+            <option value="">— Select —</option><option>ASAP</option><option>Within 1 month</option><option>1–3 months</option><option>3–6 months</option><option>No rush</option>
+          </select>
+        </div>
+      </div>
+      <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Anything else?</label><textarea id="npNotes" rows="2" placeholder="Budget, references, existing systems..." style="width:100%;padding:10px 14px;border:1px solid #e2e4ec;border-radius:8px;font-size:14px;font-family:inherit;resize:vertical;box-sizing:border-box"></textarea></div>
+    </div>
+    <div style="margin-top:24px;display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap">
+      <button onclick="document.getElementById('newProjectOverlay').style.display='none';document.body.style.overflow=''" style="font-family:inherit;font-size:14px;font-weight:600;padding:11px 24px;border-radius:999px;border:1px solid #e2e4ec;background:transparent;cursor:pointer">Cancel</button>
+      <button id="npSubmitBtn" onclick="submitNewProject()" style="font-family:inherit;font-size:14px;font-weight:600;padding:11px 24px;border-radius:999px;border:none;background:var(--accent);color:#fff;cursor:pointer">Submit project →</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
