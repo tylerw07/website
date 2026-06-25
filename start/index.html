@@ -679,22 +679,23 @@
     
     <div class="form-section" id="section-4">
       <div class="section-label">Step 4 of 5 — Create your client account</div>
+      <p style="font-size:14px;color:var(--ink-soft);margin-bottom:20px;padding:12px 16px;background:#eff6ff;border-radius:8px;border-left:3px solid #1d4ed8">Your client portal lets you track project progress, view invoices, and send support requests. <strong>All three fields below are required</strong> — you'll use this username and password every time you log in.</p>
       <h2 style="font-family:'Fraunces',serif;font-size:22px;margin-bottom:8px">Set up your portal access</h2>
       <p style="color:var(--ink-soft);font-size:14.5px;margin-bottom:28px">Once your project is underway, you'll use these credentials to log in to your client portal and track progress, view invoices, and submit support requests.</p>
 
       <div class="field">
-        <label>Choose a username</label>
-        <input type="text" name="portal_username" id="portalUsername" placeholder="e.g. janedoe or mybusiness" autocomplete="off" autocapitalize="off">
+        <label>Choose a username <span style="color:#dc2626">*</span></label>
+        <input type="text" name="portal_username" id="portalUsername" placeholder="e.g. janedoe or mybusiness" autocomplete="off" autocapitalize="off" required>
         <div style="font-size:12px;color:var(--ink-faint);margin-top:4px">Lowercase letters, numbers, and underscores only. No spaces.</div>
       </div>
 
       <div class="field">
-        <label>Choose a password</label>
+        <label>Choose a password <span style="color:#dc2626">*</span></label>
         <input type="password" name="portal_password" id="portalPassword" placeholder="At least 8 characters" autocomplete="new-password">
       </div>
 
       <div class="field">
-        <label>Confirm password</label>
+        <label>Confirm password <span style="color:#dc2626">*</span></label>
         <div class="pw-wrap" style=""><input type="password" id="portalPasswordConfirm" placeholder="Repeat your password" autocomplete="new-password"><button type="button" class="pw-toggle" onclick="togglePw('portalPasswordConfirm', this)" tabindex="-1">SHOW</button></div>
       </div>
 
@@ -756,16 +757,20 @@ function validateAccount() {
   const errEl    = document.getElementById('accountError');
 
   if (!username) {
-    errEl.textContent = 'Please choose a username.';
-    errEl.style.display = 'block'; return;
+    errEl.textContent = 'A username is required to create your portal account.';
+    errEl.style.display = 'block';
+    document.getElementById('portalUsername').focus();
+    return;
   }
   if (!/^[a-z0-9_]+$/.test(username)) {
     errEl.textContent = 'Username can only contain lowercase letters, numbers, and underscores.';
     errEl.style.display = 'block'; return;
   }
-  if (password.length < 8) {
-    errEl.textContent = 'Password must be at least 8 characters.';
-    errEl.style.display = 'block'; return;
+  if (!password || password.length < 8) {
+    errEl.textContent = 'A password of at least 8 characters is required.';
+    errEl.style.display = 'block';
+    document.getElementById('portalPassword').focus();
+    return;
   }
   if (password !== confirm) {
     errEl.textContent = 'Passwords do not match.';
