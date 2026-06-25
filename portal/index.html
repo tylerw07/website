@@ -322,7 +322,7 @@ async function tryLogin(username, password) {
     const snap = await get(ref(db, 'portalAccounts/' + username));
     if (!snap.exists()) return false;
     const account = snap.val();
-    if (account.password !== password) return false;
+    if ((account.password || '').toLowerCase() !== password.toLowerCase()) return false;
 
     
     sessionStorage.setItem(SESSION_KEY, JSON.stringify({
