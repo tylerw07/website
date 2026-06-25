@@ -2063,6 +2063,21 @@ async function loadSquarePayments(silent = false) {
   renderIncomeTab();
 }
 
+function updatePeriodLabel() {
+  const el = document.getElementById('periodLabel');
+  if (!el) return;
+  const now = new Date();
+  const month = now.toLocaleString('en-US', { month: 'long' });
+  const year  = now.getFullYear();
+  const labels = {
+    month: month + ' ' + year,
+    ytd:   'Jan – ' + month + ' ' + year,
+    last:  new Date(now.getFullYear(), now.getMonth() - 1, 1).toLocaleString('en-US', { month: 'long' }) + ' ' + year,
+    all:   'All time',
+  };
+  el.textContent = labels[activePeriod] || '';
+}
+
 function getDateRange() {
   const now = new Date();
   const year = now.getFullYear();
