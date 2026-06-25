@@ -795,6 +795,7 @@
       <div class="field"><label>Business name</label><input type="text" id="fBusiness" placeholder="Rose's Events LLC"></div>
       <div class="field"><label>Client email</label><input type="email" id="fEmail" placeholder="rose@example.com"></div>
       <div class="field"><label>Client phone</label><input type="tel" id="fPhone" placeholder="(555) 000-0000"></div>
+      <div class="field full"><label>Address</label><textarea id="fAddress" rows="2" placeholder="123 Main St&#10;Greensburg, IN 47240" style="font-family:inherit;font-size:14px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;resize:vertical;width:100%;background:var(--bg);color:var(--ink)"></textarea></div>
       <div class="field"><label>Status *</label>
         <select id="fStatus">
           <option value="active">Active</option>
@@ -823,7 +824,7 @@
       <div class="field"><label>Stack / tech</label><input type="text" id="fStack" placeholder="Python, FastAPI, Postgres"></div>
       <div class="field"><label>Live URL</label><input type="url" id="fUrl" placeholder="https://client.newtraildesign.com"></div>
       <div class="field"><label>GitHub repo</label><input type="url" id="fRepo" placeholder="https://github.com/..."></div>
-      <div class="field"><label>Start date</label><input type="date" id="fStartDate"></div>
+      <div class="field"><label>Start date <span style="font-size:11px;color:var(--ink-faint);font-weight:400">(auto-set on deposit)</span></label><input type="date" id="fStartDate"></div>
       <div class="field"><label>Deadline / target date</label><input type="date" id="fDeadline"></div>
       <div class="section-divider">Billing</div>
       <div class="field"><label>Build fee ($)</label><input type="number" id="fBuildFee" placeholder="350" min="0"></div>
@@ -903,6 +904,7 @@
     <div class="detail-grid">
       <div class="detail-item"><div class="detail-label">Business</div><div class="detail-value" id="dBusiness"></div></div>
       <div class="detail-item"><div class="detail-label">Email</div><div class="detail-value" id="dEmail"></div></div>
+      <div class="detail-item" style="grid-column:1/-1"><div class="detail-label">Address</div><div class="detail-value" id="dAddress" style="white-space:pre-line"></div></div>
       <div class="detail-item"><div class="detail-label">Phone</div><div class="detail-value" id="dPhone"></div></div>
       <div class="detail-item"><div class="detail-label">Project type</div><div class="detail-value" id="dType"></div></div>
       <div class="detail-item"><div class="detail-label">Portal username</div><div class="detail-value" id="dPortalUser" style="font-family:'IBM Plex Mono',monospace;font-size:13px">—</div></div>
@@ -1139,7 +1141,7 @@ async function fbDelete(fbKey){
 
 function sClass(s){return{active:'status-active','in-development':'status-active',completed:'status-completed','on-hold':'status-on-hold',cancelled:'status-cancelled',archived:'status-archived'}[s]||'';}
 function sLabel(s){return{active:'Active','in-development':'In Development',completed:'Completed','on-hold':'On Hold',cancelled:'Cancelled',archived:'Archived'}[s]||s;}
-function fmtDate(d){if(!d)return'&#8212;';const p=d.split('-');return p.length===3?p[1]+'/'+p[2]+'/'+p[0]:d;}
+function fmtDate(d){if(!d)return'N/A';const p=d.split('-');return p.length===3?p[1]+'/'+p[2]+'/'+p[0]:d;}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 let activeFilter='all', searchTerm='', drawerProjectId=null;
@@ -1215,7 +1217,7 @@ function renderAll(){
     const depositDot = (!p.depositStatus || p.depositStatus === 'Not paid') ? '<span class="deposit-dot" title="Deposit not paid"></span>' : '';
     const card=document.createElement('div');
     card.className='project-card'; card.dataset.id=p._fbKey;
-    card.innerHTML=`<div class="project-card-top"><div><div class="project-name">${esc(p.name)}</div><div class="project-client">${esc(p.client)}${p.business?' &middot; '+esc(p.business):''}</div></div><span class="status-badge ${sClass(p.status)}">${sLabel(p.status)}</span></div><div class="project-meta"><div class="meta-item"><div class="meta-label">Type</div><div class="meta-value">${esc(p.type||'&#8212;')}</div></div><div class="meta-item"><div class="meta-label">Billing</div><div class="meta-value">${esc(p.paymentStatus||'&#8212;')}</div></div><div class="meta-item"><div class="meta-label">Started</div><div class="meta-value">${fmtDate(p.startDate)}</div></div><div class="meta-item"><div class="meta-label">Deadline</div><div class="meta-value">${fmtDate(p.deadline)}</div></div></div>${tags?'<div class="project-tags">'+tags+'</div>':''}<div class="project-card-footer"><div style="display:flex;gap:8px;align-items:center">${monthly}${payBadge}</div><div class="card-actions">${depositDot}${invoiceDot}<button class="btn btn-ghost btn-sm edit-btn" data-id="${p._fbKey}">Edit</button></div></div>`;
+    card.innerHTML=`<div class="project-card-top"><div><div class="project-name">${esc(p.name)}</div><div class="project-client">${esc(p.client)}${p.business?' &middot; '+esc(p.business):''}</div></div><span class="status-badge ${sClass(p.status)}">${sLabel(p.status)}</span></div><div class="project-meta"><div class="meta-item"><div class="meta-label">Type</div><div class="meta-value">${esc(p.type||'N/A')}</div></div><div class="meta-item"><div class="meta-label">Billing</div><div class="meta-value">${esc(p.paymentStatus||'N/A')}</div></div><div class="meta-item"><div class="meta-label">Started</div><div class="meta-value">${ p.depositStatus === "Paid" && p.startDate ? fmtDate(p.startDate) : "Awaiting deposit" }</div></div><div class="meta-item"><div class="meta-label">Deadline</div><div class="meta-value">${fmtDate(p.deadline)}</div></div></div>${tags?'<div class="project-tags">'+tags+'</div>':''}<div class="project-card-footer"><div style="display:flex;gap:8px;align-items:center">${monthly}${payBadge}</div><div class="card-actions">${depositDot}${invoiceDot}<button class="btn btn-ghost btn-sm edit-btn" data-id="${p._fbKey}">Edit</button></div></div>`;
     
     if (selectMode && selectedKeys.has(p._fbKey)) card.classList.add('selected');
 
@@ -1263,7 +1265,7 @@ function openModal(projectId){
   const p=projectId?projectsCache.find(x=>x._fbKey===projectId):null; editingId=p?p._fbKey:null;
   document.getElementById('modalTitle').textContent=p?'Edit project':'New project';
   document.getElementById('deleteProjectBtn').style.display=p?'block':'none';
-  const fields={fName:'name',fClient:'client',fBusiness:'business',fEmail:'email',fPhone:'phone',fStack:'stack',fUrl:'liveUrl',fRepo:'repo',fStartDate:'startDate',fDeadline:'deadline',fBuildFee:'buildFee',fNextBilling:'nextBilling',fBrief:'brief',fNotes:'notes',fClientHtml:'clientHtml'};
+  const fields={fName:'name',fClient:'client',fBusiness:'business',fEmail:'email',fPhone:'phone',fAddress:'address',fStack:'stack',fUrl:'liveUrl',fRepo:'repo',fStartDate:'startDate',fDeadline:'deadline',fBuildFee:'buildFee',fNextBilling:'nextBilling',fBrief:'brief',fNotes:'notes',fClientHtml:'clientHtml'};
   Object.keys(fields).forEach(function(fieldId){document.getElementById(fieldId).value=p?p[fields[fieldId]]||'':fieldId==='fBuildFee'?'350':'';});
   document.getElementById('fStatus').value=p?p.status:'active';
   document.getElementById('fType').value=p?p.type||'':'';
@@ -1306,6 +1308,7 @@ document.getElementById('modalSave').addEventListener('click', async function() 
     business:      document.getElementById('fBusiness').value.trim(),
     email:         document.getElementById('fEmail').value.trim(),
     phone:         document.getElementById('fPhone').value.trim(),
+    address:       document.getElementById('fAddress').value.trim(),
     status:        document.getElementById('fStatus').value,
     type:          document.getElementById('fType').value,
     stack:         document.getElementById('fStack').value.trim(),
@@ -1449,10 +1452,11 @@ function openDrawer(id){
   document.getElementById('drawerStatus').className='status-badge '+sClass(p.status);
   document.getElementById('drawerName').textContent=p.name;
   document.getElementById('drawerClient').textContent=p.client+(p.business?' · '+p.business:'');
-  document.getElementById('dBusiness').textContent=p.business||' - ';
-  document.getElementById('dEmail').innerHTML=p.email?'<a href="mailto:'+esc(p.email)+'" style="color:var(--accent)">'+esc(p.email)+'</a>':' - ';
-  document.getElementById('dPhone').textContent=p.phone||' - ';
-  document.getElementById('dType').textContent=p.type||' - ';
+  document.getElementById('dBusiness').textContent=p.business||'N/A';
+  document.getElementById('dEmail').innerHTML=p.email?'<a href="mailto:'+esc(p.email)+'" style="color:var(--accent)">'+esc(p.email)+'</a>':'N/A';
+  document.getElementById('dAddress').textContent = p.address || 'N/A';
+  document.getElementById('dPhone').textContent=p.phone||'N/A';
+  document.getElementById('dType').textContent=p.type||'N/A';
 
   const htmlSection = document.getElementById('drawerClientHtml');
   const htmlFrame   = document.getElementById('drawerClientHtmlFrame');
@@ -1467,12 +1471,14 @@ function openDrawer(id){
     htmlSection.style.display = 'none';
     htmlFrame.src = '';
   }
-  document.getElementById('dStack').textContent=p.stack||' - ';
+  document.getElementById('dStack').textContent=p.stack||'N/A';
   document.getElementById('dUrl').innerHTML=p.liveUrl?'<a href="'+esc(p.liveUrl)+'" target="_blank" style="color:var(--accent)">'+esc(p.liveUrl)+' ↗</a>':' - ';
   document.getElementById('dRepo').innerHTML=p.repo?'<a href="'+esc(p.repo)+'" target="_blank" style="color:var(--accent)">'+esc(p.repo)+' ↗</a>':' - ';
-  document.getElementById('dStart').innerHTML=fmtDate(p.startDate);
+  document.getElementById('dStart').innerHTML = p.depositStatus === 'Paid' && p.startDate
+    ? fmtDate(p.startDate)
+    : '<span style="color:var(--ink-faint);font-style:italic">Not started — awaiting deposit</span>';
   document.getElementById('dDeadline').innerHTML=fmtDate(p.deadline);
-  document.getElementById('dBuildFee').textContent=p.buildFee?'$'+p.buildFee:' - ';
+  document.getElementById('dBuildFee').textContent=p.buildFee?'$'+p.buildFee:'N/A';
   const setupFeeEl = document.getElementById('dSetupFee');
   if (setupFeeEl) {
     setupFeeEl.textContent = p.setupFee ? '$50 (applies)' : 'None';
@@ -1480,7 +1486,7 @@ function openDrawer(id){
   }
   const payStatus = p.paymentStatus || '';
   const payClass = payStatus === 'Paid in full' ? 'pay-paid' : payStatus === 'Overdue' ? 'pay-overdue' : payStatus === 'Deposit paid' ? 'pay-deposit' : payStatus ? 'pay-unpaid' : '';
-  document.getElementById('dPayment').innerHTML = payClass ? '<span class="'+payClass+'">'+esc(payStatus)+'</span>' : ' - ';
+  document.getElementById('dPayment').innerHTML = payClass ? '<span class="'+payClass+'">'+esc(payStatus)+'</span>' : 'N/A';
   document.getElementById('dInvoiceLink').innerHTML = '<a href="/invoice?fbkey='+encodeURIComponent(p._fbKey||'')+'" target="_blank" style="color:var(--accent)">Open invoice ↗</a>';
   if (p.hosting) {
     const annualAmt = (parseFloat(p.hosting) * 12).toFixed(0);
@@ -1552,7 +1558,7 @@ function openDrawer(id){
       activateBtn.disabled = false;
       activateBtn.style.opacity = '1';
       activateBtn.style.cursor = 'pointer';
-      document.getElementById('dSubStatus').textContent = p.hosting ? 'Not yet activated' : ' - ';
+      document.getElementById('dSubStatus').textContent = p.hosting ? 'Not yet activated' : 'N/A';
     }
   } else {
     activateBtn.style.display = 'none';
@@ -1837,10 +1843,10 @@ document.getElementById('drawerMarkDepositPaid').addEventListener('click', funct
   const depositUpdate = { depositStatus: isPaid ? 'Not paid' : 'Paid' };
   if (!isPaid) {
     depositUpdate.depositPaidAt = Date.now();
-    if (!p.startDate) {
-      depositUpdate.startDate = new Date().toISOString().split('T')[0];
-    }
-    depositUpdate.status = p.status === 'active' ? 'active' : p.status;
+    depositUpdate.startDate = new Date().toISOString().split('T')[0];
+  } else {
+    depositUpdate.startDate = '';
+    depositUpdate.depositPaidAt = null;
   }
   fbSave(Object.assign({}, p, depositUpdate), p._fbKey)
     .then(function() { openDrawer(drawerProjectId); })
