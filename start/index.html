@@ -390,15 +390,25 @@
 
 <div class="wrap">
 
+  <div id="returningGate" style="max-width:560px;margin:60px auto 0;text-align:center">
+    <p class="eyebrow" style="margin-bottom:12px">Start a project</p>
+    <h1 style="font-family:'Fraunces',serif;font-size:clamp(28px,4vw,40px);margin-bottom:16px">Have you worked with us before?</h1>
+    <p style="color:var(--ink-soft);font-size:17px;margin-bottom:40px">This helps us pull up your existing info so you don't have to fill it out again.</p>
+    <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-ghost" style="font-size:16px;padding:16px 36px" id="returningYes">Yes, I'm a returning client</button>
+      <button class="btn btn-primary" style="font-size:16px;padding:16px 36px" id="returningNo">No, this is my first time</button>
+    </div>
+  </div>
+
   
-  <div class="page-head" id="formHead">
+  <div class="page-head" id="formHead" style="display:none">
     <p class="eyebrow">Start a project</p>
     <h1>Tell us about your idea</h1>
     <p>Fill in the details below — the more you share, the better we can scope your project and get back to you quickly.</p>
   </div>
 
   
-  <div class="progress" id="progressBar">
+  <div class="progress" id="progressBar" style="display:none">
     <div class="progress-step active" id="step-indicator-1">
       <div class="step-circle" id="step-circle-1">1</div>
       <span>About you</span>
@@ -426,7 +436,7 @@
   </div>
 
   
-  <form id="intakeForm">
+  <form id="intakeForm" style="display:none">
     <input type="hidden" name="access_key" value="c532615a-c40a-48f0-8ea4-174109630bac">
     <input type="hidden" name="subject" value="New project inquiry — New Trail Design">
     <input type="checkbox" name="botcheck" style="display:none" tabindex="-1" autocomplete="off">
@@ -452,14 +462,34 @@
       </div>
 
       <div class="field">
-        <label>Phone number</label>
-        <input type="tel" name="phone" id="phone" autocomplete="tel" placeholder="(555) 000-0000">
-        <span class="field-hint">Optional — helpful if we need to hop on a quick call.</span>
+        <label>Phone number <span class="req">*</span></label>
+        <input type="tel" name="phone" id="phone" autocomplete="tel" placeholder="(555) 000-0000" required>
       </div>
 
       <div class="field">
-        <label>Business / organization name</label>
-        <input type="text" name="business_name" id="businessName" autocomplete="organization" placeholder="Rose's Events LLC">
+        <label>Business / organization name <span class="req">*</span></label>
+        <input type="text" name="business_name" id="businessName" autocomplete="organization" placeholder="Rose's Events LLC" required>
+        <span class="field-hint">If you're an individual, enter your full name.</span>
+      </div>
+
+      <div class="field">
+        <label>Street address <span class="req">*</span></label>
+        <input type="text" name="street_address" id="streetAddress" autocomplete="street-address" placeholder="123 Main St" required>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>City <span class="req">*</span></label>
+          <input type="text" name="city" id="city" autocomplete="address-level2" placeholder="Springfield" required>
+        </div>
+        <div class="field" style="max-width:120px">
+          <label>State <span class="req">*</span></label>
+          <input type="text" name="state" id="state" autocomplete="address-level1" placeholder="IN" maxlength="2" required style="text-transform:uppercase">
+        </div>
+        <div class="field" style="max-width:130px">
+          <label>ZIP <span class="req">*</span></label>
+          <input type="text" name="zip" id="zip" autocomplete="postal-code" placeholder="47240" maxlength="10" required>
+        </div>
       </div>
 
       <div class="field">
@@ -813,11 +843,23 @@ function goToStep(step) {
 
 function validateStep(step) {
   if (step === 1) {
-    const first = document.getElementById('firstName').value.trim();
-    const last  = document.getElementById('lastName').value.trim();
-    const email = document.getElementById('email').value.trim();
+    const first   = document.getElementById('firstName').value.trim();
+    const last    = document.getElementById('lastName').value.trim();
+    const email   = document.getElementById('email').value.trim();
+    const phone   = document.getElementById('phone').value.trim();
+    const biz     = document.getElementById('businessName').value.trim();
+    const street  = document.getElementById('streetAddress').value.trim();
+    const city    = document.getElementById('city').value.trim();
+    const state   = document.getElementById('state').value.trim();
+    const zip     = document.getElementById('zip').value.trim();
     if (!first || !last) { showStepError('Please enter your first and last name.'); return false; }
     if (!email || !/\S+@\S+\.\S+/.test(email)) { showStepError('Please enter a valid email address.'); return false; }
+    if (!phone) { showStepError('Please enter a phone number.'); return false; }
+    if (!biz) { showStepError('Please enter your business or organization name.'); return false; }
+    if (!street) { showStepError('Please enter your street address.'); return false; }
+    if (!city) { showStepError('Please enter your city.'); return false; }
+    if (!state) { showStepError('Please enter your state.'); return false; }
+    if (!zip) { showStepError('Please enter your ZIP code.'); return false; }
   }
   if (step === 2) {
     const name = document.getElementById('projectName').value.trim();
@@ -890,6 +932,7 @@ function buildReview() {
         ['Email', val('email')],
         ['Phone', val('phone')],
         ['Business', val('businessName')],
+        ['Address', [val('streetAddress'), val('city') + (val('state') ? ', ' + val('state') : '') + ' ' + val('zip')].filter(Boolean).join(', ')],
         ['Industry', val('industry') || '—'],
         ['Referral', val('referralSource') || '—'],
       ]
@@ -973,6 +1016,7 @@ async function createProjectInFirebase(payload) {
     business:      payload.business_name || '',
     email:         payload.email || '',
     phone:         payload.phone || '',
+    address:       [payload.street_address, payload.city && payload.state ? payload.city + ', ' + payload.state.toUpperCase() + ' ' + (payload.zip || '') : payload.city || ''].filter(Boolean).join('\n'),
     status:        'active',
 
     
@@ -1020,28 +1064,45 @@ async function createProjectInFirebase(payload) {
       serviceState.backend ? 'backend' : '',
     ].filter(Boolean),
 
+    depositStatus: 'Not paid',
     createdAt: Date.now(),
     updatedAt: Date.now(),
   };
 
   const newRef = push(ref(db, 'projects'));
-  await set(newRef, project);
-
-  
   const portalUser = (document.getElementById('portalUsername')?.value || '').trim().toLowerCase();
   const portalPass = document.getElementById('portalPassword')?.value || '';
+
+  if (portalUser) {
+    project.portalUsername = portalUser;
+  }
+
+  await set(newRef, project);
+
   if (portalUser && portalPass) {
     await set(ref(db, 'portalAccounts/' + portalUser), {
-      password: portalPass,
+      password:   portalPass,
       projectKey: newRef.key,
-      email: payload.email || '',
-      name: ((payload.first_name || '') + ' ' + (payload.last_name || '')).trim(),
-      createdAt: Date.now(),
+      email:      payload.email || '',
+      name:       ((payload.first_name || '') + ' ' + (payload.last_name || '')).trim(),
+      username:   portalUser,
+      createdAt:  Date.now(),
     });
   }
 }
 
 window.goToStep = goToStep;
+
+document.getElementById('returningNo').addEventListener('click', function() {
+  document.getElementById('returningGate').style.display = 'none';
+  document.getElementById('formHead').style.display = '';
+  document.getElementById('progressBar').style.display = '';
+  document.getElementById('intakeForm').style.display = '';
+});
+
+document.getElementById('returningYes').addEventListener('click', function() {
+  window.location.href = '/portal';
+});
 window.toggleService = toggleService;
 window.validateAccount = validateAccount;
 
@@ -1067,6 +1128,7 @@ document.getElementById('intakeForm').addEventListener('submit', async function(
     botcheck:          '',
     phone:             payload.phone || '',
     business:          payload.business_name || '',
+    address:           [payload.street_address, payload.city && payload.state ? payload.city + ', ' + payload.state.toUpperCase() + ' ' + (payload.zip || '') : ''].filter(Boolean).join(', '),
     industry:          payload.industry || '',
     referral_source:   payload.referral_source || '',
     project_name:      payload.project_name || '',
