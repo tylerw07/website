@@ -1155,17 +1155,16 @@ function exitSelectMode() {
 }
 
 function renderAll(){
-  const projects=projectsCache;
-  document.getElementById('statTotal').textContent=projects.length;
-  document.getElementById('statActive').textContent=projects.filter(p=>p.status==='active').length;
-  const archivedCount = projects.filter(p=>p.status==='archived').length;
+  document.getElementById('statTotal').textContent=projectsCache.length;
+  document.getElementById('statActive').textContent=projectsCache.filter(p=>p.status==='active').length;
+  const archivedCount = projectsCache.filter(p=>p.status==='archived').length;
   const archStatEl = document.getElementById('statArchived');
   if (archStatEl) archStatEl.textContent = archivedCount;
-  document.getElementById('statCompleted').textContent=projects.filter(p=>p.status==='completed').length;
-  const mrr=projects.filter(p=>p.status==='active'&&p.hosting).reduce((s,p)=>s+parseInt(p.hosting||0),0);
+  document.getElementById('statCompleted').textContent=projectsCache.filter(p=>p.status==='completed').length;
+  const mrr=projectsCache.filter(p=>p.status==='active'&&p.hosting).reduce((s,p)=>s+parseInt(p.hosting||0),0);
   document.getElementById('statMRR').textContent='$'+mrr;
 
-  let filtered=projects.filter(function(p){
+  let filtered=projectsCache.filter(function(p){
     if(activeFilter==='all'&&p.status==='archived')return false;
     if(activeFilter!=='all'&&p.status!==activeFilter)return false;
     if(searchTerm){const q=searchTerm.toLowerCase();const hay=[p.name,p.client,p.business,p.email,p.type,p.stack,(p.tags||[]).join(' '),p.notes,p.brief].join(' ').toLowerCase();if(!hay.includes(q))return false;}
@@ -1176,7 +1175,7 @@ function renderAll(){
   grid.innerHTML='';
 
   if(!filtered.length){
-    grid.innerHTML='<div class="empty-state"><h3>'+(projects.length===0?'No projects yet':'No results')+'</h3><p>'+(projects.length===0?'Click &ldquo;New project&rdquo; to add your first client.':'Try a different search or filter.')+'</p></div>';
+    grid.innerHTML='<div class="empty-state"><h3>'+(projectsCache.length===0?'No projects yet':'No results')+'</h3><p>'+(projectsCache.length===0?'Click &ldquo;New project&rdquo; to add your first client.':'Try a different search or filter.')+'</p></div>';
     return;
   }
 
@@ -1239,7 +1238,7 @@ document.getElementById('searchBox').addEventListener('input',function(){searchT
 let editingId=null;
 
 function openModal(projectId){
-  const projects=projectsCache; const p=projectId?projects.find(x=>x._fbKey===projectId):null; editingId=p?p._fbKey:null;
+  const p=projectId?projectsCache.find(x=>x._fbKey===projectId):null; editingId=p?p._fbKey:null;
   document.getElementById('modalTitle').textContent=p?'Edit project':'New project';
   document.getElementById('deleteProjectBtn').style.display=p?'block':'none';
   const fields={fName:'name',fClient:'client',fBusiness:'business',fEmail:'email',fPhone:'phone',fStack:'stack',fUrl:'liveUrl',fRepo:'repo',fStartDate:'startDate',fDeadline:'deadline',fBuildFee:'buildFee',fNextBilling:'nextBilling',fBrief:'brief',fNotes:'notes',fClientHtml:'clientHtml'};
