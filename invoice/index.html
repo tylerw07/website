@@ -371,7 +371,7 @@ function showError(msg) {
 
 function buildPaySection(payUrl, payUrlReady, total) {
   if (!payUrlReady) {
-    return '<div class="inv-pay-section"><h3>Pay this invoice online</h3><p>Payment link coming soon  -  contact us at <a href="mailto:tyler@newtraildesign.com" style="color:var(--accent)">tyler@newtraildesign.com</a></p></div>';
+    return '<div class="inv-pay-section"><h3>Questions about this invoice?</h3><p>Contact us at <a href="mailto:tyler@newtraildesign.com" style="color:var(--accent);font-weight:600">tyler@newtraildesign.com</a></p></div>';
   }
   return '<div class="inv-pay-section"><h3>Pay this invoice online</h3><p>Secure payment powered by Square. All major cards accepted.</p><a href="' + esc(payUrl) + '" target="_blank">Pay $' + total.toFixed(2) + ' now →</a></div>';
 }
@@ -534,24 +534,46 @@ async function buildInvoice(p, fbKey) {
   document.title = invoiceNum + '  -  ' + esc(p.client || 'Invoice') + '  -  New Trail Design';
 }
 
-function downloadPDF() {
-  const btn = document.getElementById('downloadPdfBtn');
-  if (btn) { btn.textContent = 'Preparing PDF...'; btn.disabled = true; }
-  
-  const originalTitle = document.title;
-  const invNum = document.querySelector('.inv-number');
+function setInvoiceTitle() {
+  const invNum   = document.querySelector('.inv-number');
   const clientEl = document.querySelector('.inv-party-name');
   if (invNum && clientEl) {
-    document.title = 'Invoice-' + invNum.textContent.trim() + '-' + clientEl.textContent.trim().replace(/\s+/g,'-') + '-NewTrailDesign';
+    document.title = 'Invoice-' + invNum.textContent.trim() + '-' + clientEl.textContent.trim().replace(/\s+/g, '-') + '-NewTrailDesign';
   } else {
     document.title = 'Invoice-NewTrailDesign';
   }
+}
+
+function downloadPDF() {
+  const btn = document.getElementById('downloadPdfBtn');
+  const originalTitle = document.title;
+  if (btn) { btn.textContent = 'Preparing...'; btn.disabled = true; }
+  setInvoiceTitle();
   setTimeout(function() {
     window.print();
-    document.title = originalTitle;
-    if (btn) { btn.textContent = ' Download PDF'; btn.disabled = false; }
-  }, 300);
+    setTimeout(function() {
+      document.title = originalTitle;
+      if (btn) { btn.textContent = 'Download invoice'; btn.disabled = false; }
+    }, 1000);
+  }, 200);
 }
+
+function triggerPrint() {
+  const btn = document.getElementById('printBtn');
+  const originalTitle = document.title;
+  setInvoiceTitle();
+  if (btn) { btn.textContent = 'Printing...'; btn.disabled = true; }
+  setTimeout(function() {
+    window.print();
+    setTimeout(function() {
+      document.title = originalTitle;
+      if (btn) { btn.textContent = 'Print'; btn.disabled = false; }
+    }, 1000);
+  }, 200);
+}
+
+window.downloadPDF   = downloadPDF;
+window.triggerPrint  = triggerPrint;
 
 const params = new URLSearchParams(window.location.search);
 const fbKey = params.get('fbkey');
