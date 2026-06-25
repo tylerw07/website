@@ -246,38 +246,52 @@
     gap: 8px;
   }
 
-  
-  .inv-download-btn {
-    text-align: center;
-    padding: 28px 40px 0;
-  }
-  .inv-download-btn button {
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 15px;
-    font-weight: 600;
-    padding: 13px 28px;
-    border-radius: 999px;
-    border: 2px solid var(--accent);
-    background: transparent;
-    color: var(--accent);
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .inv-download-btn button:hover { background: var(--accent); color: white; }
+
   @media print {
+    @page {
+      margin: 0.35in;
+      size: letter portrait;
+    }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+    html, body { height: auto !important; overflow: visible !important; background: white !important; margin: 0 !important; padding: 0 !important; }
     .screen-bar { display: none !important; }
-    .inv-download-btn { display: none !important; }
-    body { background: white !important; margin: 0; }
-    #invoiceWrap { display: block !important; padding: 0; }
-    .invoice { border: none !important; border-radius: 0 !important; box-shadow: none !important; max-width: 100%; }
+    #invoiceWrap { display: block !important; padding: 0 !important; }
+    .invoice {
+      border: none !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      max-width: 100% !important;
+      width: 100% !important;
+      page-break-inside: avoid;
+    }
     .inv-pay-section { display: none !important; }
-    .inv-header { background: #13182b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
-    .inv-status-banner { -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
-    .inv-total-final-row { -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
-    @page { margin: 0.5in; size: letter; }
+
+    /* Scale everything down to ensure single page fit */
+    .inv-header { padding: 18px 24px !important; }
+    .inv-brand { font-size: 16px !important; }
+    .inv-brand-sub { font-size: 10px !important; }
+    .inv-number { font-size: 14px !important; }
+    .inv-date { font-size: 11px !important; }
+    .inv-label { font-size: 9px !important; }
+
+    .inv-body { padding: 18px 24px !important; }
+    .inv-parties { margin-bottom: 16px !important; }
+    .inv-party-name { font-size: 13px !important; }
+    .inv-party-detail { font-size: 11px !important; line-height: 1.4 !important; }
+
+    .inv-table th { font-size: 9px !important; padding: 0 0 6px !important; }
+    .inv-table td { padding: 8px 0 !important; font-size: 12px !important; }
+    .inv-item-name { font-size: 12px !important; margin-bottom: 2px !important; }
+    .inv-item-desc { font-size: 10.5px !important; }
+    .inv-table { margin-bottom: 14px !important; }
+
+    .inv-totals { gap: 5px !important; margin-bottom: 16px !important; }
+    .inv-total-row { font-size: 12px !important; gap: 32px !important; }
+    .inv-grand-total .t-label { font-size: 13px !important; }
+    .inv-grand-total .t-amount { font-size: 20px !important; }
+
+    .inv-footer { padding: 10px 24px !important; font-size: 11px !important; }
+    .inv-status-banner { font-size: 11px !important; padding: 8px 14px !important; }
   }
 
   @media (max-width: 520px) {
@@ -292,12 +306,12 @@
 </head>
 <body>
 
-<div class="screen-bar" id="screenBar" style="display:none">
-  <a href="/projects" class="logo" style="display:flex;align-items:center"><img src="/logo.png" width="28" height="28" alt="New Trail Design" aria-hidden="true" style="flex-shrink:0;vertical-align:middle;margin-right:8px">New Trail <span>Design</span></a>
+<div class="screen-bar" id="screenBar">
+  <a href="/" class="logo" style="display:flex;align-items:center"><img src="/logo.png" width="28" height="28" alt="New Trail Design" aria-hidden="true" style="flex-shrink:0;vertical-align:middle;margin-right:8px">New Trail <span>Design</span></a>
   <div class="screen-actions">
-    <button class="btn btn-primary" id="downloadPdfBtn" onclick="downloadPDF()"> Download PDF</button>
-    <button class="btn btn-ghost" onclick="window.print()"> Print</button>
-    <a href="/projects" class="btn btn-ghost">← Projects</a>
+    <button class="btn btn-primary" id="downloadPdfBtn" onclick="downloadPDF()">Download invoice</button>
+    <button class="btn btn-ghost" id="printBtn" onclick="triggerPrint()">Print</button>
+    <a href="/portal" class="btn btn-ghost">← Client portal</a>
   </div>
 </div>
 
@@ -506,9 +520,7 @@ async function buildInvoice(p, fbKey) {
 
       </div>
 
-      <div class="inv-download-btn">
-        <button onclick="downloadPDF()"> Download invoice as PDF</button>
-      </div>
+
       <div class="inv-footer">
         <span>Thank you for choosing New Trail Design.</span>
         <span style="font-family:'IBM Plex Mono',monospace;font-size:11px">${esc(invoiceNum)}</span>
