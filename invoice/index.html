@@ -8,6 +8,8 @@
 <title>Invoice — New Trail Design</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -544,18 +546,67 @@ function setInvoiceTitle() {
   }
 }
 
-function downloadPDF() {
+async function downloadPDF() {
   const btn = document.getElementById('downloadPdfBtn');
-  const originalTitle = document.title;
-  if (btn) { btn.textContent = 'Preparing...'; btn.disabled = true; }
-  setInvoiceTitle();
-  setTimeout(function() {
-    window.print();
-    setTimeout(function() {
-      document.title = originalTitle;
-      if (btn) { btn.textContent = 'Download invoice'; btn.disabled = false; }
-    }, 1000);
-  }, 200);
+  if (btn) { btn.textContent = 'Generating PDF...'; btn.disabled = true; }
+
+  try {
+    const invoice = document.querySelector('.invoice');
+    if (!invoice) throw new Error('Invoice element not found');
+
+    const screenBar = document.getElementById('screenBar');
+    const paySection = invoice.querySelector('.inv-pay-section');
+    if (screenBar) screenBar.style.display = 'none';
+    if (paySection) paySection.style.display = 'none';
+
+    const canvas = await html2canvas(invoice, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+      windowWidth: invoice.scrollWidth,
+      windowHeight: invoice.scrollHeight,
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'pt',
+      format: 'letter',
+    });
+
+    const pageW  = pdf.internal.pageSize.getWidth();
+    const pageH  = pdf.internal.pageSize.getHeight();
+    const margin = 36;
+    const usableW = pageW - margin * 2;
+    const ratio  = canvas.width / canvas.height;
+    let imgH = usableW / ratio;
+    let imgY = margin;
+
+    if (imgH > pageH - margin * 2) {
+      imgH = pageH - margin * 2;
+    }
+
+    pdf.addImage(imgData, 'PNG', margin, imgY, usableW, imgH);
+
+    const invNum  = document.querySelector('.inv-number');
+    const clientEl = document.querySelector('.inv-party-name');
+    const filename = invNum && clientEl
+      ? 'Invoice-' + invNum.textContent.trim() + '-' + clientEl.textContent.trim().replace(/\s+/g, '-') + '-NewTrailDesign.pdf'
+      : 'Invoice-NewTrailDesign.pdf';
+
+    pdf.save(filename);
+
+    if (screenBar) screenBar.style.display = 'flex';
+    if (paySection) paySection.style.display = '';
+
+  } catch(err) {
+    alert('PDF generation failed. Use the Print button and select "Save as PDF" instead.');
+    console.error(err);
+  } finally {
+    if (btn) { btn.textContent = 'Download invoice'; btn.disabled = false; }
+  }
 }
 
 function triggerPrint() {
