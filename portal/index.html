@@ -139,6 +139,10 @@
     <div class="field"><label>Username</label><input type="text" id="loginUser" autocomplete="username"></div>
     <div class="field"><label>Password</label><div class="pw-wrap" style=""><input type="password" id="loginPass" autocomplete="current-password"><button type="button" class="pw-toggle" onclick="togglePw('loginPass', this)" tabindex="-1">SHOW</button></div></div>
     <button class="btn btn-primary btn-full" id="loginBtn">Sign in →</button>
+    <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--ink-faint)">
+      Forgot your password?
+      <a href="mailto:tyler@newtraildesign.com?subject=Portal%20Password%20Reset&body=Hi%20Tyler%2C%20I%20forgot%20my%20portal%20password.%20My%20portal%20username%20is%3A%20" style="color:var(--accent);text-decoration:none;font-weight:600">Email us to reset it</a>
+    </p>
     <p style="font-size:12.5px;color:var(--ink-faint);margin-top:16px;text-align:center">Don't have an account yet? <a href="/start" style="color:var(--accent)">Start a project</a></p>
   </div>
 </div>
@@ -245,6 +249,13 @@
           <span style="font-size:13px;color:var(--ink-soft)" id="pNextBillingAmt"></span>
         </div>
         <div style="font-size:12px;color:var(--ink-soft);margin-top:4px" id="pNextBillingNote"></div>
+      </div>
+
+      <div id="pPaymentActions" style="display:none;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--line)">
+        <button id="pPayDepositBtn" style="display:none" class="btn btn-primary">Pay $100 deposit</button>
+        <button id="pPayBalanceBtn" style="display:none" class="btn btn-primary">Pay build fee balance</button>
+        <button id="pPaySubscriptionBtn" style="display:none" class="btn btn-primary">Pay annual subscription</button>
+        <a id="pViewInvoiceBtn" style="display:none;text-decoration:none" class="btn btn-ghost" href="#" target="_blank">View invoice</a>
       </div>
 
       <div style="border-top:1px solid var(--line);padding-top:16px">
@@ -466,6 +477,150 @@ async function renderProject(p) {
   
   document.getElementById('pBuildFee').textContent = p.buildFee ? '$' + p.buildFee : '—';
   document.getElementById('pHosting').textContent = p.hosting ? '$' + p.hosting + '/mo (billed annually)' : 'No subscription plan';
+
+  const WORKER = 'https://create-subscription.tylerreedwilliams.workers.dev';
+  const depositPaidAlready = p.depositStatus === 'Paid';
+  const fullyPaid = p.paymentStatus === 'Paid in full';
+  const depositPaidStatus = p.depositStatus === 'Paid';
+  const actionsWrap      = document.getElementById('pPaymentActions');
+  const depositBtn       = document.getElementById('pPayDepositBtn');
+  const balanceBtn       = document.getElementById('pPayBalanceBtn');
+  const subscriptionBtn  = document.getElementById('pPaySubscriptionBtn');
+  const invoiceLink      = document.getElementById('pViewInvoiceBtn');
+
+  let showActions = false;
+
+  if (!depositPaidStatus) {
+    depositBtn.style.display = 'inline-flex';
+    depositBtn.textContent = 'Pay $100 deposit';
+    showActions = true;
+  } else {
+    depositBtn.style.display = 'none';
+  }
+
+  if (depositPaidStatus && !fullyPaid && p.buildFee) {
+    const balance = Math.max(0, parseFloat(p.buildFee) - 100 + (p.setupFee ? 50 : 0)).toFixed(0);
+    balanceBtn.style.display = 'inline-flex';
+    balanceBtn.textContent = 'Pay balance ($' + balance + ')';
+    showActions = true;
+  } else {
+    balanceBtn.style.display = 'none';
+  }
+
+  if (p.hosting && p.nextBilling) {
+    const dueMs = new Date(p.nextBilling) - new Date();
+    const dueDays = Math.ceil(dueMs / (1000 * 60 * 60 * 24));
+    const annualAmt = (parseFloat(p.hosting) * 12).toFixed(0);
+    if (dueDays <= 30 || dueDays < 0) {
+      subscriptionBtn.style.display = 'inline-flex';
+      subscriptionBtn.textContent = 'Pay annual subscription ($' + annualAmt + ')';
+      showActions = true;
+    } else {
+      subscriptionBtn.style.display = 'none';
+    }
+  } else {
+    subscriptionBtn.style.display = 'none';
+  }
+
+  if (currentProjectKey) {
+    invoiceLink.href = '/invoice?fbkey=' + encodeURIComponent(currentProjectKey);
+    invoiceLink.style.display = 'inline-flex';
+    showActions = true;
+  }
+
+  actionsWrap.style.display = showActions ? 'flex' : 'none';
+
+  depositBtn.onclick = async function() {
+    const orig = depositBtn.textContent;
+    depositBtn.disabled = true;
+    depositBtn.textContent = 'Generating link...';
+    try {
+      const res = await fetch(WORKER + '/payment-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectName: p.name || 'Project',
+          clientName:  p.client || 'Client',
+          amountCents: 10000,
+          note:        'Deposit payment — ' + (p.name || 'Project'),
+          fbKey:       currentProjectKey,
+        })
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.open(data.url, '_blank');
+      } else {
+        alert('Could not generate payment link. Please contact us directly.');
+      }
+    } catch(err) {
+      alert('Payment link failed. Please contact us directly.');
+    } finally {
+      depositBtn.disabled = false;
+      depositBtn.textContent = orig;
+    }
+  };
+
+  balanceBtn.onclick = async function() {
+    const balance = Math.max(0, parseFloat(p.buildFee) - 100 + (p.setupFee ? 50 : 0));
+    const orig = balanceBtn.textContent;
+    balanceBtn.disabled = true;
+    balanceBtn.textContent = 'Generating link...';
+    try {
+      const res = await fetch(WORKER + '/payment-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectName: p.name || 'Project',
+          clientName:  p.client || 'Client',
+          amountCents: Math.round(balance * 100),
+          note:        'Build fee balance — ' + (p.name || 'Project'),
+          fbKey:       currentProjectKey,
+        })
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.open(data.url, '_blank');
+      } else {
+        alert('Could not generate payment link. Please contact us directly.');
+      }
+    } catch(err) {
+      alert('Payment link failed. Please contact us directly.');
+    } finally {
+      balanceBtn.disabled = false;
+      balanceBtn.textContent = orig;
+    }
+  };
+
+  subscriptionBtn.onclick = async function() {
+    const annualAmt = (parseFloat(p.hosting) * 12).toFixed(0);
+    const orig = subscriptionBtn.textContent;
+    subscriptionBtn.disabled = true;
+    subscriptionBtn.textContent = 'Generating link...';
+    try {
+      const res = await fetch(WORKER + '/payment-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectName: p.name || 'Project',
+          clientName:  p.client || 'Client',
+          amountCents: Math.round(parseFloat(annualAmt) * 100),
+          note:        'Annual subscription — ' + (p.name || 'Project') + ' ($' + p.hosting + '/mo x 12)',
+          fbKey:       currentProjectKey,
+        })
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.open(data.url, '_blank');
+      } else {
+        alert('Could not generate payment link. Please contact us directly.');
+      }
+    } catch(err) {
+      alert('Payment link failed. Please contact us directly.');
+    } finally {
+      subscriptionBtn.disabled = false;
+      subscriptionBtn.textContent = orig;
+    }
+  };
 
   const nextBillingWrap = document.getElementById('pNextBillingWrap');
   const nextBillingDate = document.getElementById('pNextBillingDate');
