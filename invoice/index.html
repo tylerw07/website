@@ -446,6 +446,9 @@ async function buildInvoice(p, fbKey) {
     : monthlyFee === 35 ? 'Backend & database'
     : monthlyFee === 20 ? 'Hosting'
     : null;
+  const nextBillingDate = p.nextBilling
+    ? new Date(p.nextBilling).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    : 'renewal date TBD';
 
   const lineItems = [
     { name: 'Custom app build', desc: esc(p.name || 'Custom application') + '  -  designed and built from scratch', amount: buildFee },
