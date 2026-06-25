@@ -385,7 +385,7 @@
       <button class="tab-btn active" data-tab="projects">Projects</button>
       <button class="tab-btn" data-tab="clients-db">Client Directory</button>
       <button class="tab-btn" data-tab="income">Income & Expenses</button>
-      <button class="tab-btn" data-tab="clients">Client Bills</button>
+      <button class="tab-btn" data-tab="clients">Client Bills <span id="billingBadge" style="display:none;background:var(--red);color:#fff;font-size:10px;padding:1px 6px;border-radius:999px;margin-left:4px;font-family:'IBM Plex Mono',monospace"></span></button>
       <button class="tab-btn" data-tab="support">Support Queue <span id="openRequestsBadge" style="display:none;background:var(--red);color:#fff;font-size:10px;padding:1px 6px;border-radius:999px;margin-left:4px;font-family:'IBM Plex Mono',monospace">0</span></button>
       <button class="tab-btn" data-tab="docs">Tax Reference</button>
       <button class="tab-btn" data-tab="w9">W-9</button>
@@ -1863,9 +1863,17 @@ document.querySelectorAll('.tab-btn').forEach(function(btn) {
     }
     if (this.dataset.tab === 'clients') {
       renderClientTab();
+      sessionStorage.setItem('nt_billing_seen', String(projects.filter(p => !p.paymentStatus || p.paymentStatus === 'Unpaid' || p.paymentStatus === 'Overdue').length));
+      const bb = document.getElementById('billingBadge');
+      if (bb) bb.style.display = 'none';
     }
     if (this.dataset.tab === 'clients-db') {
       renderClientDB();
+    }
+    if (this.dataset.tab === 'support') {
+      sessionStorage.setItem('nt_support_seen', String(allSupportRequests.filter(r => !r.status || r.status === 'Open').length));
+      const sb = document.getElementById('openRequestsBadge');
+      if (sb) sb.style.display = 'none';
     }
   });
 });
@@ -2287,9 +2295,23 @@ function renderClientTab() {
 
   
   document.getElementById('clientTotal').textContent = projects.length;
-  document.getElementById('clientOutstanding').textContent = projects.filter(p => !p.paymentStatus || p.paymentStatus === 'Unpaid' || p.paymentStatus === 'Overdue').length;
+  const outstandingCount = projects.filter(p => !p.paymentStatus || p.paymentStatus === 'Unpaid' || p.paymentStatus === 'Overdue').length;
+  document.getElementById('clientOutstanding').textContent = outstandingCount;
   document.getElementById('clientPaid').textContent = projects.filter(p => p.paymentStatus === 'Paid in full').length;
   document.getElementById('clientSubs').textContent = projects.filter(p => p.squareInvoiceId).length;
+
+  const billingBadge = document.getElementById('billingBadge');
+  if (billingBadge) {
+    const billingKey = 'nt_billing_seen_' + outstandingCount;
+    const alreadySeen = sessionStorage.getItem('nt_billing_seen') === String(outstandingCount);
+    const onClientsTab = document.querySelector('[data-tab="clients"]')?.classList.contains('active');
+    if (outstandingCount > 0 && !alreadySeen && !onClientsTab) {
+      billingBadge.textContent = outstandingCount;
+      billingBadge.style.display = 'inline';
+    } else {
+      billingBadge.style.display = 'none';
+    }
+  }
 
   const tbody = document.getElementById('clientsTableBody');
   const table = document.getElementById('clientsTable');
@@ -2376,8 +2398,14 @@ function renderSupportQueue() {
 
   
   const badge = document.getElementById('openRequestsBadge');
-  if (openCount > 0) { badge.textContent = openCount; badge.style.display = 'inline'; }
-  else { badge.style.display = 'none'; }
+  const supportSeen = sessionStorage.getItem('nt_support_seen');
+  const onSupportTab = document.querySelector('[data-tab="support"]')?.classList.contains('active');
+  if (openCount > 0 && !onSupportTab && supportSeen !== String(openCount)) {
+    badge.textContent = openCount;
+    badge.style.display = 'inline';
+  } else if (openCount === 0 || onSupportTab || supportSeen === String(openCount)) {
+    badge.style.display = 'none';
+  }
 
   
   const filtered = sqFilter === 'all'
