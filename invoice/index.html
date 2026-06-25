@@ -389,7 +389,9 @@ async function buildInvoice(p, fbKey) {
   const monthlyFee = parseFloat(p.hosting || 0);
   const annualFee  = monthlyFee > 0 ? monthlyFee * 12 : 0;
   const setupFee   = p.setupFee ? 50 : 0;
-  const total      = buildFee + annualFee + setupFee;
+  const subtotal   = buildFee + annualFee + setupFee;
+  const procFee    = p.passProcessing ? Math.ceil((subtotal * 0.033 + 0.30) * 100) / 100 : 0;
+  const total      = subtotal + procFee;
 
   
   const payStatus = p.paymentStatus || 'Unpaid';
@@ -454,6 +456,7 @@ async function buildInvoice(p, fbKey) {
     { name: 'Custom app build', desc: esc(p.name || 'Custom application') + '  -  designed and built from scratch', amount: buildFee },
     ...(setupFee > 0 ? [{ name: 'Assisted onboarding setup fee', desc: 'One-time setup fee for account configuration, domain, and hosting onboarding.', amount: 50 }] : []),
     ...(hostingLabel && annualFee > 0 ? [{ name: hostingLabel + ' — Annual plan', desc: '$' + monthlyFee.toFixed(2) + '/mo × 12 months  —  billed once per year, renews ' + nextBillingDate + '.', amount: annualFee }] : []),
+    ...(procFee > 0 ? [{ name: 'Payment processing fee', desc: 'Square online payment processing (3.3% + $0.30). Waived if paying by check or bank transfer.', amount: procFee }] : []),
   ];
 
   const wrap = document.getElementById('invoiceWrap');
