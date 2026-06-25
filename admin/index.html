@@ -1011,6 +1011,7 @@ const db    = getDatabase(fbApp);
 const projectsRef = ref(db, 'projects');
 
 let projectsCache = [];
+let projects = [];
 let listenerAttached = false;
 
 const USERNAME='admin', PASSWORD='817564Burg!@', SESSION_KEY='nt_auth';
@@ -1863,7 +1864,8 @@ document.querySelectorAll('.tab-btn').forEach(function(btn) {
     }
     if (this.dataset.tab === 'clients') {
       renderClientTab();
-      sessionStorage.setItem('nt_billing_seen', String(projects.filter(p => !p.paymentStatus || p.paymentStatus === 'Unpaid' || p.paymentStatus === 'Overdue').length));
+      const billSrc = (projects && projects.length > 0) ? projects : projectsCache;
+      sessionStorage.setItem('nt_billing_seen', String(billSrc.filter(p => !p.paymentStatus || p.paymentStatus === 'Unpaid' || p.paymentStatus === 'Overdue').length));
       const bb = document.getElementById('billingBadge');
       if (bb) bb.style.display = 'none';
     }
@@ -2056,7 +2058,8 @@ function loadSupportQueue() {
     snapshot.forEach(function(projectSnap) {
       const projectKey = projectSnap.key;
       
-      const project = projects.find(p => p._fbKey === projectKey);
+      const projectSrc = (projects && projects.length > 0) ? projects : projectsCache;
+      const project = projectSrc.find(p => p._fbKey === projectKey);
       projectSnap.forEach(function(reqSnap) {
         allSupportRequests.push(Object.assign({}, reqSnap.val(), {
           _key: reqSnap.key,
@@ -2281,6 +2284,7 @@ document.getElementById('addExpenseBtn').addEventListener('click', async functio
 });
 
 function renderClientTab() {
+  if (!projects || projects.length === 0) projects = projectsCache.slice();
   document.getElementById('clientsLoading').style.display = 'none';
 
   const filtered = projects.filter(function(p) {
