@@ -638,11 +638,17 @@
       </div>
 
       
-      <div class="period-bar" style="margin-bottom:20px">
-        <button class="period-pill active" data-sqfilter="all">All</button>
-        <button class="period-pill" data-sqfilter="Open">Open</button>
-        <button class="period-pill" data-sqfilter="In progress">In progress</button>
-        <button class="period-pill" data-sqfilter="Resolved">Resolved</button>
+      <div class="period-bar" style="margin-bottom:20px;justify-content:space-between">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="period-pill active" data-sqfilter="all">All</button>
+          <button class="period-pill" data-sqfilter="Open">Open</button>
+          <button class="period-pill" data-sqfilter="In progress">In progress</button>
+          <button class="period-pill" data-sqfilter="Resolved">Resolved</button>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button id="downloadSupportPdfBtn" class="btn btn-primary btn-sm" style="font-size:12px;padding:6px 14px" onclick="downloadSupportPDF()">Download PDF</button>
+          <button id="downloadSupportBtn" class="btn btn-ghost btn-sm" style="font-size:12px;padding:6px 14px" onclick="downloadSupportCSV()">Download CSV</button>
+        </div>
         <button class="period-pill" data-sqfilter="Closed">Closed</button>
       </div>
 
@@ -988,11 +994,13 @@
 
   <div class="drawer-actions" style="flex-wrap:wrap">
     <button class="btn btn-primary" id="drawerInvoice">Generate invoice</button>
+    <button class="btn btn-ghost" id="drawerIntakePdf" style="color:var(--accent);border-color:var(--accent)"> Download intake PDF</button>
     <button class="btn btn-ghost" id="drawerArchive" style="color:var(--ink-faint);border-style:dashed">Archive project</button>
     <button class="btn btn-ghost" id="drawerDepositInvoice" style="color:var(--warm);border-color:var(--warm)">Bill deposit</button>
     <button class="btn btn-ghost" id="drawerMarkDepositPaid" style="color:var(--green);border-color:var(--green)"> Deposit paid</button>
     <button class="btn btn-ghost" id="drawerMarkPaid" style="color:var(--green);border-color:var(--green)"> Mark paid in full</button>
     <button class="btn btn-ghost" id="drawerActivateSub" style="display:none;color:var(--accent);border-color:var(--accent)"> Activate annual invoice</button>
+    <button class="btn btn-ghost" id="drawerDeactivateSub" style="display:none;color:var(--red);border-color:var(--red)"> Deactivate annual invoice</button>
   </div>
   <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line)">
     <button class="btn btn-danger" id="drawerDeleteBtn"> Delete project</button>
@@ -1014,6 +1022,8 @@
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script type="module">
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
@@ -1080,12 +1090,14 @@ function showDashboard(){
       projectsRef,
       function(snapshot){
         clearTimeout(timeoutId);
+        const prevCache = projectsCache.slice();
         projectsCache=[];
         if(snapshot.exists()){
           snapshot.forEach(function(child){
             projectsCache.push(Object.assign({_fbKey:child.key},child.val()));
           });
         }
+        autoRecordIncome(prevCache, projectsCache);
         showLoading(false);
         renderAll();
         init();
@@ -1574,17 +1586,20 @@ function openDrawer(id){
   if (p.hosting && parseFloat(p.hosting) > 0) {
     activateBtn.style.display = 'inline-flex';
     
+    const deactivateBtn = document.getElementById('drawerDeactivateSub');
     if (p.squareInvoiceId) {
-      activateBtn.textContent = ' Monthly invoices active';
+      activateBtn.textContent = ' Annual invoice active';
       activateBtn.disabled = true;
-      activateBtn.style.opacity = '0.6';
+      activateBtn.style.opacity = '0.5';
       activateBtn.style.cursor = 'default';
-      document.getElementById('dSubStatus').innerHTML = '<span style="color:var(--green);font-weight:600">Active</span>  -  Invoice ID: ' + esc(p.squareInvoiceId);
+      deactivateBtn.style.display = 'inline-flex';
+      document.getElementById('dSubStatus').innerHTML = '<span style="color:var(--green);font-weight:600">Active</span> — Invoice ID: ' + esc(p.squareInvoiceId);
     } else {
       activateBtn.textContent = ' Activate annual invoice';
       activateBtn.disabled = false;
       activateBtn.style.opacity = '1';
       activateBtn.style.cursor = 'pointer';
+      deactivateBtn.style.display = 'none';
       document.getElementById('dSubStatus').textContent = p.hosting ? 'Not yet activated' : 'N/A';
     }
   } else {
@@ -1728,7 +1743,7 @@ function loadSupportRequests(projectKey) {
       div.innerHTML = `
         <div class="support-req-type">
           <span>${esc(item.type||'Request')} · ${date}</span>
-          <select class="support-req-status" style="background:${statusStyle};border:none;border-radius:999px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;cursor:pointer;padding:2px 6px" data-key="${item._key}">
+          <select class="support-req-status" style="background:${statusStyle};border:none;border-radius:999px;font-family:monospace;font-size:10px;font-weight:600;cursor:pointer;padding:2px 6px" data-key="${item._key}">
             <option ${status==='Open'?'selected':''}>Open</option>
             <option ${status==='In progress'?'selected':''}>In progress</option>
             <option ${status==='Resolved'?'selected':''}>Resolved</option>
@@ -1818,15 +1833,27 @@ document.getElementById('drawerActivateSub').addEventListener('click', async fun
       openDrawer(drawerProjectId);
     } else {
       alert('Failed: ' + (json.error || 'Unknown error'));
-      btn.textContent = ' Activate recurring invoice';
+      btn.textContent = ' Activate annual invoice';
       btn.disabled = false;
     }
   } catch(err) {
     alert('Network error: ' + err.message);
-    btn.textContent = ' Activate recurring invoice';
+    btn.textContent = ' Activate annual invoice';
     btn.disabled = false;
   }
 });;
+
+document.getElementById('drawerDeactivateSub').addEventListener('click', async function() {
+  const p = projectsCache.find(x=>x._fbKey===drawerProjectId); if(!p) return;
+  if (!p.squareInvoiceId) return;
+  if (!confirm('Deactivate annual invoice for "' + p.name + '"?\n\nThis will remove the Square invoice ID from this project. The invoice in Square will NOT be automatically cancelled — you will need to cancel it in your Square dashboard if needed.\n\nProceed?')) return;
+  try {
+    await update(ref(db, 'projects/' + p._fbKey), { squareInvoiceId: null, updatedAt: Date.now() });
+    openDrawer(drawerProjectId);
+  } catch(err) {
+    alert('Failed to deactivate: ' + err.message);
+  }
+});
 
 document.getElementById('drawerDepositInvoice').addEventListener('click', async function() {
   const p = projectsCache.find(x=>x._fbKey===drawerProjectId); if(!p) return;
@@ -1885,17 +1912,174 @@ document.getElementById('drawerInvoice').addEventListener('click',function(){
   window.open('/invoice?fbkey='+encodeURIComponent(p._fbKey), '_blank');
 });
 
-document.getElementById('drawerMarkPaid').addEventListener('click',function(){
-  const p=projectsCache.find(x=>x._fbKey===drawerProjectId); if(!p)return;
+document.getElementById('drawerMarkPaid').addEventListener('click', async function(){
+  const p = projectsCache.find(x=>x._fbKey===drawerProjectId); if(!p) return;
   const isPaid = p.paymentStatus === 'Paid in full';
-  const msg = isPaid
-    ? 'Remove "Paid in full" status from "' + p.name + '"? This will set it back to Unpaid.'
-    : 'Mark "' + p.name + '" as Paid in full?';
-  if(!confirm(msg))return;
-  fbSave(Object.assign({},p,{paymentStatus: isPaid ? 'Unpaid' : 'Paid in full'}), p._fbKey)
-    .then(function(){openDrawer(drawerProjectId);})
-    .catch(function(err){alert('Update failed: '+err.message);});
+
+  if (isPaid) {
+    if (!confirm('Remove "Paid in full" status from "' + p.name + '"? This will set it back to Unpaid.')) return;
+    await fbSave(Object.assign({},p,{paymentStatus:'Unpaid'}), p._fbKey);
+    openDrawer(drawerProjectId);
+    return;
+  }
+
+  const buildFee  = parseFloat(p.buildFee || 0);
+  const setupFee  = p.setupFee ? 50 : 0;
+  const annualFee = parseFloat(p.hosting || 0) * 12;
+  const subtotal  = buildFee + setupFee + annualFee;
+  const procFee   = Math.ceil((subtotal * 0.033 + 0.30) * 100) / 100;
+  const total     = (subtotal + procFee).toFixed(2);
+
+  const msg = 'Mark "' + p.name + '" as Paid in full?\n\nBuild fee:    $' + buildFee.toFixed(2)
+    + (setupFee ? '\nSetup fee:    $50.00' : '')
+    + (annualFee > 0 ? '\nAnnual plan:  $' + annualFee.toFixed(2) : '')
+    + '\nProcessing:   $' + procFee.toFixed(2)
+    + '\n─────────────────\nTotal:        $' + total
+    + '\n\nThis will record a $' + total + ' payment on the income tab.';
+
+  if (!confirm(msg)) return;
+
+  const now = new Date().toISOString().split('T')[0];
+  const updates = {
+    paymentStatus: 'Paid in full',
+    paidInFullAt:  Date.now(),
+    paidInFullAmt: parseFloat(total),
+  };
+
+  await fbSave(Object.assign({}, p, updates), p._fbKey);
+
+  await set(push(ref(db, 'projects/' + p._fbKey + '/payments')), {
+    type:      'build_fee',
+    label:     'Build fee — ' + (p.name || 'Project') + ' (paid in full)',
+    amount:    parseFloat(total),
+    date:      now,
+    recordedAt: Date.now(),
+  });
+
+  openDrawer(drawerProjectId);
+  renderAll();
 });
+
+document.getElementById('drawerIntakePdf').addEventListener('click', async function() {
+  const p = projectsCache.find(x => x._fbKey === drawerProjectId);
+  if (!p) return;
+  const btn = this;
+  btn.textContent = 'Generating...';
+  btn.disabled = true;
+  try {
+    await generateIntakePDF(p);
+  } catch(err) {
+    alert('PDF generation failed: ' + err.message);
+    console.error(err);
+  } finally {
+    btn.textContent = ' Download intake PDF';
+    btn.disabled = false;
+  }
+});
+
+async function generateIntakePDF(p) {
+  const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+  function row(label, value) {
+    if (!value) return '';
+    return '<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #f1f3f7">'
+      + '<div style="font-family:monospace;font-size:10px;font-weight:700;color:#8a90a6;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px">' + label + '</div>'
+      + '<div style="font-size:13.5px;color:#13182b;white-space:pre-wrap;word-break:break-word">' + String(value).replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>'
+      + '</div>';
+  }
+
+  function section(title) {
+    return '<div style="margin:24px 0 14px;padding-bottom:8px;border-bottom:2px solid #e2e4ec">'
+      + '<span style="font-family:monospace;font-size:10px;font-weight:700;color:#1d4ed8;letter-spacing:0.1em;text-transform:uppercase">' + title + '</span>'
+      + '</div>';
+  }
+
+  const annualFee = p.hosting ? '$' + (parseFloat(p.hosting)*12).toFixed(2) + '/yr ($' + p.hosting + '/mo)' : 'None';
+  const serviceLabel = p.hosting === '50' ? 'Hosting + Backend & database'
+    : p.hosting === '35' ? 'Backend & database'
+    : p.hosting === '20' ? 'Hosting'
+    : 'None';
+
+  let html = ''
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;padding-bottom:20px;border-bottom:2px solid #1d4ed8">'
+    + '<div>'
+    + '<div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#13182b">New Trail Design LLC</div>'
+    + '<div style="font-size:12px;color:#545b72;margin-top:4px">tyler@newtraildesign.com  ·  newtraildesign.com</div>'
+    + '</div>'
+    + '<div style="text-align:right">'
+    + '<div style="font-family:monospace;font-size:10px;font-weight:700;color:#1d4ed8;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px">Client Intake Form</div>'
+    + '<div style="font-size:12px;color:#545b72">' + (p.name || 'Unnamed project') + '</div>'
+    + '<div style="font-size:11px;color:#8a90a6;margin-top:2px">Downloaded ' + today + '</div>'
+    + '</div>'
+    + '</div>'
+
+    + section('Contact Information')
+    + row('Full name', p.client)
+    + row('Business / organization', p.business)
+    + row('Email', p.email)
+    + row('Phone', p.phone)
+    + row('Address', p.address)
+
+    + section('Project Details')
+    + row('Project name', p.name)
+    + row('App type', p.type)
+    + row('Start date', p.startDate || 'Awaiting deposit')
+    + row('Deadline', p.deadline)
+    + row('Industry', (p.notes || '').match(/INDUSTRY:\s*(.+)/)?.[1] || '')
+    + row('How they heard about us', (p.notes || '').match(/REFERRAL:\s*(.+)/)?.[1] || '')
+
+    + section('Project Brief')
+    + row('Project brief', p.brief || '')
+
+    + section('Services & Billing')
+    + row('Services requested', serviceLabel + (p.hosting ? ' — ' + annualFee : ''))
+    + row('Timeline', (p.notes || '').match(/TIMELINE:[\s\S]*?(?:\n|$)/)?.[0]?.replace('TIMELINE:','').trim() || '')
+    + row('Build fee', p.buildFee ? '$' + p.buildFee : '')
+    + row('Deposit status', p.depositStatus || 'Not paid')
+    + row('Payment status', p.paymentStatus || 'Unpaid')
+
+    + section('Additional Notes')
+    + row('Additional notes', p.notes || '');
+  doc.innerHTML = html;
+  doc.style.display = 'block';
+  await new Promise(function(r) { setTimeout(r, 150); });
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'letter' });
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  const margin = 0;
+  const usableW = pageW - margin * 2;
+
+  const canvas = await html2canvas(doc, {
+    scale: 1.5,
+    useCORS: true,
+    logging: false,
+    backgroundColor: '#ffffff',
+    width: 780,
+    windowWidth: 780,
+  });
+
+  const ratio  = canvas.width / canvas.height;
+  const imgH   = usableW / ratio;
+  const pages  = Math.ceil(imgH / pageH);
+
+  for (let i = 0; i < pages; i++) {
+    if (i > 0) pdf.addPage();
+    const srcY   = i * (canvas.height / pages);
+    const sliceH = canvas.height / pages;
+    const sc = document.createElement('canvas');
+    sc.width = canvas.width; sc.height = sliceH;
+    sc.getContext('2d').drawImage(canvas, 0, srcY, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+    pdf.addImage(sc.toDataURL('image/png'), 'PNG', margin, margin, usableW, pageH - margin * 2);
+  }
+
+  const clientSlug = (p.client || 'Client').replace(/[^a-zA-Z0-9 ]/g,'').trim().replace(/\s+/g,'_');
+  const projSlug   = (p.name   || 'Project').replace(/[^a-zA-Z0-9 ]/g,'').trim().replace(/\s+/g,'_');
+  pdf.save('NewTrailDesignLLC_' + clientSlug + '_' + projSlug + '.pdf');
+
+  doc.style.display = 'none';
+}
 
 document.getElementById('drawerDeleteBtn').addEventListener('click', function() {
   if (!drawerProjectId) return;
@@ -2024,6 +2208,59 @@ document.querySelectorAll('[data-sqfilter]').forEach(function(pill) {
 
 
 
+
+function autoRecordIncome(prevCache, newCache) {
+  newCache.forEach(function(p) {
+    const prev = prevCache.find(function(x) { return x._fbKey === p._fbKey; });
+
+    const buildFee  = parseFloat(p.buildFee || 0);
+    const setupFee  = p.setupFee ? 50 : 0;
+    const annualFee = parseFloat(p.hosting || 0) * 12;
+    const subtotal  = buildFee + setupFee + annualFee;
+    const procFee   = Math.ceil((subtotal * 0.033 + 0.30) * 100) / 100;
+    const buildTotal = parseFloat((subtotal + procFee).toFixed(2));
+
+    if (p.paidInFullAt && (!prev || !prev.paidInFullAt)) {
+      const amount = p.paidInFullAmt || buildTotal;
+      const date   = p.paidInFullAt
+        ? new Date(p.paidInFullAt).toISOString().split('T')[0]
+        : new Date().toISOString().split('T')[0];
+      set(push(ref(db, 'expenses')), {
+        type:      'income',
+        label:     'Build fee paid in full — ' + (p.name || 'Project') + ' (' + (p.client || '') + ')',
+        amount:    amount,
+        date:      date,
+        projectKey: p._fbKey,
+        recordedAt: Date.now(),
+      });
+    }
+
+    if (p.lastSubscriptionPaidAt && (!prev || p.lastSubscriptionPaidAt !== prev.lastSubscriptionPaidAt)) {
+      const annual = parseFloat(p.hosting || 0) * 12;
+      const date   = new Date(p.lastSubscriptionPaidAt).toISOString().split('T')[0];
+      set(push(ref(db, 'expenses')), {
+        type:      'income',
+        label:     'Annual subscription — ' + (p.name || 'Project') + ' (' + (p.client || '') + ')',
+        amount:    annual,
+        date:      date,
+        projectKey: p._fbKey,
+        recordedAt: Date.now(),
+      });
+    }
+
+    if (p.depositPaidAt && (!prev || !prev.depositPaidAt)) {
+      const date = new Date(p.depositPaidAt).toISOString().split('T')[0];
+      set(push(ref(db, 'expenses')), {
+        type:      'income',
+        label:     'Deposit received — ' + (p.name || 'Project') + ' (' + (p.client || '') + ')',
+        amount:    100,
+        date:      date,
+        projectKey: p._fbKey,
+        recordedAt: Date.now(),
+      });
+    }
+  });
+}
 
 function init() {
   setDefaultExpenseDate();
@@ -2367,7 +2604,7 @@ function renderCategoryBreakdown(items) {
     const card = document.createElement('div');
     card.style.cssText = 'background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;';
     card.innerHTML = `
-      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">${esc(cat)}</div>
+      <div style="font-family:monospace;font-size:11px;font-weight:600;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">${esc(cat)}</div>
       <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:var(--red)">$${amount.toFixed(2)}</div>
     `;
     wrap.appendChild(card);
@@ -2494,10 +2731,10 @@ function renderClientTab() {
         <div class="client-name">${esc(p.client || '—')}</div>
         <div class="client-biz">${esc(p.name || '')}${p.business ? ' · ' + esc(p.business) : ''}</div>
       </td>
-      <td style="font-family:'IBM Plex Mono',monospace;font-size:13px">${p.buildFee ? '$' + p.buildFee : '—'}</td>
+      <td style="font-family:monospace;font-size:13px">${p.buildFee ? '$' + p.buildFee : '—'}</td>
       <td><span class="pill ${payPill}">${esc(payStatus)}</span></td>
       <td>${depPill}</td>
-      <td style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--warm)">${monthly}</td>
+      <td style="font-family:monospace;font-size:13px;color:var(--warm)">${monthly}</td>
       <td>${subHtml}</td>
       <td style="font-size:12px;color:var(--ink-faint)">${updated}</td>
     `;
@@ -2729,5 +2966,8 @@ document.getElementById('cdbSearch')?.addEventListener('input', function() {
 });
 
 </script>
+
+<div id="intakePdfDoc" style="position:fixed;left:-9999px;top:0;width:780px;background:#fff;font-family:'IBM Plex Sans',sans-serif;color:#13182b;font-size:13px;line-height:1.6;padding:48px 52px;display:none"></div>
+<div id="supportPdfDoc" style="position:fixed;left:-9999px;top:0;width:780px;background:#fff;font-family:'IBM Plex Sans',sans-serif;color:#13182b;font-size:13px;line-height:1.6;padding:48px 52px"></div>
 </body>
 </html>
