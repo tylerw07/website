@@ -205,138 +205,123 @@
     <!-- Portal Tab Navigation -->
     <div class="portal-tab-bar" id="portalTabBar">
       <button class="portal-tab-btn active" data-portal-tab="overview">Overview</button>
-      <button class="portal-tab-btn" data-portal-tab="progress">Progress</button>
-      <button class="portal-tab-btn" data-portal-tab="billing">Billing</button>
       <button class="portal-tab-btn" data-portal-tab="support">Support</button>
       <button class="portal-tab-btn" id="playgroundTabBtn" data-portal-tab="playground" style="display:none">Playground</button>
     </div>
 
-    <!-- Overview Tab -->
+    <!-- Overview Tab (Project info + Progress + Billing combined) -->
     <div class="portal-tab-panel active" id="portal-tab-overview">
-    
-    <div class="status-card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <h3 style="margin:0">Project overview</h3>
-        <span id="clientNumCard" style="display:none;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;color:var(--ink-faint)"></span>
-      </div>
-      <div class="status-grid">
-        <div class="status-item">
-          <div class="status-label">Project name</div>
-          <div class="status-value" id="pName">—</div>
-        </div>
-        <div class="status-item">
-          <div class="status-label">Status</div>
-          <div class="status-value" id="pStatus">—</div>
-        </div>
-        <div class="status-item">
-          <div class="status-label">Type</div>
-          <div class="status-value" id="pType">—</div>
-        </div>
-        <div class="status-item">
-          <div class="status-label">Start date</div>
-          <div class="status-value" id="pStart">—</div>
-        </div>
-        <div class="status-item">
-          <div class="status-label">Target deadline</div>
-          <div class="status-value" id="pDeadline">—</div>
-        </div>
-        <div class="status-item">
-          <div class="status-label">Live URL</div>
-          <div class="status-value" id="pUrl">—</div>
-        </div>
-      </div>
-    </div>
 
-
-    </div>
-
-    <!-- Progress Tab -->
-    <div class="portal-tab-panel" id="portal-tab-progress">
-    
-    <div class="status-card">
-      <h3>Project progress</h3>
-      <div id="pDepositBanner" style="display:none;background:#fef3c7;border:1px solid #f59e0b;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13.5px;color:#92400e">
-        <strong>Deposit required to begin.</strong> Once your $100 deposit is received, work begins and this progress tracker will update.
-      </div>
-      <div class="progress-track" id="progressTrack">
-        <div class="track-step">
-          <div class="track-circle" id="tc1">1</div>
-          <div class="track-label" id="tl1">Brief received</div>
+      <div class="status-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <h3 style="margin:0">Project overview</h3>
+          <span id="clientNumCard" style="display:none;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;color:var(--ink-faint)"></span>
         </div>
-        <div class="track-line" id="tline1"></div>
-        <div class="track-step">
-          <div class="track-circle" id="tc2">2</div>
-          <div class="track-label" id="tl2">Deposit paid</div>
-        </div>
-        <div class="track-line" id="tline2"></div>
-        <div class="track-step">
-          <div class="track-circle" id="tc3">3</div>
-          <div class="track-label" id="tl3">In development</div>
-        </div>
-        <div class="track-line" id="tline3"></div>
-        <div class="track-step">
-          <div class="track-circle" id="tc4">4</div>
-          <div class="track-label" id="tl4">Review & launch</div>
-        </div>
-        <div class="track-line" id="tline4"></div>
-        <div class="track-step">
-          <div class="track-circle" id="tc5"></div>
-          <div class="track-label" id="tl5">Live</div>
-        </div>
-      </div>
-    </div>
-
-
-    </div>
-
-    <!-- Billing Tab -->
-    <div class="portal-tab-panel" id="portal-tab-billing">
-    
-    <div class="status-card">
-      <h3>Billing</h3>
-      <div class="status-grid" style="margin-bottom:20px">
-        <div class="status-item">
-          <div class="status-label">Build fee</div>
-          <div class="status-value" id="pBuildFee">—</div>
-        </div>
-        <div class="status-item">
-          <div class="status-label">Payment status</div>
-          <div class="status-value" id="pPayStatus">—</div>
-        </div>
-        <div class="status-item">
-          <div class="status-label">Deposit</div>
-          <div class="status-value" id="pDepositStatus">—</div>
-        </div>
-        <div class="status-item">
-          <div class="status-label">Monthly plan</div>
-          <div class="status-value" id="pHosting">—</div>
+        <div class="status-grid">
+          <div class="status-item">
+            <div class="status-label">Project name</div>
+            <div class="status-value" id="pName">—</div>
+          </div>
+          <div class="status-item">
+            <div class="status-label">Status</div>
+            <div class="status-value" id="pStatus">—</div>
+          </div>
+          <div class="status-item">
+            <div class="status-label">Type</div>
+            <div class="status-value" id="pType">—</div>
+          </div>
+          <div class="status-item">
+            <div class="status-label">Start date</div>
+            <div class="status-value" id="pStart">—</div>
+          </div>
+          <div class="status-item">
+            <div class="status-label">Target deadline</div>
+            <div class="status-value" id="pDeadline">—</div>
+          </div>
+          <div class="status-item">
+            <div class="status-label">Live URL</div>
+            <div class="status-value" id="pUrl">—</div>
+          </div>
         </div>
       </div>
 
-      <div id="pNextBillingWrap" style="display:none;background:var(--accent-soft);border:1px solid var(--accent);border-radius:10px;padding:14px 16px;margin-bottom:16px">
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:700;color:var(--accent);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px">Next subscription payment due</div>
-        <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
-          <span style="font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--ink)" id="pNextBillingDate">—</span>
-          <span style="font-size:13px;color:var(--ink-soft)" id="pNextBillingAmt"></span>
+      <div class="status-card">
+        <h3>Project progress</h3>
+        <div id="pDepositBanner" style="display:none;background:#fef3c7;border:1px solid #f59e0b;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13.5px;color:#92400e">
+          <strong>Deposit required to begin.</strong> Once your $100 deposit is received, work begins and this progress tracker will update.
         </div>
-        <div style="font-size:12px;color:var(--ink-soft);margin-top:4px" id="pNextBillingNote"></div>
-      </div>
-
-      <div id="pPaymentActions" style="display:none;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--line)">
-        <button id="pPayDepositBtn" style="display:none" class="btn btn-primary">Pay $100 deposit</button>
-        <button id="pPayBalanceBtn" style="display:none" class="btn btn-primary">Pay build fee balance</button>
-        <button id="pPaySubscriptionBtn" style="display:none" class="btn btn-primary">Pay annual subscription</button>
-        <a id="pViewInvoiceBtn" style="display:none;text-decoration:none" class="btn btn-ghost" href="#" target="_blank">View invoice</a>
-      </div>
-
-      <div style="border-top:1px solid var(--line);padding-top:16px">
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--ink-faint);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:12px">Payment history</div>
-        <div id="invoiceList" class="invoice-list">
-          <div class="empty-state">No payments recorded yet.</div>
+        <div class="progress-track" id="progressTrack">
+          <div class="track-step">
+            <div class="track-circle" id="tc1">1</div>
+            <div class="track-label" id="tl1">Brief received</div>
+          </div>
+          <div class="track-line" id="tline1"></div>
+          <div class="track-step">
+            <div class="track-circle" id="tc2">2</div>
+            <div class="track-label" id="tl2">Deposit paid</div>
+          </div>
+          <div class="track-line" id="tline2"></div>
+          <div class="track-step">
+            <div class="track-circle" id="tc3">3</div>
+            <div class="track-label" id="tl3">In development</div>
+          </div>
+          <div class="track-line" id="tline3"></div>
+          <div class="track-step">
+            <div class="track-circle" id="tc4">4</div>
+            <div class="track-label" id="tl4">Review & launch</div>
+          </div>
+          <div class="track-line" id="tline4"></div>
+          <div class="track-step">
+            <div class="track-circle" id="tc5"></div>
+            <div class="track-label" id="tl5">Live</div>
+          </div>
         </div>
       </div>
-    </div>
 
+      <div class="status-card">
+        <h3>Billing</h3>
+        <div class="status-grid" style="margin-bottom:20px">
+          <div class="status-item">
+            <div class="status-label">Build fee</div>
+            <div class="status-value" id="pBuildFee">—</div>
+          </div>
+          <div class="status-item">
+            <div class="status-label">Payment status</div>
+            <div class="status-value" id="pPayStatus">—</div>
+          </div>
+          <div class="status-item">
+            <div class="status-label">Deposit</div>
+            <div class="status-value" id="pDepositStatus">—</div>
+          </div>
+          <div class="status-item">
+            <div class="status-label">Monthly plan</div>
+            <div class="status-value" id="pHosting">—</div>
+          </div>
+        </div>
+
+        <div id="pNextBillingWrap" style="display:none;background:var(--accent-soft);border:1px solid var(--accent);border-radius:10px;padding:14px 16px;margin-bottom:16px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:700;color:var(--accent);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px">Next subscription payment due</div>
+          <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+            <span style="font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--ink)" id="pNextBillingDate">—</span>
+            <span style="font-size:13px;color:var(--ink-soft)" id="pNextBillingAmt"></span>
+          </div>
+          <div style="font-size:12px;color:var(--ink-soft);margin-top:4px" id="pNextBillingNote"></div>
+        </div>
+
+        <div id="pPaymentActions" style="display:none;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--line)">
+          <button id="pPayDepositBtn" style="display:none" class="btn btn-primary">Pay $100 deposit</button>
+          <button id="pPayBalanceBtn" style="display:none" class="btn btn-primary">Pay build fee balance</button>
+          <button id="pPaySubscriptionBtn" style="display:none" class="btn btn-primary">Pay annual subscription</button>
+          <a id="pViewInvoiceBtn" style="display:none;text-decoration:none" class="btn btn-ghost" href="#" target="_blank">View invoice</a>
+        </div>
+
+        <div style="border-top:1px solid var(--line);padding-top:16px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--ink-faint);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:12px">Payment history</div>
+          <div id="invoiceList" class="invoice-list">
+            <div class="empty-state">No payments recorded yet.</div>
+          </div>
+        </div>
+      </div>
 
     </div>
 
