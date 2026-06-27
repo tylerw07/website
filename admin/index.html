@@ -992,6 +992,39 @@
     </div>
   </div>
 
+  <div class="detail-section" id="drawerPlayground">
+    <h4 style="color:var(--accent);border-color:var(--accent)">Program Playground</h4>
+
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--ink-soft);display:block;margin-bottom:4px">HTML file URL <span style="font-weight:400;color:var(--ink-faint)">(GitHub raw or hosted)</span></label>
+        <input type="text" id="drawerPlaygroundUrl" placeholder="https://raw.githubusercontent.com/..." style="width:100%;padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--ink);box-sizing:border-box">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--ink-soft);display:block;margin-bottom:4px">Or upload / paste HTML</label>
+        <div style="display:flex;gap:8px;margin-bottom:6px">
+          <input type="file" id="drawerPlaygroundFile" accept=".html,.htm" style="font-size:12px;color:var(--ink-soft);flex:1;min-width:0">
+          <button type="button" onclick="drawerLoadPlaygroundFile()" style="font-family:inherit;font-size:12px;font-weight:600;padding:6px 12px;border-radius:6px;border:1px solid var(--line);background:var(--bg);cursor:pointer;white-space:nowrap;flex-shrink:0">Load file</button>
+        </div>
+        <textarea id="drawerPlaygroundHtml" rows="4" placeholder="Paste full HTML here..." style="width:100%;padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-size:12px;font-family:'IBM Plex Mono',monospace;background:var(--bg);color:var(--ink);resize:vertical;box-sizing:border-box"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button onclick="drawerSavePlayground()" class="btn btn-primary btn-sm" style="font-size:12px;padding:7px 16px">Save &amp; preview</button>
+        <button onclick="drawerClearPlayground()" class="btn btn-ghost btn-sm" style="font-size:12px;padding:7px 16px;color:var(--red);border-color:var(--red)">Clear playground</button>
+      </div>
+    </div>
+
+    <div id="drawerPlaygroundPreview" style="display:none;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#f8fafc">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg);border-bottom:1px solid var(--line)">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;color:var(--accent);letter-spacing:0.06em;text-transform:uppercase">Preview</span>
+        <div style="display:flex;gap:6px">
+          <button onclick="drawerRefreshPlayground()" style="font-family:inherit;font-size:11px;font-weight:600;padding:3px 10px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer;color:var(--ink-soft)">Refresh</button>
+        </div>
+      </div>
+      <iframe id="drawerPlaygroundFrame" sandbox="allow-scripts allow-forms allow-same-origin allow-modals" style="width:100%;height:500px;border:none;display:block" title="Playground preview"></iframe>
+    </div>
+  </div>
+
   <div class="detail-section" id="drawerChecklist">
     <h4>Onboarding checklist</h4>
     <div id="checklistItems" style="display:flex;flex-direction:column;gap:8px"></div>
@@ -1657,6 +1690,27 @@ function openDrawer(id){
   else{ts.style.display='none';}
   const dPortalUserEl = document.getElementById('dPortalUser');
   if (dPortalUserEl) dPortalUserEl.textContent = p.portalUsername || '—';
+
+  const dpUrl  = document.getElementById('drawerPlaygroundUrl');
+  const dpHtml = document.getElementById('drawerPlaygroundHtml');
+  const dpPrev = document.getElementById('drawerPlaygroundPreview');
+  const dpFrame = document.getElementById('drawerPlaygroundFrame');
+  if (dpUrl)  dpUrl.value  = p.clientHtml     || '';
+  if (dpHtml) dpHtml.value = p.playgroundHtml || '';
+  if (dpPrev && dpFrame) {
+    if (p.clientHtml || p.playgroundHtml) {
+      dpPrev.style.display = 'block';
+      if (p.clientHtml) {
+        dpFrame.src = p.clientHtml;
+      } else {
+        const blob = new Blob([p.playgroundHtml], { type: 'text/html' });
+        dpFrame.src = URL.createObjectURL(blob);
+      }
+    } else {
+      dpPrev.style.display = 'none';
+      dpFrame.src = '';
+    }
+  }
   const passEl2     = document.getElementById('dPortalPass');
   const passToggle2 = document.getElementById('dPortalPassToggle');
   if (passEl2) { passEl2.textContent = '—'; passEl2.dataset.pass = ''; passEl2.dataset.shown = 'false'; }
@@ -2122,6 +2176,73 @@ document.getElementById('drawerOverlay').addEventListener('click',function(e){if
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeModal();closeDrawer();}});
 renderAll();
 
+
+function drawerLoadPlaygroundFile() {
+  const fileInput = document.getElementById('drawerPlaygroundFile');
+  const textarea  = document.getElementById('drawerPlaygroundHtml');
+  if (!fileInput || !fileInput.files.length) { alert('Please select an HTML file first.'); return; }
+  const reader = new FileReader();
+  reader.onload = function(e) { textarea.value = e.target.result; };
+  reader.readAsText(fileInput.files[0]);
+}
+window.drawerLoadPlaygroundFile = drawerLoadPlaygroundFile;
+
+async function drawerSavePlayground() {
+  const p = projectsCache.find(x => x._fbKey === drawerProjectId);
+  if (!p) return;
+  const url  = (document.getElementById('drawerPlaygroundUrl').value  || '').trim();
+  const html = (document.getElementById('drawerPlaygroundHtml').value || '').trim();
+  const btn  = document.querySelector('[onclick="drawerSavePlayground()"]');
+  if (btn) { btn.textContent = 'Saving...'; btn.disabled = true; }
+  try {
+    await update(ref(db, 'projects/' + p._fbKey), { clientHtml: url, playgroundHtml: html, updatedAt: Date.now() });
+    const dpPrev  = document.getElementById('drawerPlaygroundPreview');
+    const dpFrame = document.getElementById('drawerPlaygroundFrame');
+    if (url || html) {
+      dpPrev.style.display = 'block';
+      if (url) {
+        dpFrame.src = url + '?t=' + Date.now();
+      } else {
+        const blob = new Blob([html], { type: 'text/html' });
+        dpFrame.src = URL.createObjectURL(blob);
+      }
+    } else {
+      dpPrev.style.display = 'none';
+      dpFrame.src = '';
+    }
+  } catch(err) {
+    alert('Save failed: ' + err.message);
+  } finally {
+    if (btn) { btn.textContent = 'Save & preview'; btn.disabled = false; }
+  }
+}
+window.drawerSavePlayground = drawerSavePlayground;
+
+async function drawerClearPlayground() {
+  const p = projectsCache.find(x => x._fbKey === drawerProjectId);
+  if (!p) return;
+  if (!confirm('Clear the playground for this project? The client will see "Coming soon" until you add new content.')) return;
+  await update(ref(db, 'projects/' + p._fbKey), { clientHtml: '', playgroundHtml: '', updatedAt: Date.now() });
+  document.getElementById('drawerPlaygroundUrl').value  = '';
+  document.getElementById('drawerPlaygroundHtml').value = '';
+  document.getElementById('drawerPlaygroundPreview').style.display = 'none';
+  document.getElementById('drawerPlaygroundFrame').src = '';
+}
+window.drawerClearPlayground = drawerClearPlayground;
+
+function drawerRefreshPlayground() {
+  const url   = document.getElementById('drawerPlaygroundUrl').value.trim();
+  const html  = document.getElementById('drawerPlaygroundHtml').value.trim();
+  const frame = document.getElementById('drawerPlaygroundFrame');
+  if (!frame) return;
+  if (url) {
+    frame.src = url + '?t=' + Date.now();
+  } else if (html) {
+    const blob = new Blob([html], { type: 'text/html' });
+    frame.src = URL.createObjectURL(blob);
+  }
+}
+window.drawerRefreshPlayground = drawerRefreshPlayground;
 
 function loadPlaygroundFile() {
   const fileInput = document.getElementById('fPlaygroundFile');
