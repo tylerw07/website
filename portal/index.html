@@ -387,7 +387,7 @@
           </div>
           <iframe
             id="playgroundFrame"
-            sandbox="allow-scripts allow-forms allow-modals"
+            sandbox="allow-scripts allow-forms allow-modals allow-same-origin allow-popups"
             style="display:none;width:100%;height:620px;border:none;background:#fff"
             title="Program Playground"
           ></iframe>
@@ -405,7 +405,7 @@
   </div>
   <iframe
     id="playgroundFrameFull"
-    sandbox="allow-scripts allow-forms allow-modals"
+    sandbox="allow-scripts allow-forms allow-modals allow-same-origin allow-popups"
     style="flex:1;width:100%;border:none;background:#fff"
     title="Program Playground Fullscreen"
   ></iframe>
@@ -931,10 +931,11 @@ function renderPlayground(p) {
   frame.style.display   = 'none';
 
   if (_playgroundSrc) {
+    frame.removeAttribute('srcdoc');
     frame.src = _playgroundSrc;
   } else {
-    const blob = new Blob([_playgroundHtml], { type: 'text/html' });
-    frame.src  = URL.createObjectURL(blob);
+    frame.removeAttribute('src');
+    frame.srcdoc = _playgroundHtml;
   }
 
   frame.onload = function() {
@@ -975,10 +976,11 @@ function togglePlaygroundFullscreen() {
     overlay.style.display = 'flex';
     document.body.style.overflow = 'hidden';
     if (_playgroundSrc) {
+      frameFull.removeAttribute('srcdoc');
       frameFull.src = _playgroundSrc;
     } else if (_playgroundHtml) {
-      const blob = new Blob([_playgroundHtml], { type: 'text/html' });
-      frameFull.src = URL.createObjectURL(blob);
+      frameFull.removeAttribute('src');
+      frameFull.srcdoc = _playgroundHtml;
     }
   }
 }
