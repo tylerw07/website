@@ -867,11 +867,19 @@
         </select>
       </div>
       <div class="field"><label>Next billing date</label><input type="date" id="fNextBilling"></div>
-      <div class="section-divider">Client's existing site</div>
+      <div class="section-divider">Program Playground</div>
       <div class="field full">
-        <label>Client's current HTML file URL (GitHub raw or hosted link)</label>
-        <input type="text" id="fClientHtml" placeholder="https://raw.githubusercontent.com/... or https://clientsite.com">
-        <div style="font-size:12px;color:var(--ink-faint);margin-top:4px">Paste a publicly accessible URL to the client's current HTML file. It will render in a preview on the project detail view.</div>
+        <label>Playground — HTML URL <span style="font-size:11px;color:var(--ink-faint);font-weight:400">(optional — enter a URL or paste raw HTML below)</span></label>
+        <input type="text" id="fClientHtml" placeholder="https://raw.githubusercontent.com/... (leave blank if pasting raw HTML below)">
+      </div>
+      <div class="field full">
+        <label>Playground — Paste raw HTML <span style="font-size:11px;color:var(--ink-faint);font-weight:400">(optional — or upload a file)</span></label>
+        <div style="display:flex;gap:8px;margin-bottom:6px">
+          <input type="file" id="fPlaygroundFile" accept=".html,.htm" style="font-size:13px;color:var(--ink-soft);flex:1">
+          <button type="button" onclick="loadPlaygroundFile()" style="font-family:inherit;font-size:13px;font-weight:600;padding:6px 14px;border-radius:8px;border:1px solid var(--line);background:var(--bg);cursor:pointer;white-space:nowrap">Load file</button>
+        </div>
+        <textarea id="fPlaygroundHtml" rows="5" placeholder="Paste full HTML here — or upload a .html file above..." style="font-family:'IBM Plex Mono',monospace;font-size:12px"></textarea>
+        <div style="font-size:12px;color:var(--ink-faint);margin-top:4px">The client will see this in their portal under the Program Playground tab. URL takes priority over pasted HTML if both are set.</div>
       </div>
       <div class="section-divider">Notes</div>
       <div class="field full"><label>Project brief / scope</label><textarea id="fBrief" placeholder="What the client needs and what we're building..."></textarea></div>
@@ -1297,7 +1305,7 @@ function openModal(projectId){
   const p=projectId?projectsCache.find(x=>x._fbKey===projectId):null; editingId=p?p._fbKey:null;
   document.getElementById('modalTitle').textContent=p?'Edit project':'New project';
   document.getElementById('deleteProjectBtn').style.display=p?'block':'none';
-  const fields={fName:'name',fClient:'client',fBusiness:'business',fEmail:'email',fPhone:'phone',fAddress:'address',fStack:'stack',fUrl:'liveUrl',fRepo:'repo',fStartDate:'startDate',fDeadline:'deadline',fBuildFee:'buildFee',fNextBilling:'nextBilling',fBrief:'brief',fNotes:'notes',fClientHtml:'clientHtml'};
+  const fields={fName:'name',fClient:'client',fBusiness:'business',fEmail:'email',fPhone:'phone',fAddress:'address',fStack:'stack',fUrl:'liveUrl',fRepo:'repo',fStartDate:'startDate',fDeadline:'deadline',fBuildFee:'buildFee',fNextBilling:'nextBilling',fBrief:'brief',fNotes:'notes',fClientHtml:'clientHtml',fPlaygroundHtml:'playgroundHtml'};
   Object.keys(fields).forEach(function(fieldId){document.getElementById(fieldId).value=p?p[fields[fieldId]]||'':fieldId==='fBuildFee'?'350':'';});
   document.getElementById('fStatus').value=p?p.status:'active';
   document.getElementById('fType').value=p?p.type||'':'';
@@ -1357,7 +1365,8 @@ document.getElementById('modalSave').addEventListener('click', async function() 
     hosting:       document.getElementById('fHosting').value,
     nextBilling:   document.getElementById('fNextBilling').value,
     brief:         document.getElementById('fBrief').value.trim(),
-    clientHtml:    document.getElementById('fClientHtml').value.trim(),
+    clientHtml:     document.getElementById('fClientHtml').value.trim(),
+    playgroundHtml: document.getElementById('fPlaygroundHtml').value.trim(),
     notes:         document.getElementById('fNotes').value.trim(),
     tags,
     updatedAt: Date.now(),
@@ -2040,6 +2049,7 @@ async function generateIntakePDF(p) {
 
     + section('Additional Notes')
     + row('Additional notes', p.notes || '');
+  const doc = document.getElementById('intakePdfDoc');
   doc.innerHTML = html;
   doc.style.display = 'block';
   await new Promise(function(r) { setTimeout(r, 150); });
@@ -2109,6 +2119,20 @@ document.getElementById('drawerOverlay').addEventListener('click',function(e){if
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeModal();closeDrawer();}});
 renderAll();
 
+
+function loadPlaygroundFile() {
+  const fileInput = document.getElementById('fPlaygroundFile');
+  const textarea  = document.getElementById('fPlaygroundHtml');
+  if (!fileInput.files.length) { alert('Please select an HTML file first.'); return; }
+  const file = fileInput.files[0];
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    textarea.value = e.target.result;
+    alert('File loaded — click Save to apply.');
+  };
+  reader.readAsText(file);
+}
+window.loadPlaygroundFile = loadPlaygroundFile;
 
 function toggleDrawerPass() {
   const el  = document.getElementById('dPortalPass');
