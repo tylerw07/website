@@ -103,6 +103,7 @@
   .request-item-msg{font-size:13.5px;color:var(--ink-soft);line-height:1.6;}
   .request-item-date{font-size:11px;color:var(--ink-faint);font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
   .empty-state{text-align:center;padding:32px 20px;color:var(--ink-faint);font-size:14px;}
+  #playgroundFrameFull { display:block; }
 
   @media(max-width:600px){
     .status-grid{grid-template-columns:1fr;}
@@ -299,7 +300,43 @@
       </div>
     </div>
 
+    
+    <div class="status-card" id="playgroundCard" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <div>
+          <h3 style="margin:0">Program Playground</h3>
+          <p style="font-size:13px;color:var(--ink-soft);margin:4px 0 0">Interact with your project preview below. This is a sandboxed version — your real data is not affected.</p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button id="playgroundFullscreenBtn" onclick="togglePlaygroundFullscreen()" style="font-family:inherit;font-size:12px;font-weight:600;padding:6px 14px;border-radius:8px;border:1px solid var(--line);background:var(--bg);cursor:pointer;color:var(--ink-soft)">Fullscreen</button>
+          <button id="playgroundRefreshBtn" onclick="refreshPlayground()" style="font-family:inherit;font-size:12px;font-weight:600;padding:6px 14px;border-radius:8px;border:1px solid var(--line);background:var(--bg);cursor:pointer;color:var(--ink-soft)">Refresh</button>
+        </div>
+      </div>
+      <div id="playgroundWrap" style="border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#f8fafc;position:relative">
+        <div id="playgroundLoading" style="display:flex;align-items:center;justify-content:center;padding:48px;color:var(--ink-faint);font-size:14px">Loading preview...</div>
+        <iframe
+          id="playgroundFrame"
+          sandbox="allow-scripts allow-forms allow-same-origin allow-modals"
+          style="display:none;width:100%;height:600px;border:none;background:#fff"
+          title="Program Playground"
+        ></iframe>
+      </div>
+    </div>
+
   </div>
+</div>
+
+<div id="playgroundFullscreenOverlay" style="display:none;position:fixed;inset:0;z-index:600;background:#000;flex-direction:column">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#111;color:#fff">
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:0.06em">PROGRAM PLAYGROUND</span>
+    <button onclick="togglePlaygroundFullscreen()" style="font-family:inherit;font-size:13px;font-weight:600;padding:6px 14px;border-radius:6px;border:1px solid #444;background:transparent;color:#fff;cursor:pointer">Exit fullscreen</button>
+  </div>
+  <iframe
+    id="playgroundFrameFull"
+    sandbox="allow-scripts allow-forms allow-same-origin allow-modals"
+    style="flex:1;width:100%;border:none;background:#fff"
+    title="Program Playground Fullscreen"
+  ></iframe>
 </div>
 
 <script type="module">
@@ -425,6 +462,7 @@ async function renderProject(p) {
   const name = session.name ? session.name.split(' ')[0] : 'there';
   document.getElementById('welcomeHeading').textContent = 'Hey, ' + name + ' ';
 
+  renderPlayground(p);
   const clientNum = await computeClientNumber(p.email, p.client);
   const badge  = document.getElementById('clientNumBadge');
   const card   = document.getElementById('clientNumCard');
@@ -772,6 +810,84 @@ document.getElementById('submitRequestBtn').addEventListener('click', async func
 function esc(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+let _playgroundSrc = null;
+let _playgroundHtml = null;
+
+function renderPlayground(p) {
+  const card    = document.getElementById('playgroundCard');
+  const frame   = document.getElementById('playgroundFrame');
+  const loading = document.getElementById('playgroundLoading');
+  if (!card || !frame) return;
+
+  const hasUrl  = p.clientHtml && p.clientHtml.trim();
+  const hasHtml = p.playgroundHtml && p.playgroundHtml.trim();
+
+  if (!hasUrl && !hasHtml) {
+    card.style.display = 'none';
+    return;
+  }
+
+  card.style.display = 'block';
+  _playgroundSrc  = hasUrl  ? p.clientHtml.trim() : null;
+  _playgroundHtml = hasHtml ? p.playgroundHtml.trim() : null;
+
+  loading.style.display = 'flex';
+  frame.style.display   = 'none';
+
+  if (_playgroundSrc) {
+    frame.src = _playgroundSrc;
+  } else {
+    const blob = new Blob([_playgroundHtml], { type: 'text/html' });
+    frame.src  = URL.createObjectURL(blob);
+  }
+
+  frame.onload = function() {
+    loading.style.display = 'none';
+    frame.style.display   = 'block';
+  };
+}
+
+function refreshPlayground() {
+  const frame   = document.getElementById('playgroundFrame');
+  const loading = document.getElementById('playgroundLoading');
+  if (!frame) return;
+  loading.style.display = 'flex';
+  frame.style.display   = 'none';
+  if (_playgroundSrc) {
+    frame.src = _playgroundSrc + '?t=' + Date.now();
+  } else if (_playgroundHtml) {
+    const blob = new Blob([_playgroundHtml], { type: 'text/html' });
+    frame.src  = URL.createObjectURL(blob);
+  }
+  frame.onload = function() {
+    loading.style.display = 'none';
+    frame.style.display   = 'block';
+  };
+}
+window.refreshPlayground = refreshPlayground;
+
+function togglePlaygroundFullscreen() {
+  const overlay  = document.getElementById('playgroundFullscreenOverlay');
+  const frameFull = document.getElementById('playgroundFrameFull');
+  if (!overlay || !frameFull) return;
+  const isOpen = overlay.style.display === 'flex';
+  if (isOpen) {
+    overlay.style.display = 'none';
+    document.body.style.overflow = '';
+    frameFull.src = '';
+  } else {
+    overlay.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    if (_playgroundSrc) {
+      frameFull.src = _playgroundSrc;
+    } else if (_playgroundHtml) {
+      const blob = new Blob([_playgroundHtml], { type: 'text/html' });
+      frameFull.src = URL.createObjectURL(blob);
+    }
+  }
+}
+window.togglePlaygroundFullscreen = togglePlaygroundFullscreen;
 
 
 function togglePw(inputId, btn) {
