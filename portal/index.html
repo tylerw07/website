@@ -114,6 +114,41 @@
   .pw-wrap input { width:100%; padding-right:42px !important; }
   .pw-toggle { position:absolute; right:10px; background:none; border:none; cursor:pointer; color:var(--ink-faint); padding:4px; font-size:13px; font-family:'IBM Plex Mono',monospace; font-weight:600; letter-spacing:0.04em; user-select:none; }
   .pw-toggle:hover { color:var(--ink); }
+
+  /* Portal tabs */
+  .portal-tab-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+  .portal-tab-btn {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 22px;
+    border-radius: 999px;
+    border: 1.5px solid var(--line);
+    background: var(--surface);
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .portal-tab-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .portal-tab-btn.active {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+    box-shadow: 0 2px 8px rgba(19,24,43,0.18);
+  }
+  .portal-tab-panel { display: none; }
+  .portal-tab-panel.active { display: block; }
 </style>
 </head>
 <body>
@@ -352,7 +387,7 @@
           </div>
           <iframe
             id="playgroundFrame"
-            sandbox="allow-scripts allow-forms allow-same-origin allow-modals"
+            sandbox="allow-scripts allow-forms allow-modals"
             style="display:none;width:100%;height:620px;border:none;background:#fff"
             title="Program Playground"
           ></iframe>
@@ -370,7 +405,7 @@
   </div>
   <iframe
     id="playgroundFrameFull"
-    sandbox="allow-scripts allow-forms allow-same-origin allow-modals"
+    sandbox="allow-scripts allow-forms allow-modals"
     style="flex:1;width:100%;border:none;background:#fff"
     title="Program Playground Fullscreen"
   ></iframe>
@@ -395,7 +430,11 @@ const SESSION_KEY = 'nt_portal_user';
 const fbApp = initializeApp(firebaseConfig);
 const db = getDatabase(fbApp);
 
-let currentProjectKey = null;
+let currentProjectKey  = null;
+let currentUsername   = '';
+let allClientProjects = [];
+const WORKER   = 'https://create-subscription.tylerreedwilliams.workers.dev';
+const WEB3_KEY = 'c532615a-c40a-48f0-8ea4-174109630bac';
 
 const loginGate  = document.getElementById('loginGate');
 const dashboard  = document.getElementById('dashboard');
@@ -956,10 +995,6 @@ function togglePw(inputId, btn) {
 window.togglePw = togglePw;
 
 
-let allClientProjects = [];
-let currentUsername = '';
-const WORKER = 'https://create-subscription.tylerreedwilliams.workers.dev';
-const WEB3_KEY = 'c532615a-c40a-48f0-8ea4-174109630bac';
 
 function renderProjectSwitcher(projects, activeKey) {
   const wrap = document.getElementById('projectSwitcherWrap');
@@ -1008,7 +1043,6 @@ async function loadAllClientProjects(username) {
   } catch(e) { return []; }
 }
 
-const origShowDashboard = showDashboard;
 async function showDashboard(session) {
   currentUsername = session.username || '';
   loginGate.style.display = 'none';
