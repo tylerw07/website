@@ -824,7 +824,11 @@ function renderPlayground(p) {
   const hasHtml = p.playgroundHtml && p.playgroundHtml.trim();
 
   if (!hasUrl && !hasHtml) {
-    card.style.display = 'none';
+    card.style.display = 'block';
+    const loading = document.getElementById('playgroundLoading');
+    const frame   = document.getElementById('playgroundFrame');
+    if (loading) { loading.innerHTML = '<div style="text-align:center"><div style="font-size:32px;margin-bottom:12px"></div><div style="font-weight:600;color:var(--ink-soft);margin-bottom:6px">Coming soon</div><div style="font-size:13px;color:var(--ink-faint)">Your program playground isn\'t ready yet — check back soon.</div></div>'; loading.style.display = 'flex'; }
+    if (frame) frame.style.display = 'none';
     return;
   }
 
